@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>天狼祭2026 レジ</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#E8F4FD;--surface:#FFFFFF;--surface2:#F0F7FC;
+  --text:#1a2a3a;--muted:#6b8fa8;--border:#C5DFF0;
+  --accent:#2980B9;--accent-l:#3498DB;
+  --green:#0F6E56;--green-l:#E1F5EE;
+  --red:#c0392b;--red-l:#FCEBEB;
+  --amber:#e67e22;--amber-l:#FAEEDA;
+  --radius:12px;--radius-lg:18px;
+}
+body{font-family:'Helvetica Neue',Arial,'Hiragino Kaku Gothic ProN',sans-serif;
+  background:var(--bg);color:var(--text);min-height:100vh;
+  display:flex;flex-direction:column;-webkit-font-smoothing:antialiased}
+
+/* ヘッダー */
+.header{background:#2980B9;padding:14px 20px;
+  display:flex;align-items:center;justify-content:space-between;
+  border-bottom:1px solid #2471A3;flex-shrink:0}
+.header-title{font-size:16px;font-weight:700;color:#fff}
+.header-sub{font-size:12px;color:rgba(255,255,255,0.75);margin-top:2px}
+.customer-id{background:rgba(255,255,255,0.25);color:#fff;
+  font-size:13px;font-weight:600;padding:6px 14px;border-radius:999px;
+  border:1px solid rgba(255,255,255,0.4)}
+
+/* メインレイアウト */
+.main{display:grid;grid-template-columns:1fr 340px;
+  flex:1;gap:0;overflow:hidden;height:calc(100vh - 57px)}
+
+/* 左：商品選択 */
+.left{padding:16px;overflow-y:auto;background:var(--bg)}
+.section-title{font-size:11px;font-weight:600;color:var(--muted);
+  letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px}
+
+/* 公演選択 */
+/* 商品グリッド */
+.goods-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:20px}
+.goods-btn{background:#FFFFFF;border:1.5px solid var(--border);
+  border-radius:var(--radius);padding:14px 10px;cursor:pointer;
+  text-align:center;transition:all .15s;color:var(--text);
+  box-shadow:0 2px 6px rgba(0,0,0,0.06)}
+.goods-btn:hover{border-color:var(--accent);background:#EBF5FB;transform:translateY(-1px);box-shadow:0 4px 10px rgba(41,128,185,0.15)}
+.goods-btn:active{transform:scale(.97)}
+.goods-btn.in-cart{border-color:var(--accent);background:#D6EAF8;box-shadow:0 2px 8px rgba(41,128,185,0.2)}
+.goods-name{font-size:13px;font-weight:600;margin-bottom:4px}
+.goods-price{font-size:12px;color:var(--muted)}
+
+/* カート内アイテム */
+.cart-items{display:flex;flex-direction:column;gap:8px;margin-bottom:20px}
+.cart-item{background:#FFFFFF;border:1px solid var(--border);
+  border-radius:var(--radius);padding:12px 14px;
+  display:grid;grid-template-columns:1fr auto;align-items:center;gap:10px;
+  box-shadow:0 1px 4px rgba(0,0,0,0.06)}
+.cart-item-name{font-size:14px;font-weight:600}
+.cart-item-price{font-size:12px;color:var(--muted);margin-top:2px}
+.qty-control{display:flex;align-items:center;gap:8px}
+.qty-btn{width:32px;height:32px;border-radius:50%;border:none;cursor:pointer;
+  font-size:18px;font-weight:700;display:flex;align-items:center;justify-content:center;
+  transition:all .1s}
+.qty-btn.minus{background:var(--surface2);color:var(--muted)}
+.qty-btn.minus:hover{background:var(--red);color:#fff}
+.qty-btn.plus{background:var(--accent);color:#fff}
+.qty-btn.plus:hover{background:var(--accent-l)}
+.qty-num{font-size:18px;font-weight:700;min-width:28px;text-align:center}
+.cart-item-subtotal{font-size:14px;font-weight:700;text-align:right}
+
+/* 右：会計パネル */
+.right{background:#FFFFFF;border-left:1px solid var(--border);
+  display:flex;flex-direction:column;overflow-y:auto;
+  box-shadow:-2px 0 12px rgba(0,0,0,0.06)}
+.panel{padding:16px;flex:1}
+
+/* 小計表示 */
+.total-box{background:#EBF5FB;border-radius:var(--radius);
+  padding:16px;margin-bottom:14px;border:1px solid #C5DFF0}
+.total-row{display:flex;justify-content:space-between;align-items:center;
+  padding:4px 0}
+.total-label{font-size:13px;color:var(--muted)}
+.total-value{font-size:13px;font-weight:600}
+.total-row.grand{border-top:1px solid var(--border);margin-top:8px;padding-top:12px}
+.total-row.grand .total-label{font-size:15px;font-weight:700;color:var(--text)}
+.total-row.grand .total-value{font-size:24px;font-weight:800;color:var(--accent-l)}
+
+/* 決済方法 */
+.payment-group{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+.payment-btn{background:#FFFFFF;border:2px solid var(--border);
+  border-radius:var(--radius);padding:12px;cursor:pointer;
+  text-align:center;color:var(--text);font-size:14px;font-weight:600;
+  transition:all .15s;box-shadow:0 1px 4px rgba(0,0,0,0.08)}
+.payment-btn:hover{border-color:var(--accent)}
+.payment-btn.active.cash{border-color:#27ae60;background:rgba(39,174,96,.15);color:#2ecc71}
+.payment-btn.active.credit{border-color:#2980b9;background:rgba(41,128,185,.15);color:#3498db}
+
+/* お預かり金 */
+.input-group{margin-bottom:14px}
+.input-label{font-size:12px;color:var(--muted);margin-bottom:6px;display:block}
+.amount-input{width:100%;background:#FFFFFF;color:var(--text);
+  border:1.5px solid var(--border);border-radius:var(--radius);
+  padding:12px 14px;font-size:20px;font-weight:700;outline:none;text-align:right;
+  box-shadow:inset 0 1px 3px rgba(0,0,0,0.06)}
+.amount-input:focus{border-color:var(--accent)}
+.amount-input::placeholder{color:var(--border);font-size:14px;font-weight:400}
+
+/* おつり */
+.change-box{background:#EBF5FB;border-radius:var(--radius);
+  padding:14px;margin-bottom:14px;text-align:center;border:1px solid #C5DFF0}
+.change-label{font-size:12px;color:var(--muted);margin-bottom:4px}
+.change-value{font-size:28px;font-weight:800}
+.change-value.ok{color:#2ecc71}
+.change-value.ng{color:var(--red)}
+
+/* 数字パッド */
+.numpad{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:14px}
+.num-btn{background:#FFFFFF;border:1px solid var(--border);
+  border-radius:var(--radius);padding:14px;cursor:pointer;
+  font-size:18px;font-weight:600;color:var(--text);
+  text-align:center;transition:all .1s;
+  box-shadow:0 1px 3px rgba(0,0,0,0.08)}
+.num-btn:hover{background:var(--accent);border-color:var(--accent);color:#fff}
+.num-btn:active{transform:scale(.96)}
+.num-btn.del{color:var(--amber)}
+.num-btn.clear{color:var(--red)}
+
+/* オプション */
+.options{display:flex;align-items:center;gap:10px;margin-bottom:14px;
+  background:#F0F7FC;border-radius:var(--radius);padding:12px 14px;
+  border:1px solid var(--border)}
+.options label{display:flex;align-items:center;gap:8px;cursor:pointer;
+  font-size:13px;font-weight:500}
+.options input[type=checkbox]{width:18px;height:18px;cursor:pointer;accent-color:var(--accent)}
+
+/* 会計ボタン */
+.checkout-btn{width:100%;padding:16px;border:none;border-radius:var(--radius);
+  font-size:18px;font-weight:800;cursor:pointer;transition:all .15s;
+  margin-bottom:8px}
+.checkout-btn.ready{background:var(--accent);color:#fff}
+.checkout-btn.ready:hover{background:var(--accent-l)}
+.checkout-btn:disabled{background:var(--surface2);color:var(--muted);cursor:not-allowed}
+.reset-btn{width:100%;padding:12px;border:1px solid var(--border);
+  border-radius:var(--radius);font-size:14px;font-weight:600;
+  cursor:pointer;background:#fff;color:var(--muted)}
+.reset-btn:hover{border-color:var(--red);color:var(--red)}
+
+/* トースト */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+  background:#2980B9;border:none;color:#ffffff;
+  padding:12px 28px;border-radius:999px;font-size:14px;font-weight:600;
+  opacity:0;transition:opacity .3s;pointer-events:none;z-index:999;white-space:nowrap;
+  box-shadow:0 4px 16px rgba(0,0,0,0.2)}
+.toast.show{opacity:1}
+
+/* ローディング */
+.loading-overlay{position:fixed;inset:0;background:rgba(15,14,23,.85);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  z-index:100;display:none}
+.loading-overlay.show{display:flex}
+.loading-spinner{width:40px;height:40px;border:3px solid var(--border);
+  border-top-color:var(--accent);border-radius:50%;
+  animation:spin .8s linear infinite;margin-bottom:12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-text{font-size:14px;color:var(--muted)}
+
+@media(max-width:700px){
+  .main{grid-template-columns:1fr;height:auto}
+  .right{border-left:none;border-top:1px solid var(--border)}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="header-title">🐺 天狼祭2026 レジ</div>
+    <div class="header-sub" id="headerSub">物販レジ</div>
+  </div>
+  <div class="customer-id" id="customerIdDisplay">—</div>
+</div>
+
+<div class="main">
+  <!-- 左：商品選択 -->
+  <div class="left">
+    <p class="section-title">物販商品</p>
+    <div class="goods-grid" id="goodsGrid"></div>
+
+    <p class="section-title">カート</p>
+    <div class="cart-items" id="cartItems">
+      <div style="color:var(--muted);font-size:13px;padding:8px 0">商品を選択してください</div>
+    </div>
+  </div>
+
+  <!-- 右：会計パネル -->
+  <div class="right">
+    <div class="panel">
+      <p class="section-title">会計</p>
+
+      <div class="total-box">
+        <div class="total-row">
+          <span class="total-label">商品数</span>
+          <span class="total-value" id="itemCount">0点</span>
+        </div>
+        <div class="total-row">
+          <span class="total-label">税抜</span>
+          <span class="total-value" id="subtotalEx">¥0</span>
+        </div>
+        <div class="total-row">
+          <span class="total-label">消費税(10%)</span>
+          <span class="total-value" id="taxAmount">¥0</span>
+        </div>
+        <div class="total-row grand">
+          <span class="total-label">合計</span>
+          <span class="total-value" id="grandTotal">¥0</span>
+        </div>
+      </div>
+
+      <p class="section-title">決済方法</p>
+      <div class="payment-group">
+        <button class="payment-btn cash" id="btnCash" onclick="setPayment('cash')">💴 現金</button>
+        <button class="payment-btn credit" id="btnCredit" onclick="setPayment('credit')">💳 クレカ</button>
+      </div>
+
+      <div id="cashSection">
+        <label class="input-label">お預かり金額</label>
+        <input class="amount-input" id="amountInput" type="text" placeholder="¥0" readonly>
+
+        <div class="numpad">
+          <button class="num-btn" onclick="numInput('1')">1</button>
+          <button class="num-btn" onclick="numInput('2')">2</button>
+          <button class="num-btn" onclick="numInput('3')">3</button>
+          <button class="num-btn" onclick="numInput('4')">4</button>
+          <button class="num-btn" onclick="numInput('5')">5</button>
+          <button class="num-btn" onclick="numInput('6')">6</button>
+          <button class="num-btn" onclick="numInput('7')">7</button>
+          <button class="num-btn" onclick="numInput('8')">8</button>
+          <button class="num-btn" onclick="numInput('9')">9</button>
+          <button class="num-btn clear" onclick="numInput('C')">C</button>
+          <button class="num-btn" onclick="numInput('0')">0</button>
+          <button class="num-btn del" onclick="numInput('DEL')">⌫</button>
+        </div>
+        <div class="numpad" style="margin-top:-4px">
+          <button class="num-btn" style="grid-column:span 3;background:var(--surface2);font-size:13px" onclick="setExact()">ちょうど</button>
+        </div>
+
+        <div class="change-box">
+          <div class="change-label">おつり</div>
+          <div class="change-value" id="changeValue">—</div>
+        </div>
+      </div>
+
+      <div class="options">
+        <label>
+          <input type="checkbox" id="saveReceipt" checked>
+          レシートをPDFで保存
+        </label>
+      </div>
+
+      <button class="checkout-btn" id="checkoutBtn" onclick="checkout()" disabled>
+        会計する
+      </button>
+      <button class="reset-btn" onclick="resetCart()">🗑 リセット</button>
+    </div>
+  </div>
+</div>
+
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-spinner"></div>
+  <div class="loading-text" id="loadingText">処理中...</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+// 状態管理
+// ============================================================
+var state = {
+  customerId: "",
+  cart: [],        // [{id, name, price, qty}]
+  payment: "cash", // "cash" or "credit"
+  received: 0,
+  saveReceipt: true
+};
+
+var goods = [];  // 商品マスタから読み込む
+
+// ============================================================
+// 初期化
+// ============================================================
+window.onload = function() {
+  generateCustomerId();
+  loadData();
+  setPayment("cash");
+};
+
+function generateCustomerId() {
+  var now = new Date();
+  var pad2 = function(n){ return n < 10 ? "0"+n : ""+n; };
+  var pad3 = function(n){ var s=String(n); while(s.length<3) s="0"+s; return s; };
+  var dateStr = now.getFullYear() + pad2(now.getMonth()+1) + pad2(now.getDate());
+
+  // 日付が変わったらカウンターをリセット
+  var storedDate = sessionStorage.getItem("reg_date") || "";
+  var counter = parseInt(sessionStorage.getItem("reg_counter") || "0");
+
+  if (storedDate !== dateStr) {
+    counter = 1;
+  } else {
+    counter++;
+  }
+
+  sessionStorage.setItem("reg_date", dateStr);
+  sessionStorage.setItem("reg_counter", String(counter));
+
+  // 例）20261023-001, 20261023-002...
+  state.customerId = dateStr + "-" + pad3(counter);
+  document.getElementById("customerIdDisplay").textContent = state.customerId;
+}
+
+function loadData() {
+  google.script.run
+    .withSuccessHandler(function(data) {
+      goods = data.goods || [];
+      renderGoods();
+    })
+    .withFailureHandler(function(e) {
+      showToast("データ読み込みエラー: " + e.message);
+    })
+    .getRegisterData();
+}
+
+// ============================================================
+// 公演選択
+// ============================================================
+// ============================================================
+// 商品グリッド
+// ============================================================
+function renderGoods() {
+  var grid = document.getElementById("goodsGrid");
+  grid.innerHTML = "";
+  goods.forEach(function(g) {
+    var btn = document.createElement("button");
+    btn.className = "goods-btn";
+    btn.id = "goods-" + g.id;
+    btn.innerHTML =
+      '<div class="goods-name">' + esc(g.name) + '</div>' +
+      '<div class="goods-price">¥' + g.price.toLocaleString() + '</div>';
+    btn.onclick = function() { addToCart(g); };
+    grid.appendChild(btn);
+  });
+}
+
+// ============================================================
+// カート操作
+// ============================================================
+function addToCart(g) {
+  var existing = state.cart.find(function(c){ return c.id === g.id; });
+  if (existing) {
+    existing.qty++;
+  } else {
+    state.cart.push({ id: g.id, name: g.name, price: g.price, qty: 1 });
+  }
+  renderCart();
+  updateTotals();
+}
+
+function changeQty(id, delta) {
+  var idx = state.cart.findIndex(function(c){ return c.id === id; });
+  if (idx === -1) return;
+  state.cart[idx].qty += delta;
+  if (state.cart[idx].qty <= 0) state.cart.splice(idx, 1);
+  renderCart();
+  updateTotals();
+}
+
+function renderCart() {
+  var el = document.getElementById("cartItems");
+  if (state.cart.length === 0) {
+    el.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:8px 0">商品を選択してください</div>';
+    // 商品ボタンのin-cartスタイルを全解除
+    goods.forEach(function(g){ updateGoodsBtn(g.id, false); });
+    return;
+  }
+  var html = "";
+  var cartIds = state.cart.map(function(c){ return c.id; });
+  goods.forEach(function(g){ updateGoodsBtn(g.id, cartIds.indexOf(g.id) !== -1); });
+
+  state.cart.forEach(function(item) {
+    var sub = item.price * item.qty;
+    html +=
+      '<div class="cart-item">' +
+        '<div>' +
+          '<div class="cart-item-name">' + esc(item.name) + '</div>' +
+          '<div class="cart-item-price">¥' + item.price.toLocaleString() + ' × ' + item.qty + '</div>' +
+        '</div>' +
+        '<div style="display:flex;align-items:center;gap:12px">' +
+          '<div class="qty-control">' +
+            '<button class="qty-btn minus" onclick="changeQty(\'' + item.id + '\',-1)">−</button>' +
+            '<span class="qty-num">' + item.qty + '</span>' +
+            '<button class="qty-btn plus" onclick="changeQty(\'' + item.id + '\',1)">＋</button>' +
+          '</div>' +
+          '<div class="cart-item-subtotal">¥' + sub.toLocaleString() + '</div>' +
+        '</div>' +
+      '</div>';
+  });
+  el.innerHTML = html;
+}
+
+function updateGoodsBtn(id, inCart) {
+  var btn = document.getElementById("goods-" + id);
+  if (btn) {
+    btn.className = "goods-btn" + (inCart ? " in-cart" : "");
+  }
+}
+
+// ============================================================
+// 金額計算
+// ============================================================
+function getTotal() {
+  return state.cart.reduce(function(s, c){ return s + c.price * c.qty; }, 0);
+}
+
+function getItemCount() {
+  return state.cart.reduce(function(s, c){ return s + c.qty; }, 0);
+}
+
+function updateTotals() {
+  var total = getTotal();
+  var taxEx  = Math.floor(total / 1.1);
+  var tax    = total - taxEx;
+  document.getElementById("itemCount").textContent    = getItemCount() + "点";
+  document.getElementById("subtotalEx").textContent   = "¥" + taxEx.toLocaleString();
+  document.getElementById("taxAmount").textContent    = "¥" + tax.toLocaleString();
+  document.getElementById("grandTotal").textContent   = "¥" + total.toLocaleString();
+  updateChange();
+  updateCheckoutBtn();
+}
+
+function updateChange() {
+  var total = getTotal();
+  var el = document.getElementById("changeValue");
+  if (state.payment === "credit") {
+    el.textContent = "—";
+    el.className = "change-value";
+    return;
+  }
+  if (!state.received || state.received === 0) {
+    el.textContent = "—";
+    el.className = "change-value";
+    return;
+  }
+  var change = state.received - total;
+  el.textContent = (change >= 0 ? "¥" : "−¥") + Math.abs(change).toLocaleString();
+  el.className = "change-value " + (change >= 0 ? "ok" : "ng");
+}
+
+// ============================================================
+// 数字パッド
+// ============================================================
+function numInput(key) {
+  var current = String(state.received || "");
+  if (key === "C") { state.received = 0; }
+  else if (key === "DEL") { current = current.slice(0,-1); state.received = parseInt(current) || 0; }
+  else { current += key; state.received = parseInt(current) || 0; }
+  document.getElementById("amountInput").value =
+    state.received > 0 ? "¥" + state.received.toLocaleString() : "";
+  updateChange();
+  updateCheckoutBtn();
+}
+
+function setExact() {
+  state.received = getTotal();
+  document.getElementById("amountInput").value = "¥" + state.received.toLocaleString();
+  updateChange();
+  updateCheckoutBtn();
+}
+
+// ============================================================
+// 決済方法
+// ============================================================
+function setPayment(type) {
+  state.payment = type;
+  document.getElementById("btnCash").className =
+    "payment-btn cash" + (type === "cash" ? " active" : "");
+  document.getElementById("btnCredit").className =
+    "payment-btn credit" + (type === "credit" ? " active" : "");
+  document.getElementById("cashSection").style.display =
+    type === "cash" ? "" : "none";
+  updateChange();
+  updateCheckoutBtn();
+}
+
+// ============================================================
+// 会計ボタン制御
+// ============================================================
+function updateCheckoutBtn() {
+  var btn = document.getElementById("checkoutBtn");
+  var total = getTotal();
+  var ok = state.cart.length > 0 &&
+    (state.payment === "credit" || (state.payment === "cash" && state.received >= total));
+  btn.disabled = !ok;
+  btn.className = "checkout-btn" + (ok ? " ready" : "");
+}
+
+// ============================================================
+// 会計処理
+// ============================================================
+function checkout() {
+  var total    = getTotal();
+  var taxEx    = Math.floor(total / 1.1);
+  var tax      = total - taxEx;
+  var change   = state.payment === "cash" ? state.received - total : 0;
+  var saveReceipt = document.getElementById("saveReceipt").checked;
+
+  var payload = {
+    customerId:  state.customerId,
+    cart:        state.cart,
+    payment:     state.payment,
+    total:       total,
+    taxEx:       taxEx,
+    tax:         tax,
+    received:    state.payment === "cash" ? state.received : 0,
+    change:      change,
+    saveReceipt: saveReceipt
+  };
+
+  showLoading("会計処理中...");
+
+  google.script.run
+    .withSuccessHandler(function(result) {
+      hideLoading();
+      if (result.success) {
+        // 即座にリセット
+        resetCartAfterCheckout();
+        showToast("✅ 会計完了！" + (saveReceipt ? " レシートを保存しました" : ""));
+      } else {
+        showToast("❌ エラー: " + result.error);
+      }
+    })
+    .withFailureHandler(function(e) {
+      hideLoading();
+      showToast("❌ エラー: " + e.message);
+    })
+    .processCheckout(payload);
+}
+
+// ============================================================
+// リセット
+// ============================================================
+function resetCartAfterCheckout() {
+  state.cart = [];
+  state.received = 0;
+  state.payment = "cash";
+  document.getElementById("amountInput").value = "";
+  document.getElementById("changeValue").textContent = "—";
+  document.getElementById("changeValue").className = "change-value";
+  renderCart();
+  updateTotals();
+  setPayment("cash");
+  generateCustomerId(); // 新しいお客様IDを発行
+}
+
+function resetCart() {
+  if (state.cart.length === 0) return;
+  if (!confirm("カートをリセットしますか？")) return;
+  // カートと金額のみクリア（お客様IDは維持）
+  state.cart = [];
+  state.received = 0;
+  document.getElementById("amountInput").value = "";
+  renderCart();
+  updateTotals();
+  showToast("🗑 カートをリセットしました");
+}
+
+// ============================================================
+// UI helpers
+// ============================================================
+function showLoading(msg) {
+  document.getElementById("loadingText").textContent = msg || "処理中...";
+  document.getElementById("loadingOverlay").classList.add("show");
+}
+function hideLoading() {
+  document.getElementById("loadingOverlay").classList.remove("show");
+}
+function showToast(msg) {
+  var el = document.getElementById("toast");
+  el.textContent = msg;
+  el.classList.add("show");
+  setTimeout(function(){ el.classList.remove("show"); }, 3000);
+}
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+  });
+}
+</script>
+</body>
+</html>
