@@ -158,7 +158,7 @@ function logoGlyph(ch,x,y,size,tilt,prog){
   const base=ctx.globalAlpha;
   ctx.save();
   ctx.translate(x,y);ctx.rotate(rot);ctx.scale(s,s);
-  ctx.font=fontStr(size,'Kouzan');ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.font=fontStr(size,'YujiB');ctx.textAlign='center';ctx.textBaseline='middle';
   const gg=ctx.createLinearGradient(0,-size*0.5,0,size*0.55);
   gg.addColorStop(0,'#f5df9d');gg.addColorStop(0.5,'#d9ac4f');gg.addColorStop(1,'#96701e');
   ctx.fillStyle=gg;
@@ -177,7 +177,7 @@ function logoLayout(sizeK){
   const sizeD=sizeK*0.94;
   const items=[['天',sizeK],['狼',sizeK],['祭',sizeK],['2',sizeD],['0',sizeD],['2',sizeD],['6',sizeD]];
   const ws=[];let total=0;
-  items.forEach(([ch,sz])=>{ctx.font=fontStr(sz,'Kouzan');const w=ctx.measureText(ch).width;ws.push(w);total+=w;});
+  items.forEach(([ch,sz])=>{ctx.font=fontStr(sz,'YujiB');const w=ctx.measureText(ch).width;ws.push(w);total+=w;});
   const trk=-sizeK*0.015, gap=sizeK*0.09;
   total+=trk*5+gap;
   let x=-total/2;const out=[];
@@ -427,8 +427,14 @@ function sceneEnd(t){
   }
   ctx.save();
   ctx.globalAlpha*=smooth(t,17.05,17.6);
-  const lay=logoLayout(96);
-  lay.forEach((it,i)=>{logoGlyph(it.ch,CX+it.cx,700,it.size,LOGO_TILT[i]*0.4,1);});
+  if(window.logoImg){
+    const im=window.logoImg;
+    const w=820,h=w*im.height/im.width;
+    ctx.drawImage(im,CX-w/2,700-h/2,w,h);
+  }else{
+    const lay=logoLayout(96);
+    lay.forEach((it,i)=>{logoGlyph(it.ch,CX+it.cx,700,it.size,LOGO_TILT[i]*0.4,1);});
+  }
   ctx.restore();
   ctx.restore();
 }
@@ -490,6 +496,8 @@ window.ready=(async()=>{
   await document.fonts.load("300px 'YujiB'",probe);
   await document.fonts.load("300px 'Kouzan'","天狼祭2026");
   await document.fonts.ready;
+  window.logoImg=null;
+  try{const im=new Image();im.src='logo.png';await im.decode();window.logoImg=im;}catch(e){}
   draw(1.2);
   return 'ok';
 })();
