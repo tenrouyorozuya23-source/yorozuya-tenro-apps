@@ -6,7 +6,7 @@ import numpy as np
 import wave
 
 SR = 48000
-DUR = 19.5
+DUR = 22.3
 N = int(SR * DUR)
 L = np.zeros(N)
 R = np.zeros(N)
@@ -116,6 +116,27 @@ add(boom(1.0, 70, 30, 0.75, 1.2), T_KAI, 0.9, 1.0)
 
 # soft closing boom under the end card
 add(boom(1.4, 50, 26, 0.34, 0.5), T_END)
+
+
+def rumble(dur=5.8, amp=1.0):
+    """Lingering sub-bass afterglow: slow-decaying low drone + filtered noise."""
+    n = int(dur * SR)
+    t = np.arange(n) / SR
+    # two detuned subs with slight pitch wobble
+    f1 = 36.0 + 0.8 * np.sin(2 * np.pi * 0.23 * t)
+    f2 = 29.0 + 0.5 * np.sin(2 * np.pi * 0.17 * t + 1.3)
+    sub = np.sin(2 * np.pi * np.cumsum(f1) / SR) + 0.7 * np.sin(2 * np.pi * np.cumsum(f2) / SR)
+    # dark rumbling noise floor
+    nz = onepole_lp(rng.standard_normal(n), 110) * 1.6
+    # slow tremolo like distant thunder
+    trem = 1.0 + 0.28 * np.sin(2 * np.pi * 0.55 * t + 0.7) + 0.12 * np.sin(2 * np.pi * 1.3 * t)
+    env = np.minimum(t / 0.4, 1.0) * np.exp(-t / 3.3)
+    sig = (sub * 0.8 + nz * 0.5) * env * trem
+    return sig / (np.max(np.abs(sig)) + 1e-9) * amp
+
+
+# sub-bass afterglow ringing under the end card
+add(rumble(5.7, 0.95), T_END - 0.05, 1.0, 0.94)
 
 # gentle stereo glue + peak normalize to -3 dBFS
 mix = np.stack([L, R])

@@ -34,7 +34,7 @@ const env=(t,a,b,c,d)=>smooth(t,a,b)*(1-smooth(t,c,d));
 // ---------- timeline (from BGM onset analysis) ----------
 const T_TEN=0.627, T_ROU=0.836, T_SAI=1.138, T_YEAR=1.486;
 const T_CAST=7.709, T_SOON=9.497, T_BIG=13.70, T_KAI=14.211, T_END=16.60;
-const DUR=19.5;
+const DUR=22.3;
 
 // ---------- palette ----------
 const GOLD1='#f6e3b4', GOLD2='#caa25b', GOLD3='#8f6d33';
@@ -413,7 +413,7 @@ function sceneClimax(t){
 function sceneEnd(t){
   const aIn=smooth(t,16.65,17.25);
   if(aIn<=0)return;
-  const aOut=1-smooth(t,18.2,19.1);
+  const aOut=1-smooth(t,21.3,22.05);
   ctx.save();ctx.globalAlpha=aIn*aOut;
   ctx.shadowColor='rgba(0,0,0,0.8)';ctx.shadowBlur=12;
   drawTracked('続報を待て。',CX,505,138,'YujiS',IVORY,1,22,'center');
@@ -481,7 +481,7 @@ function draw(t){
   ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
 
   // final fade to black
-  const fb=smooth(t,18.55,19.35);
+  const fb=smooth(t,21.4,22.15);
   if(fb>0){ctx.fillStyle=`rgba(0,0,0,${fb})`;ctx.fillRect(0,0,W,H);}
 
   // cinemascope bars

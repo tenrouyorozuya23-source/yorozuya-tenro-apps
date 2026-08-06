@@ -2,7 +2,7 @@ const { chromium } = require('playwright-core');
 const fs = require('fs');
 const path = require('path');
 
-const FPS = 30, DUR = 19.5;
+const FPS = 30, DUR = 22.3;
 const mode = process.argv[2] || 'all'; // 'all' | 'preview'
 const outDir = path.join(__dirname, mode === 'preview' ? 'preview' : 'frames');
 fs.mkdirSync(outDir, { recursive: true });
