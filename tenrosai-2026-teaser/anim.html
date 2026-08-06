@@ -5,6 +5,7 @@
 <style>
   @font-face { font-family: 'YujiS'; src: url('YujiSyuku.ttf') format('truetype'); }
   @font-face { font-family: 'YujiB'; src: url('YujiBoku.ttf') format('truetype'); }
+  @font-face { font-family: 'Kouzan'; src: url('MasaFont-Regular.ttf') format('truetype'); }
   html,body{margin:0;padding:0;background:#000;overflow:hidden}
   canvas{display:block}
 </style>
@@ -147,6 +148,47 @@ function stamp(ch,x,y,size,T,t,tilt,fill,famB){
   ctx.restore();
 }
 
+// ---------- logo-style glyph: white brush over gold brush spill ----------
+function logoGlyph(ch,x,y,size,tilt,prog){
+  if(prog<=0)return;
+  const pp=clamp(prog,0,1);
+  const s=lerp(2.6,1.0,easeOutQuint(pp));
+  const rot=(tilt+lerp(-5,0,easeOutQuint(pp)))*Math.PI/180;
+  const a=clamp(prog/0.32,0,1);
+  const base=ctx.globalAlpha;
+  ctx.save();
+  ctx.translate(x,y);ctx.rotate(rot);ctx.scale(s,s);
+  ctx.font=fontStr(size,'Kouzan');ctx.textAlign='center';ctx.textBaseline='middle';
+  const gg=ctx.createLinearGradient(0,-size*0.5,0,size*0.55);
+  gg.addColorStop(0,'#f5df9d');gg.addColorStop(0.5,'#d9ac4f');gg.addColorStop(1,'#96701e');
+  ctx.fillStyle=gg;
+  ctx.globalAlpha=base*a*0.95;
+  ctx.fillText(ch,size*0.052,size*0.082);
+  ctx.fillText(ch,-size*0.028,size*0.06);
+  ctx.globalAlpha=base*a;
+  ctx.shadowColor='rgba(255,240,200,0.4)';ctx.shadowBlur=26;
+  ctx.fillStyle='#ffffff';
+  ctx.fillText(ch,0,0);
+  ctx.shadowBlur=0;ctx.fillText(ch,0,0);
+  ctx.restore();
+}
+// ---------- "天狼祭2026" logo line layout (relative to center x=0) ----------
+function logoLayout(sizeK){
+  const sizeD=sizeK*0.94;
+  const items=[['天',sizeK],['狼',sizeK],['祭',sizeK],['2',sizeD],['0',sizeD],['2',sizeD],['6',sizeD]];
+  const ws=[];let total=0;
+  items.forEach(([ch,sz])=>{ctx.font=fontStr(sz,'Kouzan');const w=ctx.measureText(ch).width;ws.push(w);total+=w;});
+  const trk=-sizeK*0.015, gap=sizeK*0.09;
+  total+=trk*5+gap;
+  let x=-total/2;const out=[];
+  items.forEach(([ch,sz],i)=>{
+    out.push({ch,size:sz,cx:x+ws[i]/2});
+    x+=ws[i]+(i===2?gap:trk);
+  });
+  return out;
+}
+const LOGO_TILT=[-1.5,1.0,-0.8,2.0,-1.2,1.5,-2.0];
+
 // ---------- hinomaru sun disc ----------
 function sunDisc(cx,cy,R,T,t,alpha){
   if(t<T)return;
@@ -278,26 +320,20 @@ function sceneTitle(t){
   const g=ctx.createRadialGradient(CX,470,0,CX,470,700);
   g.addColorStop(0,`rgba(150,60,25,${ga})`);g.addColorStop(1,'rgba(0,0,0,0)');
   ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
-  const grad=goldGrad(310,640);
-  stamp('天',CX-345,470,305,T_TEN,t,-1.5,grad);
-  stamp('狼',CX,470,305,T_ROU,t,1.0,grad);
-  stamp('祭',CX+345,470,305,T_SAI,t,-0.8,grad);
-  splat(CX-345,470,T_TEN,t,101,'rgba(230,190,120,0.8)',1.0,22);
-  splat(CX,470,T_ROU,t,202,'rgba(230,190,120,0.8)',1.0,22);
-  splat(CX+345,470,T_SAI,t,303,'rgba(230,190,120,0.8)',1.0,22);
-  shockwave(CX-345,470,T_TEN,t,'rgba(240,200,130,1)',420);
-  shockwave(CX,470,T_ROU,t,'rgba(240,200,130,1)',420);
-  shockwave(CX+345,470,T_SAI,t,'rgba(240,200,130,1)',420);
-  // 二〇二六
-  if(t>=T_YEAR){
-    const p=clamp((t-T_YEAR)/0.2,0,1);
-    const s=lerp(1.7,1.0,easeOutQuint(p));
-    ctx.save();ctx.translate(CX,742);ctx.scale(s,s);
-    ctx.shadowColor='rgba(207,68,51,0.6)';ctx.shadowBlur=26;
-    drawTracked('二〇二六',0,0,118,'YujiS',SHU,clamp((t-T_YEAR)/0.08,0,1),46,'center');
-    ctx.restore();
-    splat(CX,742,T_YEAR,t,404,'rgba(190,60,45,0.7)',0.7,16);
+  // logo line 天狼祭2026 (white brush + gold spill, per-glyph stamps)
+  const TY=540;
+  const lay=logoLayout(288);
+  const times=[T_TEN,T_ROU,T_SAI,T_YEAR,T_YEAR+0.035,T_YEAR+0.07,T_YEAR+0.105];
+  lay.forEach((it,i)=>{
+    logoGlyph(it.ch,CX+it.cx,TY,it.size,LOGO_TILT[i],(t-times[i])/0.22);
+  });
+  for(let i=0;i<3;i++){
+    splat(CX+lay[i].cx,TY,times[i],t,101+i*101,'rgba(230,190,120,0.8)',1.0,22);
+    shockwave(CX+lay[i].cx,TY,times[i],t,'rgba(240,200,130,1)',420);
   }
+  const dcx=(lay[3].cx+lay[6].cx)/2;
+  splat(CX+dcx,TY,T_YEAR,t,404,'rgba(230,190,120,0.75)',1.1,24);
+  shockwave(CX+dcx,TY,T_YEAR,t,'rgba(240,200,130,1)',480);
   ctx.restore();
 }
 
@@ -389,7 +425,11 @@ function sceneEnd(t){
     g.addColorStop(0,'rgba(202,162,91,0)');g.addColorStop(0.5,'rgba(230,195,130,0.9)');g.addColorStop(1,'rgba(202,162,91,0)');
     ctx.fillStyle=g;ctx.fillRect(CX-rw/2,608,rw,3);
   }
-  drawTracked('天狼祭 二〇二六',CX,700,68,'YujiS',goldGrad(660,740),smooth(t,17.05,17.6),30,'center');
+  ctx.save();
+  ctx.globalAlpha*=smooth(t,17.05,17.6);
+  const lay=logoLayout(96);
+  lay.forEach((it,i)=>{logoGlyph(it.ch,CX+it.cx,700,it.size,LOGO_TILT[i]*0.4,1);});
+  ctx.restore();
   ctx.restore();
 }
 
@@ -448,6 +488,7 @@ window.ready=(async()=>{
   const probe="天狼祭二〇六出演団体情報報解禁の舞台に立つは来たるまもなく明かされ続を待て月()―。、8.10 MON";
   await document.fonts.load("300px 'YujiS'",probe);
   await document.fonts.load("300px 'YujiB'",probe);
+  await document.fonts.load("300px 'Kouzan'","天狼祭2026");
   await document.fonts.ready;
   draw(1.2);
   return 'ok';
