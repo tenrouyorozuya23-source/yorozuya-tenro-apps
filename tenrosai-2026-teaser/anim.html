@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  @font-face { font-family: 'YujiS'; src: url('YujiSyuku.ttf') format('truetype'); }
+  @font-face { font-family: 'YujiB'; src: url('YujiBoku.ttf') format('truetype'); }
+  html,body{margin:0;padding:0;background:#000;overflow:hidden}
+  canvas{display:block}
+</style>
+</head>
+<body>
+<canvas id="cv" width="1920" height="1080"></canvas>
+<script>
+'use strict';
+const W=1920,H=1080,CX=W/2;
+const cv=document.getElementById('cv'),ctx=cv.getContext('2d');
+
+// ---------- deterministic RNG ----------
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;}}
+function rngOf(seed){return mulberry32(seed*2654435761>>>0);}
+
+// ---------- easing ----------
+const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
+const lerp=(a,b,p)=>a+(b-a)*p;
+const easeOutQuint=p=>1-Math.pow(1-p,5);
+const easeOutCubic=p=>1-Math.pow(1-p,3);
+const easeInCubic=p=>p*p*p;
+const smooth=(t,a,b)=>{const p=clamp((t-a)/(b-a),0,1);return p*p*(3-2*p);};
+// envelope: fade in [a,b], hold, fade out [c,d]
+const env=(t,a,b,c,d)=>smooth(t,a,b)*(1-smooth(t,c,d));
+
+// ---------- timeline (from BGM onset analysis) ----------
+const T_TEN=0.627, T_ROU=0.836, T_SAI=1.138, T_YEAR=1.486;
+const T_CAST=7.709, T_SOON=9.497, T_BIG=13.70, T_KAI=14.211, T_END=16.60;
+const DUR=19.5;
+
+// ---------- palette ----------
+const GOLD1='#f6e3b4', GOLD2='#caa25b', GOLD3='#8f6d33';
+const SHU='#cf4433', SHU_D='#a5301f';
+const IVORY='#efe6d3';
+
+// ---------- pre-generated film grain ----------
+const grainCv=document.createElement('canvas');grainCv.width=480;grainCv.height=270;
+{const g=grainCv.getContext('2d');const im=g.createImageData(480,270);const r=rngOf(777);
+ for(let i=0;i<im.data.length;i+=4){const v=r()*255|0;im.data[i]=v;im.data[i+1]=v;im.data[i+2]=v;im.data[i+3]=255;}
+ g.putImageData(im,0,0);}
+
+// ---------- camera ----------
+function shakeAmp(t){
+  const ev=[[T_TEN,10],[T_ROU,10],[T_SAI,12],[T_YEAR,8],[T_CAST,16],[T_SOON,5],[T_BIG,34],[T_KAI,20]];
+  let s=0;
+  for(const[T,a]of ev){if(t>=T)s+=a*Math.exp(-(t-T)/0.15);}
+  return s;
+}
+function zoom(t){
+  if(t<0.6)return 1.0;
+  if(t<4.05)return 1.0+0.018*(t-0.6);
+  if(t<7.709)return 1.0+0.008*(t-4.05);
+  if(t<12.3)return 1.0+0.05*Math.exp(-(t-7.709)/0.25)+0.012*(t-7.709);
+  if(t<T_BIG)return 1.0+0.045*Math.pow(t-12.3,1.5);
+  if(t<16.65)return 1.0+0.09*Math.exp(-(t-T_BIG)/0.35)+0.010*(t-T_BIG);
+  return 1.0+0.006*(t-16.65);
+}
+
+// ---------- flashes ----------
+function flashAlpha(t){
+  const ev=[[T_TEN,0.28,0.18],[T_ROU,0.22,0.15],[T_SAI,0.28,0.18],[T_YEAR,0.18,0.15],
+            [T_CAST,0.45,0.22],[T_SOON,0.14,0.12],[T_BIG,0.95,0.50],[T_KAI,0.45,0.25]];
+  let a=0;
+  for(const[T,peak,dur]of ev){
+    if(t>=T){a=Math.max(a,peak*Math.exp(-(t-T)/(dur/2.2)));}
+  }
+  return clamp(a,0,1);
+}
+
+// ---------- text helpers ----------
+function fontStr(size,fam){return `${size}px '${fam}'`;}
+function drawTracked(txt,x,y,size,fam,fill,alpha,tracking,align){
+  if(alpha<=0)return;
+  ctx.save();ctx.globalAlpha*=alpha;
+  ctx.font=fontStr(size,fam);ctx.textBaseline='middle';
+  const widths=[...txt].map(c=>ctx.measureText(c).width);
+  const total=widths.reduce((a,b)=>a+b,0)+tracking*(txt.length-1);
+  let cx=(align==='center')?x-total/2:x;
+  ctx.fillStyle=fill;
+  [...txt].forEach((c,i)=>{ctx.fillText(c,cx,y);cx+=widths[i]+tracking;});
+  ctx.restore();
+}
+function goldGrad(y0,y1){
+  const g=ctx.createLinearGradient(0,y0,0,y1);
+  g.addColorStop(0,'#fdf3d6');g.addColorStop(0.45,GOLD1);g.addColorStop(0.8,GOLD2);g.addColorStop(1,GOLD3);
+  return g;
+}
+
+// ---------- ink splatter ----------
+function splat(cx,cy,T,t,seed,color,scale,count){
+  if(t<T)return;
+  const r=rngOf(seed);
+  ctx.save();ctx.fillStyle=color;
+  for(let i=0;i<count;i++){
+    const ang=r()*Math.PI*2, dist=(40+r()*260)*scale, rad=(2+r()*13)*scale;
+    const delay=r()*0.07, p=clamp((t-T-delay)/0.16,0,1);
+    if(p<=0)continue;
+    const e=easeOutCubic(p);
+    const x=cx+Math.cos(ang)*dist*e, y=cy+Math.sin(ang)*dist*e*0.72;
+    ctx.globalAlpha=0.75*(0.5+0.5*r());
+    if(r()<0.3){ // streak
+      ctx.save();ctx.translate(x,y);ctx.rotate(ang);
+      ctx.beginPath();ctx.ellipse(0,0,rad*2.6*e,rad*0.5,0,0,Math.PI*2);ctx.fill();ctx.restore();
+    }else{
+      ctx.beginPath();ctx.arc(x,y,rad*e,0,Math.PI*2);ctx.fill();
+    }
+  }
+  ctx.restore();
+}
+
+// ---------- shockwave ----------
+function shockwave(cx,cy,T,t,color,maxR){
+  const p=(t-T)/0.5;
+  if(p<0||p>1)return;
+  ctx.save();
+  ctx.strokeStyle=color;ctx.globalAlpha=0.5*(1-p);
+  ctx.lineWidth=16*(1-p)+2;
+  ctx.beginPath();ctx.arc(cx,cy,60+easeOutCubic(p)*maxR,0,Math.PI*2);ctx.stroke();
+  ctx.restore();
+}
+
+// ---------- kanji stamp ----------
+function stamp(ch,x,y,size,T,t,tilt,fill,famB){
+  if(t<T)return;
+  const p=clamp((t-T)/0.22,0,1);
+  const s=lerp(2.6,1.0,easeOutQuint(p));
+  const a=clamp((t-T)/0.07,0,1);
+  ctx.save();
+  ctx.translate(x,y);
+  ctx.rotate((tilt+lerp(-5,0,easeOutQuint(p)))*Math.PI/180);
+  ctx.scale(s,s);
+  ctx.globalAlpha*=a;
+  ctx.font=fontStr(size,famB||'YujiS');
+  ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.shadowColor='rgba(240,200,120,0.55)';ctx.shadowBlur=42;
+  ctx.fillStyle=fill;
+  ctx.fillText(ch,0,0);
+  ctx.shadowBlur=0;
+  ctx.fillText(ch,0,0);
+  ctx.restore();
+}
+
+// ---------- hinomaru sun disc ----------
+function sunDisc(cx,cy,R,T,t,alpha){
+  if(t<T)return;
+  const p=easeOutCubic(clamp((t-T)/0.3,0,1));
+  const s=lerp(1.18,1.0,p);
+  ctx.save();
+  ctx.translate(cx,cy);ctx.scale(s,s);
+  const g=ctx.createRadialGradient(0,0,0,0,0,R);
+  g.addColorStop(0,`rgba(150,38,24,${0.42*alpha*p})`);
+  g.addColorStop(0.75,`rgba(140,32,20,${0.34*alpha*p})`);
+  g.addColorStop(1,'rgba(120,25,15,0)');
+  ctx.fillStyle=g;
+  ctx.beginPath();ctx.arc(0,0,R,0,Math.PI*2);ctx.fill();
+  // faint gold ring
+  ctx.globalAlpha=0.22*alpha*p;
+  ctx.strokeStyle='rgba(230,195,130,1)';ctx.lineWidth=3;
+  ctx.beginPath();ctx.arc(0,0,R*0.99,0,Math.PI*2);ctx.stroke();
+  ctx.restore();
+}
+// ---------- date "8月10日" mixed layout ----------
+function drawDate(cx,cy,T,t){
+  if(t<T)return;
+  const p=clamp((t-T)/0.28,0,1);
+  const s=lerp(2.2,1.0,easeOutQuint(p));
+  const parts=[['8',400,0],['月',180,86],['10',400,0],['日',180,86]];
+  ctx.save();ctx.translate(cx,cy);ctx.scale(s,s);
+  ctx.globalAlpha*=clamp((t-T)/0.06,0,1);
+  ctx.textBaseline='middle';ctx.textAlign='left';
+  let total=0;const ws=[];
+  for(const[txt,size]of parts){ctx.font=fontStr(size,'YujiS');const w=ctx.measureText(txt).width;ws.push(w);total+=w;}
+  total+=3*14;
+  let x=-total/2;
+  const dg=ctx.createLinearGradient(0,-200,0,215);
+  dg.addColorStop(0,'#fffdf2');dg.addColorStop(0.5,GOLD1);dg.addColorStop(1,GOLD2);
+  parts.forEach(([txt,size,dy],i)=>{
+    ctx.font=fontStr(size,'YujiS');
+    const fill=(size>300)?dg:IVORY;
+    ctx.shadowColor='rgba(255,215,140,0.6)';ctx.shadowBlur=55;
+    ctx.fillStyle=fill;ctx.fillText(txt,x,dy);
+    ctx.shadowBlur=0;ctx.fillText(txt,x,dy);
+    x+=ws[i]+14;
+  });
+  ctx.restore();
+}
+
+// ---------- brush underline ----------
+function brushLine(cx,y,wMax,T,t,color){
+  if(t<T)return;
+  const p=easeOutCubic(clamp((t-T)/0.3,0,1));
+  const w=wMax*p;
+  const r=rngOf(919);
+  ctx.save();ctx.fillStyle=color;ctx.globalAlpha*=0.9;
+  ctx.beginPath();
+  const x0=cx-wMax/2;
+  ctx.moveTo(x0,y);
+  const N=40;
+  for(let i=0;i<=N;i++){const px=x0+w*i/N;ctx.lineTo(px,y-(4+r()*5)*(1-0.6*i/N));}
+  for(let i=N;i>=0;i--){const px=x0+w*i/N;ctx.lineTo(px,y+(4+r()*5)*(1-0.7*i/N));}
+  ctx.closePath();ctx.fill();
+  ctx.restore();
+}
+
+// ---------- background ----------
+function background(t){
+  ctx.fillStyle='#070404';ctx.fillRect(0,0,W,H);
+  // warm smoke blobs
+  const blobs=[[0.25,0.75,620,'rgba(120,30,18,0.10)',0.13],[0.75,0.65,700,'rgba(90,40,15,0.09)',0.09],
+               [0.5,0.35,800,'rgba(70,50,30,0.07)',0.06],[0.15,0.3,500,'rgba(110,25,20,0.07)',0.11],[0.88,0.28,560,'rgba(100,60,20,0.06)',0.08]];
+  blobs.forEach(([bx,by,r,c,sp],i)=>{
+    const x=bx*W+Math.sin(t*sp+i*2.1)*90, y=by*H+Math.cos(t*sp*0.8+i*1.3)*55;
+    const g=ctx.createRadialGradient(x,y,0,x,y,r);
+    g.addColorStop(0,c);g.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  });
+  // center glow that intensifies at climax
+  const glowA=0.10+0.22*Math.exp(-Math.max(0,t-T_BIG)/1.2)*(t>=T_BIG?1:0)+0.06*smooth(t,0.6,1.2);
+  const g=ctx.createRadialGradient(CX,H*0.52,0,CX,H*0.52,900);
+  g.addColorStop(0,`rgba(190,110,40,${glowA})`);g.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+}
+
+// ---------- embers ----------
+function embers(t,count,seedBase,near){
+  ctx.save();
+  for(let i=0;i<count;i++){
+    const r=rngOf(seedBase+i);
+    const x0=r()*W, speed=(near?90:38)+r()*(near?110:50), phase=r();
+    const size=near?(2.2+r()*3.4):(1.0+r()*1.8);
+    const wob=30+r()*50, wf=0.5+r()*1.2;
+    const total=H+300;
+    const y=(H+80)-(((t+phase*40)*speed)%total);
+    const x=x0+Math.sin(t*wf+phase*6.28)*wob;
+    const tw=0.45+0.55*Math.sin(t*(2+r()*4)+phase*9);
+    const a=(near?0.5:0.34)*clamp(tw,0.15,1);
+    ctx.globalAlpha=a;
+    const g=ctx.createRadialGradient(x,y,0,x,y,size*3.2);
+    g.addColorStop(0,'rgba(255,220,150,1)');g.addColorStop(0.4,'rgba(240,150,60,0.7)');g.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=g;
+    ctx.beginPath();ctx.arc(x,y,size*3.2,0,Math.PI*2);ctx.fill();
+  }
+  ctx.restore();
+}
+
+// ---------- light rays (climax) ----------
+function rays(t){
+  const a=env(t,T_BIG,14.2,16.1,16.6)*0.05;
+  if(a<=0)return;
+  ctx.save();ctx.globalAlpha=a;ctx.globalCompositeOperation='lighter';
+  ctx.translate(CX,-200);
+  for(let i=0;i<7;i++){
+    const th=(i-3)*0.24+Math.sin(t*0.25+i)*0.05;
+    ctx.save();ctx.rotate(th);
+    const g=ctx.createLinearGradient(0,0,0,1500);
+    g.addColorStop(0,'rgba(255,225,160,0.9)');g.addColorStop(1,'rgba(255,225,160,0)');
+    ctx.fillStyle=g;
+    ctx.beginPath();ctx.moveTo(-30,0);ctx.lineTo(30,0);ctx.lineTo(150,1500);ctx.lineTo(-150,1500);ctx.closePath();ctx.fill();
+    ctx.restore();
+  }
+  ctx.restore();
+}
+
+// ================= SCENES =================
+function sceneTitle(t){
+  const a=1-smooth(t,3.5,3.95);
+  if(t<T_TEN-0.05||a<=0)return;
+  ctx.save();ctx.globalAlpha=a;
+  // glow behind
+  const ga=smooth(t,T_TEN,T_TEN+0.3)*0.35;
+  const g=ctx.createRadialGradient(CX,470,0,CX,470,700);
+  g.addColorStop(0,`rgba(150,60,25,${ga})`);g.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  const grad=goldGrad(310,640);
+  stamp('天',CX-345,470,305,T_TEN,t,-1.5,grad);
+  stamp('狼',CX,470,305,T_ROU,t,1.0,grad);
+  stamp('祭',CX+345,470,305,T_SAI,t,-0.8,grad);
+  splat(CX-345,470,T_TEN,t,101,'rgba(230,190,120,0.8)',1.0,22);
+  splat(CX,470,T_ROU,t,202,'rgba(230,190,120,0.8)',1.0,22);
+  splat(CX+345,470,T_SAI,t,303,'rgba(230,190,120,0.8)',1.0,22);
+  shockwave(CX-345,470,T_TEN,t,'rgba(240,200,130,1)',420);
+  shockwave(CX,470,T_ROU,t,'rgba(240,200,130,1)',420);
+  shockwave(CX+345,470,T_SAI,t,'rgba(240,200,130,1)',420);
+  // 二〇二六
+  if(t>=T_YEAR){
+    const p=clamp((t-T_YEAR)/0.2,0,1);
+    const s=lerp(1.7,1.0,easeOutQuint(p));
+    ctx.save();ctx.translate(CX,742);ctx.scale(s,s);
+    ctx.shadowColor='rgba(207,68,51,0.6)';ctx.shadowBlur=26;
+    drawTracked('二〇二六',0,0,118,'YujiS',SHU,clamp((t-T_YEAR)/0.08,0,1),46,'center');
+    ctx.restore();
+    splat(CX,742,T_YEAR,t,404,'rgba(190,60,45,0.7)',0.7,16);
+  }
+  ctx.restore();
+}
+
+function sceneLine1(t){
+  const a=env(t,4.15,4.85,6.95,7.45);
+  if(a<=0)return;
+  const rise=lerp(24,0,smooth(t,4.15,4.9));
+  ctx.save();
+  ctx.shadowColor='rgba(0,0,0,0.8)';ctx.shadowBlur=14;
+  drawTracked('その舞台に立つのは――',CX,560+rise,96,'YujiS',IVORY,a,16,'center');
+  ctx.restore();
+}
+
+function sceneCast(t){
+  const a=1-smooth(t,11.75,12.3);
+  if(t<T_CAST||a<=0)return;
+  ctx.save();ctx.globalAlpha=a;
+  const grad=goldGrad(380,660);
+  // whole-word stamp
+  const p=clamp((t-T_CAST)/0.24,0,1);
+  const s=lerp(2.3,1.0,easeOutQuint(p));
+  ctx.save();ctx.translate(CX,520);ctx.scale(s,s);
+  ctx.globalAlpha*=clamp((t-T_CAST)/0.07,0,1);
+  ctx.shadowColor='rgba(240,200,120,0.5)';ctx.shadowBlur=38;
+  drawTracked('出演団体',0,0,265,'YujiS',grad,1,34,'center');
+  ctx.restore();
+  splat(CX,520,T_CAST,t,505,'rgba(230,190,120,0.8)',1.5,30);
+  shockwave(CX,520,T_CAST,t,'rgba(240,200,130,1)',760);
+  brushLine(CX,678,980,T_CAST+0.25,t,SHU);
+  if(t>=T_SOON){
+    const pr=clamp((t-T_SOON)/0.22,0,1);
+    ctx.save();ctx.globalAlpha*=pr;
+    ctx.shadowColor='rgba(0,0,0,0.8)';ctx.shadowBlur=10;
+    drawTracked('まもなく、明かされる。',CX,790+lerp(14,0,easeOutCubic(pr)),80,'YujiS',IVORY,1,10,'center');
+    ctx.restore();
+  }
+  ctx.restore();
+}
+
+function sceneQuiet(t){
+  // blackout cut 2 frames before the big hit for impact
+  const a=env(t,12.35,12.75,13.55,13.64);
+  if(a<=0)return;
+  const flick=0.72+0.18*Math.sin(t*13.7)+0.10*Math.sin(t*29.3);
+  ctx.save();
+  ctx.shadowColor='rgba(0,0,0,0.9)';ctx.shadowBlur=8;
+  drawTracked('来たる――',CX,555,92,'YujiS',`rgba(232,222,200,${clamp(flick,0.3,1)})`,a,20,'center');
+  ctx.restore();
+}
+
+function sceneClimax(t){
+  const a=1-smooth(t,16.25,16.75);
+  if(t<T_BIG||a<=0)return;
+  ctx.save();ctx.globalAlpha=a;
+  sunDisc(CX,545,500,T_BIG,t,1.0);
+  drawDate(CX,530,T_BIG,t);
+  splat(CX,530,T_BIG,t,606,'rgba(240,205,135,0.85)',2.2,38);
+  shockwave(CX,545,T_BIG,t,'rgba(255,225,160,1)',980);
+  shockwave(CX,545,T_BIG+0.06,t,'rgba(207,68,51,0.9)',760);
+  // 情報解禁
+  if(t>=T_KAI){
+    const p2=clamp((t-T_KAI)/0.22,0,1);
+    const s2=lerp(1.9,1.0,easeOutQuint(p2));
+    ctx.save();ctx.translate(CX,860);ctx.scale(s2,s2);
+    ctx.globalAlpha*=clamp((t-T_KAI)/0.06,0,1);
+    ctx.shadowColor='rgba(0,0,0,0.9)';ctx.shadowBlur=22;
+    drawTracked('情報解禁',0,0,172,'YujiS','#e05340',1,40,'center');
+    ctx.shadowColor='rgba(220,70,45,0.7)';ctx.shadowBlur=40;
+    drawTracked('情報解禁',0,0,172,'YujiS','#e05340',1,40,'center');
+    ctx.restore();
+    splat(CX,860,T_KAI,t,707,'rgba(190,60,45,0.75)',1.2,24);
+    shockwave(CX,860,T_KAI,t,'rgba(207,68,51,0.9)',560);
+  }
+  ctx.restore();
+}
+
+function sceneEnd(t){
+  const aIn=smooth(t,16.65,17.25);
+  if(aIn<=0)return;
+  const aOut=1-smooth(t,18.2,19.1);
+  ctx.save();ctx.globalAlpha=aIn*aOut;
+  ctx.shadowColor='rgba(0,0,0,0.8)';ctx.shadowBlur=12;
+  drawTracked('続報を待て。',CX,505,138,'YujiS',IVORY,1,22,'center');
+  ctx.shadowBlur=0;
+  // gold rule
+  const rw=560*easeOutCubic(smooth(t,16.95,17.45));
+  if(rw>0){
+    const g=ctx.createLinearGradient(CX-rw/2,0,CX+rw/2,0);
+    g.addColorStop(0,'rgba(202,162,91,0)');g.addColorStop(0.5,'rgba(230,195,130,0.9)');g.addColorStop(1,'rgba(202,162,91,0)');
+    ctx.fillStyle=g;ctx.fillRect(CX-rw/2,608,rw,3);
+  }
+  drawTracked('天狼祭 二〇二六',CX,700,68,'YujiS',goldGrad(660,740),smooth(t,17.05,17.6),30,'center');
+  ctx.restore();
+}
+
+// ================= MASTER DRAW =================
+function draw(t){
+  ctx.setTransform(1,0,0,1,0,0);
+  ctx.clearRect(0,0,W,H);
+  // camera
+  const z=zoom(t);
+  const sA=shakeAmp(t);
+  const fr=Math.floor(t*30);
+  const rs=rngOf(9000+fr);
+  const sx=(rs()-0.5)*2*sA, sy=(rs()-0.5)*2*sA;
+  ctx.save();
+  ctx.translate(CX+sx,H/2+sy);ctx.scale(z,z);ctx.translate(-CX,-H/2);
+
+  background(t);
+  embers(t,60,3000,false);
+  sceneTitle(t);
+  sceneLine1(t);
+  sceneCast(t);
+  sceneQuiet(t);
+  sceneClimax(t);
+  sceneEnd(t);
+  embers(t,26,5000,true);
+  rays(t);
+  ctx.restore();
+
+  // flash
+  const fa=flashAlpha(t);
+  if(fa>0){ctx.save();ctx.globalAlpha=fa;ctx.fillStyle='#fff3dc';ctx.fillRect(0,0,W,H);ctx.restore();}
+
+  // film grain
+  ctx.save();ctx.globalAlpha=0.045;
+  const gr=rngOf(100+Math.floor(t*15));
+  ctx.translate(-gr()*40,-gr()*40);
+  ctx.drawImage(grainCv,0,0,W+80,H+80);
+  ctx.restore();
+
+  // vignette
+  const vg=ctx.createRadialGradient(CX,H/2,H*0.35,CX,H/2,H*0.95);
+  vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(0,0,0,0.62)');
+  ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);
+
+  // final fade to black
+  const fb=smooth(t,18.55,19.35);
+  if(fb>0){ctx.fillStyle=`rgba(0,0,0,${fb})`;ctx.fillRect(0,0,W,H);}
+
+  // cinemascope bars
+  ctx.fillStyle='#000';
+  ctx.fillRect(0,0,W,132);ctx.fillRect(0,H-132,W,132);
+}
+
+window.seekTo=function(t,q){draw(t);return cv.toDataURL('image/jpeg',q||0.93);};
+window.ready=(async()=>{
+  const probe="天狼祭二〇六出演団体情報報解禁の舞台に立つは来たるまもなく明かされ続を待て月()―。、8.10 MON";
+  await document.fonts.load("300px 'YujiS'",probe);
+  await document.fonts.load("300px 'YujiB'",probe);
+  await document.fonts.ready;
+  draw(1.2);
+  return 'ok';
+})();
+</script>
+</body>
+</html>
