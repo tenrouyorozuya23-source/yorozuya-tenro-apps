@@ -187,6 +187,56 @@
     box-shadow: 0 0 14px color-mix(in srgb, var(--accent, #ffd700) 60%, transparent);
   }
 
+  /* ---- 録画 ---- */
+  .btn.rec {
+    width: 100%;
+    color: #ff5c66;
+    border-color: rgba(255, 92, 102, 0.5);
+  }
+  .btn.rec:hover { background: rgba(255, 92, 102, 0.15); }
+  .btn.rec.recording {
+    background: #d92b36;
+    border-color: transparent;
+    color: #fff;
+    box-shadow: 0 0 14px rgba(255, 60, 70, 0.6);
+  }
+  .rec-note {
+    margin-top: 6px;
+    font-size: 10px;
+    line-height: 1.5;
+    color: #6f7a8f;
+  }
+
+  #recIndicator {
+    position: fixed;
+    top: 14px;
+    right: 16px;
+    display: none;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: #fff;
+    background: rgba(10, 12, 18, 0.75);
+    border: 1px solid rgba(255, 92, 102, 0.55);
+    padding: 7px 14px;
+    border-radius: 999px;
+    z-index: 10;
+    pointer-events: none;
+  }
+  #recIndicator.on { display: flex; }
+  #recIndicator #recTime { font-variant-numeric: tabular-nums; }
+  .rec-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #ff3c46;
+    box-shadow: 0 0 8px #ff3c46;
+    animation: blink 1s steps(2, start) infinite;
+  }
+  @keyframes blink { 50% { opacity: 0.25; } }
+
   /* ---- 操作ガイド ---- */
   #guide {
     position: fixed;
@@ -264,7 +314,17 @@
       <button class="btn primary" id="randomBtn">ランダム発射</button>
       <button class="btn" id="clearBtn">全て消す</button>
     </div>
+
+    <div class="row">
+      <button class="btn rec" id="recBtn">⏺ 録画開始（MP4保存）</button>
+      <div class="rec-note" id="recNote">録画中の画面がそのまま動画になります（R キーでも開始/停止）</div>
+    </div>
   </div>
+</div>
+
+<div id="recIndicator">
+  <span class="rec-dot"></span>
+  <span id="recTime">00:00</span> 録画中
 </div>
 
 <div id="guide">クリックで発生源 → もう一度クリックで到着地点（ドラッグでも可）</div>
@@ -499,6 +559,110 @@
 
   window.addEventListener('keydown', e => {
     if (e.key === 'Escape') pendingSource = null;
+    if ((e.key === 'r' || e.key === 'R') && !e.repeat &&
+        !/INPUT|BUTTON/.test(document.activeElement?.tagName || '')) {
+      toggleRecording();
+    }
+  });
+
+  // ---------- MP4録画 ----------
+  // 対応形式を優先順で選ぶ（Chrome/Edge/SafariはMP4対応、FirefoxはWebMで保存）
+  const REC_TYPES = [
+    { mime: 'video/mp4;codecs=avc1.42E01E', ext: 'mp4' },
+    { mime: 'video/mp4;codecs=avc1', ext: 'mp4' },
+    { mime: 'video/mp4', ext: 'mp4' },
+    { mime: 'video/webm;codecs=vp9', ext: 'webm' },
+    { mime: 'video/webm;codecs=vp8', ext: 'webm' },
+    { mime: 'video/webm', ext: 'webm' },
+  ];
+
+  let recorder = null;
+  let recChunks = [];
+  let recStartTime = 0;
+  let recTimer = null;
+  let recFormat = null;
+
+  function pickRecFormat() {
+    if (typeof MediaRecorder === 'undefined') return null;
+    for (const t of REC_TYPES) {
+      if (MediaRecorder.isTypeSupported(t.mime)) return t;
+    }
+    return null;
+  }
+
+  function recFileName(ext) {
+    const d = new Date();
+    const z = n => String(n).padStart(2, '0');
+    return `chain-fx_${d.getFullYear()}${z(d.getMonth() + 1)}${z(d.getDate())}` +
+           `-${z(d.getHours())}${z(d.getMinutes())}${z(d.getSeconds())}.${ext}`;
+  }
+
+  function startRecording() {
+    recFormat = pickRecFormat();
+    if (!recFormat) {
+      alert('このブラウザは画面録画（MediaRecorder）に対応していません。');
+      return;
+    }
+    recChunks = [];
+    const stream = canvas.captureStream(60);
+    try {
+      recorder = new MediaRecorder(stream, {
+        mimeType: recFormat.mime,
+        videoBitsPerSecond: 12_000_000, // 高画質
+      });
+    } catch (err) {
+      recorder = new MediaRecorder(stream, { mimeType: recFormat.mime });
+    }
+    recorder.ondataavailable = e => { if (e.data && e.data.size) recChunks.push(e.data); };
+    recorder.onstop = saveRecording;
+    recorder.start(250); // 250msごとにチャンク取得
+
+    recStartTime = performance.now();
+    $('recBtn').classList.add('recording');
+    $('recBtn').textContent = '⏹ 停止して保存';
+    $('recIndicator').classList.add('on');
+    $('recNote').textContent = recFormat.ext === 'mp4'
+      ? '停止するとMP4ファイルをダウンロードします'
+      : 'このブラウザはMP4非対応のためWebM形式で保存します';
+    recTimer = setInterval(() => {
+      const s = Math.floor((performance.now() - recStartTime) / 1000);
+      $('recTime').textContent =
+        `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
+    }, 250);
+  }
+
+  function stopRecording() {
+    if (recorder && recorder.state !== 'inactive') recorder.stop();
+    clearInterval(recTimer);
+    $('recBtn').classList.remove('recording');
+    $('recBtn').textContent = '⏺ 録画開始（MP4保存）';
+    $('recIndicator').classList.remove('on');
+    $('recTime').textContent = '00:00';
+    $('recNote').textContent = '録画中の画面がそのまま動画になります（R キーでも開始/停止）';
+  }
+
+  function saveRecording() {
+    if (!recChunks.length) return;
+    const blob = new Blob(recChunks, { type: recFormat.mime.split(';')[0] });
+    recChunks = [];
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = recFileName(recFormat.ext);
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+  }
+
+  function toggleRecording() {
+    if (recorder && recorder.state === 'recording') stopRecording();
+    else startRecording();
+  }
+
+  $('recBtn').addEventListener('click', e => {
+    e.stopPropagation();
+    toggleRecording();
   });
 
   let guideDimmed = false;
