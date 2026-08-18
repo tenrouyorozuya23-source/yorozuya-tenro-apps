@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>CHAIN FX — 光る鎖アニメーションシミュレーター</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -11,6 +11,7 @@
     width: 100%;
     height: 100%;
     overflow: hidden;
+    overscroll-behavior: none;
     background: #000;
     font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic", "Noto Sans JP", sans-serif;
     color: #ddd;
@@ -21,6 +22,10 @@
   #stage {
     position: fixed;
     inset: 0;
+    /* canvasは置換要素なのでinsetだけでは伸びない。CSSサイズを明示する
+       （高DPR端末で描画が2倍サイズになり画面外へはみ出すのを防ぐ） */
+    width: 100%;
+    height: 100%;
     display: block;
     cursor: crosshair;
     background: #000;
@@ -256,6 +261,58 @@
     transition: opacity 0.4s ease;
   }
   #guide.dim { opacity: 0.35; }
+
+  /* ---- モバイルレイアウト: パネルを下部シート化 ---- */
+  @media (max-width: 640px) {
+    #panel {
+      top: auto;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      width: 100%;
+      border-radius: 16px 16px 0 0;
+      border-left: none;
+      border-right: none;
+      border-bottom: none;
+      padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px));
+    }
+    #panel.closed { width: 100%; }
+    .panel-body {
+      max-height: 44dvh;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding-bottom: 4px;
+    }
+    #toggleBtn { font-size: 18px; padding: 4px 10px; }
+
+    /* ガイドは上部へ（下はパネルが占有するため） */
+    #guide {
+      bottom: auto;
+      top: calc(10px + env(safe-area-inset-top, 0px));
+      font-size: 10px;
+      max-width: 62vw;
+      white-space: normal;
+      text-align: center;
+      line-height: 1.5;
+      padding: 6px 14px;
+    }
+    #recIndicator {
+      top: calc(10px + env(safe-area-inset-top, 0px));
+      right: 10px;
+      font-size: 11px;
+    }
+
+    /* タッチしやすいサイズに */
+    .sw { width: 32px; height: 32px; }
+    #customColor { width: 32px; height: 32px; }
+    input[type="range"] { height: 6px; }
+    input[type="range"]::-webkit-slider-thumb { width: 22px; height: 22px; }
+    input[type="range"]::-moz-range-thumb { width: 22px; height: 22px; }
+    .btn { padding: 11px 0; font-size: 12px; }
+    .check-row { font-size: 12px; }
+    .label { font-size: 12px; }
+    .row { margin-bottom: 14px; }
+  }
 </style>
 </head>
 <body>
@@ -350,13 +407,20 @@ If you want to offset all timestamps of a track such that the first one is zero,
     W = window.innerWidth;
     H = window.innerHeight;
     // H.264エンコードは偶数解像度が必要なので偶数に丸める
-    canvas.width = Math.max(2, Math.floor(W * DPR / 2) * 2);
-    canvas.height = Math.max(2, Math.floor(H * DPR / 2) * 2);
-    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    const cw = Math.max(2, Math.floor(W * DPR / 2) * 2);
+    const ch = Math.max(2, Math.floor(H * DPR / 2) * 2);
+    // モバイルのURLバー表示切替などで実サイズが変わらないresizeは無視する
+    if (cw === canvas.width && ch === canvas.height) return;
+    canvas.width = cw;
+    canvas.height = ch;
+    // 偶数丸めの誤差も含めて、CSS座標→キャンバスピクセルへ正確に対応付ける
+    ctx.setTransform(cw / W, 0, 0, ch / H, 0, 0);
     // 録画中にサイズが変わるとエンコードできないため、録画を止めて保存する
     if (window.__chainFxStopRec) window.__chainFxStopRec();
   }
   window.addEventListener('resize', resize);
+  window.addEventListener('orientationchange', () => setTimeout(resize, 300));
+  if (window.visualViewport) window.visualViewport.addEventListener('resize', resize);
   resize();
 
   // ---------- 設定 ----------
@@ -416,12 +480,22 @@ If you want to offset all timestamps of a track such that the first one is zero,
     $('lifeVal').textContent = e.target.value;
   });
 
-  // パネル開閉
+  // パネル開閉（デスクトップ=左上、モバイル=下部シートで矢印の向きが逆になる）
+  const mobileLayout = window.matchMedia('(max-width: 640px)');
+  function updateToggleArrow() {
+    const closed = $('panel').classList.contains('closed');
+    $('toggleBtn').textContent = mobileLayout.matches
+      ? (closed ? '▲' : '▼')
+      : (closed ? '▼' : '▲');
+  }
   $('panelHead').addEventListener('click', () => {
-    const p = $('panel');
-    p.classList.toggle('closed');
-    $('toggleBtn').textContent = p.classList.contains('closed') ? '▼' : '▲';
+    $('panel').classList.toggle('closed');
+    updateToggleArrow();
   });
+  if (mobileLayout.addEventListener) mobileLayout.addEventListener('change', updateToggleArrow);
+  // モバイルではキャンバスを広く使えるよう、最初はパネルを畳んでおく
+  if (mobileLayout.matches) $('panel').classList.add('closed');
+  updateToggleArrow();
 
   $('clearBtn').addEventListener('click', e => {
     e.stopPropagation();
@@ -609,6 +683,8 @@ If you want to offset all timestamps of a track such that the first one is zero,
   }
   function onMove(e) {
     if (!dragStart) return;
+    // ドラッグ中のスクロール・バウンスを抑止（タッチ）
+    if (e.cancelable && e.touches) e.preventDefault();
     const p = pos(e);
     const last = dragPts[dragPts.length - 1];
     if (Math.hypot(p.x - last.x, p.y - last.y) > 2) dragPts.push(p);
