@@ -103,6 +103,25 @@
 
 ---
 
+### 4. 🌫 PARTICLE MIST — 黒いモヤモヤ粒子シミュレーター
+**`particle-mist-simulator/`**
+
+黒い煙のような粒子がカーソル（タッチ）に追従して、常にカーソル付近をモヤモヤと漂うシミュレーター。舞台・配信演出のイメージ確認用。
+
+**主な機能**
+- ドラッグ（タッチ）すると粒子の群れがカーソルに追従、指を離すとその場で待機して漂い続ける
+- 粒子の数・広がり・モヤモヤ感・追従の速さ・濃さ・残像をスライダーで調節
+- スマホ・PC両対応（タッチ操作対応）
+- アニメーションをMP4動画として録画・ダウンロード（Rキーで開始/停止、Firefoxのみ WebM形式）
+
+**使用技術**
+- HTML / CSS / JavaScript（Canvas 2D）
+
+**デモ**
+- [PARTICLE MIST を開く](https://tenrouyorozuya23-source.github.io/yorozuya-tenro-apps/particle-mist-simulator/index.html)
+
+---
+
 ## 💡 開発の背景
 
 映像・配信エンジニアとして舞台公演に携わる中で、以下の課題を感じていました。
@@ -123,7 +142,7 @@
 
 ## 🔨 現在開発中
 
-### 4. 💬 LINE Business Automation — 公式LINE業務自動化システム
+### 5. 💬 LINE Business Automation — 公式LINE業務自動化システム
 **（開発中）**
 
 公式LINEアカウントをハブとして、日常業務のあらゆる作業をLINEから自動化するシステム群。
