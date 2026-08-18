@@ -350,8 +350,8 @@
     </div>
 
     <div class="row">
-      <div class="label"><span>出現スピード</span><span class="val" id="speedVal">x1.5</span></div>
-      <input type="range" id="speed" min="5" max="40" value="15">
+      <div class="label"><span>出現スピード</span><span class="val" id="speedVal">x1.0</span></div>
+      <input type="range" id="speed" min="3" max="40" value="10">
     </div>
 
     <div class="row">
@@ -428,7 +428,7 @@ If you want to offset all timestamps of a track such that the first one is zero,
     color: '#ffd700',
     glow: 0.6,      // 0..1
     width: 10,      // 鎖の太さ(px)
-    speed: 1.5,     // 出現スピード倍率
+    speed: 1.0,     // 出現スピード倍率
     sag: 0.5,       // しなり量 0..1
     autoFade: true,
     life: 6,        // 秒
@@ -591,8 +591,8 @@ If you want to offset all timestamps of a track such that the first one is zero,
     const path = buildPath(raw);
     if (!path) return;
 
-    // 到達時間: 距離とスピード設定から算出（勢いよく＝短時間）
-    const duration = Math.max(0.12, path.len / (2600 * settings.speed));
+    // 到達時間: 距離とスピード設定から算出（約700px/秒を基準に、だんだんと伸びる）
+    const duration = Math.max(0.25, path.len / (700 * settings.speed));
 
     chains.push({
       pts: path.pts,
@@ -935,8 +935,10 @@ If you want to offset all timestamps of a track such that the first one is zero,
   }
 
   // ---------- 描画 ----------
-  // イージング: 勢いよく飛び出して減速（ease-out quint）
-  function easeOutQuint(x) { return 1 - Math.pow(1 - x, 5); }
+  // イージング: ゆっくり動き出し、一定の速さで伸びて、なめらかに到達（ease-in-out）
+  function easeInOutCubic(x) {
+    return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+  }
 
   // 経路上の点（弧長パラメータu: 0..1、offは垂直方向のしなり量）
   function pathPoint(c, u, off) {
@@ -964,7 +966,7 @@ If you want to offset all timestamps of a track such that the first one is zero,
     c.t += dt;
 
     const x = Math.min(1, c.t / c.duration);
-    const p = easeOutQuint(x); // 先端の進行度 0..1
+    const p = easeInOutCubic(x); // 先端の進行度 0..1
 
     if (!c.arrived && x >= 1) {
       c.arrived = true;
