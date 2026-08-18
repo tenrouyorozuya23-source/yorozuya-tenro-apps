@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>CHAIN FX — 光る鎖アニメーションシミュレーター</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #000;
+    font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic", "Noto Sans JP", sans-serif;
+    color: #ddd;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  #stage {
+    position: fixed;
+    inset: 0;
+    display: block;
+    cursor: crosshair;
+    background: #000;
+    touch-action: none;
+  }
+
+  /* ---- コントロールパネル ---- */
+  #panel {
+    position: fixed;
+    top: 12px;
+    left: 12px;
+    width: 250px;
+    background: rgba(10, 12, 18, 0.82);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 12px;
+    backdrop-filter: blur(8px);
+    padding: 14px 16px;
+    z-index: 10;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.6);
+    transition: transform 0.25s ease, opacity 0.25s ease;
+  }
+  #panel.closed .panel-body { display: none; }
+  #panel.closed { width: auto; }
+
+  .panel-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    cursor: pointer;
+  }
+  .panel-title {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: #fff;
+    white-space: nowrap;
+  }
+  .panel-title small {
+    display: block;
+    font-size: 10px;
+    font-weight: 400;
+    color: #8a93a6;
+    letter-spacing: 0.04em;
+    margin-top: 2px;
+  }
+  #toggleBtn {
+    background: none;
+    border: none;
+    color: #8a93a6;
+    font-size: 14px;
+    cursor: pointer;
+    padding: 2px 4px;
+  }
+
+  .panel-body { margin-top: 12px; }
+
+  .row { margin-bottom: 13px; }
+  .row:last-child { margin-bottom: 0; }
+
+  .label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: #aab3c5;
+    margin-bottom: 5px;
+    letter-spacing: 0.05em;
+  }
+  .label .val { color: #fff; font-variant-numeric: tabular-nums; }
+
+  input[type="range"] {
+    width: 100%;
+    height: 4px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: #2a2f3d;
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--accent, #ffd700);
+    box-shadow: 0 0 8px var(--accent, #ffd700);
+    cursor: pointer;
+  }
+  input[type="range"]::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    border: none;
+    border-radius: 50%;
+    background: var(--accent, #ffd700);
+    box-shadow: 0 0 8px var(--accent, #ffd700);
+    cursor: pointer;
+  }
+
+  /* 色スウォッチ */
+  .swatches {
+    display: flex;
+    gap: 7px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .sw {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: transform 0.12s ease;
+  }
+  .sw:hover { transform: scale(1.15); }
+  .sw.active {
+    border-color: #fff;
+    box-shadow: 0 0 10px currentColor;
+  }
+  #customColor {
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: 2px solid rgba(255,255,255,0.25);
+    border-radius: 50%;
+    background: none;
+    cursor: pointer;
+    overflow: hidden;
+  }
+  #customColor::-webkit-color-swatch-wrapper { padding: 0; }
+  #customColor::-webkit-color-swatch { border: none; border-radius: 50%; }
+  #customColor::-moz-color-swatch { border: none; border-radius: 50%; }
+
+  .check-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    color: #aab3c5;
+    cursor: pointer;
+  }
+  .check-row input { accent-color: var(--accent, #ffd700); cursor: pointer; }
+
+  .btn-row { display: flex; gap: 8px; }
+  .btn {
+    flex: 1;
+    padding: 8px 0;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    color: #fff;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+  .btn:hover { background: rgba(255, 255, 255, 0.16); }
+  .btn.primary {
+    background: var(--accent, #ffd700);
+    border-color: transparent;
+    color: #000;
+    box-shadow: 0 0 14px color-mix(in srgb, var(--accent, #ffd700) 60%, transparent);
+  }
+
+  /* ---- 録画 ---- */
+  .btn.rec {
+    width: 100%;
+    color: #ff5c66;
+    border-color: rgba(255, 92, 102, 0.5);
+  }
+  .btn.rec:hover { background: rgba(255, 92, 102, 0.15); }
+  .btn.rec.recording {
+    background: #d92b36;
+    border-color: transparent;
+    color: #fff;
+    box-shadow: 0 0 14px rgba(255, 60, 70, 0.6);
+  }
+  .rec-note {
+    margin-top: 6px;
+    font-size: 10px;
+    line-height: 1.5;
+    color: #6f7a8f;
+  }
+
+  #recIndicator {
+    position: fixed;
+    top: 14px;
+    right: 16px;
+    display: none;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: #fff;
+    background: rgba(10, 12, 18, 0.75);
+    border: 1px solid rgba(255, 92, 102, 0.55);
+    padding: 7px 14px;
+    border-radius: 999px;
+    z-index: 10;
+    pointer-events: none;
+  }
+  #recIndicator.on { display: flex; }
+  #recIndicator #recTime { font-variant-numeric: tabular-nums; }
+  .rec-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #ff3c46;
+    box-shadow: 0 0 8px #ff3c46;
+    animation: blink 1s steps(2, start) infinite;
+  }
+  @keyframes blink { 50% { opacity: 0.25; } }
+
+  /* ---- 操作ガイド ---- */
+  #guide {
+    position: fixed;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    color: rgba(255, 255, 255, 0.55);
+    background: rgba(10, 12, 18, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 8px 18px;
+    border-radius: 999px;
+    z-index: 10;
+    pointer-events: none;
+    white-space: nowrap;
+    transition: opacity 0.4s ease;
+  }
+  #guide.dim { opacity: 0.35; }
+</style>
+</head>
+<body>
+
+<canvas id="stage"></canvas>
+
+<div id="panel">
+  <div class="panel-head" id="panelHead">
+    <div class="panel-title">⛓ CHAIN FX<small>光る鎖アニメーションシミュレーター</small></div>
+    <button id="toggleBtn" title="パネル開閉">▲</button>
+  </div>
+
+  <div class="panel-body">
+    <div class="row">
+      <div class="label"><span>鎖の色</span></div>
+      <div class="swatches" id="swatches">
+        <div class="sw active" data-color="#ffd700" style="background:#ffd700;color:#ffd700" title="金"></div>
+        <div class="sw" data-color="#cdd8e6" style="background:#cdd8e6;color:#cdd8e6" title="銀"></div>
+        <div class="sw" data-color="#46d4ff" style="background:#46d4ff;color:#46d4ff" title="青"></div>
+        <div class="sw" data-color="#ff4655" style="background:#ff4655;color:#ff4655" title="赤"></div>
+        <div class="sw" data-color="#b36bff" style="background:#b36bff;color:#b36bff" title="紫"></div>
+        <div class="sw" data-color="#58ff9b" style="background:#58ff9b;color:#58ff9b" title="緑"></div>
+        <input type="color" id="customColor" value="#ffd700" title="カスタムカラー">
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="label"><span>光量</span><span class="val" id="glowVal">60%</span></div>
+      <input type="range" id="glow" min="0" max="100" value="60">
+    </div>
+
+    <div class="row">
+      <div class="label"><span>太さ</span><span class="val" id="widthVal">10</span></div>
+      <input type="range" id="width" min="4" max="26" value="10">
+    </div>
+
+    <div class="row">
+      <div class="label"><span>出現スピード</span><span class="val" id="speedVal">x1.5</span></div>
+      <input type="range" id="speed" min="5" max="40" value="15">
+    </div>
+
+    <div class="row">
+      <div class="label"><span>しなり（揺れ）</span><span class="val" id="sagVal">50%</span></div>
+      <input type="range" id="sag" min="0" max="100" value="50">
+    </div>
+
+    <div class="row">
+      <label class="check-row">
+        <input type="checkbox" id="autoFade" checked>
+        <span>一定時間で消える（<span id="lifeVal">6</span>秒）</span>
+      </label>
+      <input type="range" id="life" min="2" max="20" value="6" style="margin-top:6px">
+    </div>
+
+    <div class="row btn-row">
+      <button class="btn primary" id="randomBtn">ランダム発射</button>
+      <button class="btn" id="clearBtn">全て消す</button>
+    </div>
+
+    <div class="row">
+      <button class="btn rec" id="recBtn">⏺ 録画開始（MP4保存）</button>
+      <div class="rec-note" id="recNote">録画中の画面がそのまま動画になります（R キーでも開始/停止）</div>
+    </div>
+  </div>
+</div>
+
+<div id="recIndicator">
+  <span class="rec-dot"></span>
+  <span id="recTime">00:00</span> 録画中
+</div>
+
+<div id="guide">クリックで発生源 → もう一度クリックで到着地点（ドラッグでも可）</div>
+
+<script>
+(() => {
+  'use strict';
+
+  const canvas = document.getElementById('stage');
+  const ctx = canvas.getContext('2d');
+  let W = 0, H = 0, DPR = 1;
+
+  function resize() {
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    W = window.innerWidth;
+    H = window.innerHeight;
+    canvas.width = W * DPR;
+    canvas.height = H * DPR;
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  // ---------- 設定 ----------
+  const settings = {
+    color: '#ffd700',
+    glow: 0.6,      // 0..1
+    width: 10,      // 鎖の太さ(px)
+    speed: 1.5,     // 出現スピード倍率
+    sag: 0.5,       // しなり量 0..1
+    autoFade: true,
+    life: 6,        // 秒
+  };
+
+  const $ = id => document.getElementById(id);
+
+  function setAccent(color) {
+    document.documentElement.style.setProperty('--accent', color);
+  }
+
+  // 色スウォッチ
+  const swatchBox = $('swatches');
+  swatchBox.addEventListener('click', e => {
+    const sw = e.target.closest('.sw');
+    if (!sw) return;
+    swatchBox.querySelectorAll('.sw').forEach(el => el.classList.remove('active'));
+    sw.classList.add('active');
+    settings.color = sw.dataset.color;
+    $('customColor').value = settings.color;
+    setAccent(settings.color);
+  });
+  $('customColor').addEventListener('input', e => {
+    swatchBox.querySelectorAll('.sw').forEach(el => el.classList.remove('active'));
+    settings.color = e.target.value;
+    setAccent(settings.color);
+  });
+
+  // スライダー
+  $('glow').addEventListener('input', e => {
+    settings.glow = e.target.value / 100;
+    $('glowVal').textContent = e.target.value + '%';
+  });
+  $('width').addEventListener('input', e => {
+    settings.width = +e.target.value;
+    $('widthVal').textContent = e.target.value;
+  });
+  $('speed').addEventListener('input', e => {
+    settings.speed = e.target.value / 10;
+    $('speedVal').textContent = 'x' + settings.speed.toFixed(1);
+  });
+  $('sag').addEventListener('input', e => {
+    settings.sag = e.target.value / 100;
+    $('sagVal').textContent = e.target.value + '%';
+  });
+  $('autoFade').addEventListener('change', e => { settings.autoFade = e.target.checked; });
+  $('life').addEventListener('input', e => {
+    settings.life = +e.target.value;
+    $('lifeVal').textContent = e.target.value;
+  });
+
+  // パネル開閉
+  $('panelHead').addEventListener('click', () => {
+    const p = $('panel');
+    p.classList.toggle('closed');
+    $('toggleBtn').textContent = p.classList.contains('closed') ? '▼' : '▲';
+  });
+
+  $('clearBtn').addEventListener('click', e => {
+    e.stopPropagation();
+    chains.length = 0;
+    particles.length = 0;
+    pendingSource = null;
+  });
+
+  $('randomBtn').addEventListener('click', e => {
+    e.stopPropagation();
+    const m = 60;
+    const a = { x: m + Math.random() * (W - m * 2), y: m + Math.random() * (H - m * 2) };
+    const b = { x: m + Math.random() * (W - m * 2), y: m + Math.random() * (H - m * 2) };
+    launchChain(a, b);
+  });
+
+  // ---------- ユーティリティ ----------
+  function hexToRgb(hex) {
+    const n = parseInt(hex.slice(1), 16);
+    return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
+  }
+  function rgba(c, a) { return `rgba(${c.r},${c.g},${c.b},${a})`; }
+  // 白寄りに明るくした色（鎖の芯用）
+  function lighten(c, t) {
+    return {
+      r: Math.round(c.r + (255 - c.r) * t),
+      g: Math.round(c.g + (255 - c.g) * t),
+      b: Math.round(c.b + (255 - c.b) * t),
+    };
+  }
+
+  // ---------- 鎖 ----------
+  const chains = [];
+  const particles = [];
+  const MAX_CHAINS = 24;
+
+  function launchChain(from, to) {
+    const dx = to.x - from.x, dy = to.y - from.y;
+    const len = Math.hypot(dx, dy);
+    if (len < 20) return;
+
+    // 到達時間: 距離とスピード設定から算出（勢いよく＝短時間）
+    const duration = Math.max(0.12, len / (2600 * settings.speed));
+
+    chains.push({
+      from: { ...from },
+      to: { ...to },
+      len,
+      angle: Math.atan2(dy, dx),
+      t: 0,
+      duration,
+      arrived: false,
+      arriveTime: 0,
+      color: hexToRgb(settings.color),
+      colorHex: settings.color,
+      glow: settings.glow,
+      width: settings.width,
+      sag: settings.sag,
+      autoFade: settings.autoFade,
+      life: settings.life,
+      alpha: 1,
+      dead: false,
+      // しなりの向き（左右ランダム）と個体差
+      sagDir: Math.random() < 0.5 ? 1 : -1,
+      phase: Math.random() * Math.PI * 2,
+    });
+    if (chains.length > MAX_CHAINS) chains.shift();
+    dimGuide();
+  }
+
+  // 発射エフェクト・着弾エフェクト用パーティクル
+  function burst(x, y, color, count, power) {
+    for (let i = 0; i < count; i++) {
+      const a = Math.random() * Math.PI * 2;
+      const v = (0.3 + Math.random() * 0.7) * power;
+      particles.push({
+        x, y,
+        vx: Math.cos(a) * v,
+        vy: Math.sin(a) * v,
+        life: 1,
+        decay: 1.5 + Math.random() * 2,
+        size: 1 + Math.random() * 2.5,
+        color,
+      });
+    }
+  }
+
+  // ---------- 入力（クリック2回 or ドラッグ） ----------
+  let pendingSource = null;   // 1クリック目の位置
+  let dragStart = null;
+  let dragCurrent = null;
+  let dragging = false;
+
+  function pos(e) {
+    if (e.touches && e.touches.length) {
+      return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    }
+    if (e.changedTouches && e.changedTouches.length) {
+      return { x: e.changedTouches[0].clientX, y: e.changedTouches[0].clientY };
+    }
+    return { x: e.clientX, y: e.clientY };
+  }
+
+  function onDown(e) {
+    if (e.target !== canvas) return;
+    e.preventDefault();
+    dragStart = pos(e);
+    dragCurrent = { ...dragStart };
+    dragging = false;
+  }
+  function onMove(e) {
+    if (!dragStart) return;
+    dragCurrent = pos(e);
+    if (Math.hypot(dragCurrent.x - dragStart.x, dragCurrent.y - dragStart.y) > 12) {
+      dragging = true;
+    }
+  }
+  function onUp(e) {
+    if (!dragStart) return;
+    const p = pos(e);
+    if (dragging) {
+      // ドラッグ: 始点→終点で発射
+      launchChain(dragStart, p);
+      pendingSource = null;
+    } else {
+      // クリック
+      if (!pendingSource) {
+        pendingSource = { ...p, born: performance.now() };
+        burst(p.x, p.y, hexToRgb(settings.color), 10, 120);
+      } else {
+        launchChain(pendingSource, p);
+        pendingSource = null;
+      }
+    }
+    dragStart = null;
+    dragCurrent = null;
+    dragging = false;
+  }
+
+  canvas.addEventListener('mousedown', onDown);
+  window.addEventListener('mousemove', onMove);
+  window.addEventListener('mouseup', onUp);
+  canvas.addEventListener('touchstart', onDown, { passive: false });
+  window.addEventListener('touchmove', onMove, { passive: false });
+  window.addEventListener('touchend', onUp);
+
+  window.addEventListener('keydown', e => {
+    if (e.key === 'Escape') pendingSource = null;
+    if ((e.key === 'r' || e.key === 'R') && !e.repeat &&
+        !/INPUT|BUTTON/.test(document.activeElement?.tagName || '')) {
+      toggleRecording();
+    }
+  });
+
+  // ---------- MP4録画 ----------
+  // 対応形式を優先順で選ぶ（Chrome/Edge/SafariはMP4対応、FirefoxはWebMで保存）
+  const REC_TYPES = [
+    { mime: 'video/mp4;codecs=avc1.42E01E', ext: 'mp4' },
+    { mime: 'video/mp4;codecs=avc1', ext: 'mp4' },
+    { mime: 'video/mp4', ext: 'mp4' },
+    { mime: 'video/webm;codecs=vp9', ext: 'webm' },
+    { mime: 'video/webm;codecs=vp8', ext: 'webm' },
+    { mime: 'video/webm', ext: 'webm' },
+  ];
+
+  let recorder = null;
+  let recChunks = [];
+  let recStartTime = 0;
+  let recTimer = null;
+  let recFormat = null;
+
+  function pickRecFormat() {
+    if (typeof MediaRecorder === 'undefined') return null;
+    for (const t of REC_TYPES) {
+      if (MediaRecorder.isTypeSupported(t.mime)) return t;
+    }
+    return null;
+  }
+
+  function recFileName(ext) {
+    const d = new Date();
+    const z = n => String(n).padStart(2, '0');
+    return `chain-fx_${d.getFullYear()}${z(d.getMonth() + 1)}${z(d.getDate())}` +
+           `-${z(d.getHours())}${z(d.getMinutes())}${z(d.getSeconds())}.${ext}`;
+  }
+
+  function startRecording() {
+    recFormat = pickRecFormat();
+    if (!recFormat) {
+      alert('このブラウザは画面録画（MediaRecorder）に対応していません。');
+      return;
+    }
+    recChunks = [];
+    const stream = canvas.captureStream(60);
+    try {
+      recorder = new MediaRecorder(stream, {
+        mimeType: recFormat.mime,
+        videoBitsPerSecond: 12_000_000, // 高画質
+      });
+    } catch (err) {
+      recorder = new MediaRecorder(stream, { mimeType: recFormat.mime });
+    }
+    recorder.ondataavailable = e => { if (e.data && e.data.size) recChunks.push(e.data); };
+    recorder.onstop = saveRecording;
+    recorder.start(250); // 250msごとにチャンク取得
+
+    recStartTime = performance.now();
+    $('recBtn').classList.add('recording');
+    $('recBtn').textContent = '⏹ 停止して保存';
+    $('recIndicator').classList.add('on');
+    $('recNote').textContent = recFormat.ext === 'mp4'
+      ? '停止するとMP4ファイルをダウンロードします'
+      : 'このブラウザはMP4非対応のためWebM形式で保存します';
+    recTimer = setInterval(() => {
+      const s = Math.floor((performance.now() - recStartTime) / 1000);
+      $('recTime').textContent =
+        `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
+    }, 250);
+  }
+
+  function stopRecording() {
+    if (recorder && recorder.state !== 'inactive') recorder.stop();
+    clearInterval(recTimer);
+    $('recBtn').classList.remove('recording');
+    $('recBtn').textContent = '⏺ 録画開始（MP4保存）';
+    $('recIndicator').classList.remove('on');
+    $('recTime').textContent = '00:00';
+    $('recNote').textContent = '録画中の画面がそのまま動画になります（R キーでも開始/停止）';
+  }
+
+  function saveRecording() {
+    if (!recChunks.length) return;
+    const blob = new Blob(recChunks, { type: recFormat.mime.split(';')[0] });
+    recChunks = [];
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = recFileName(recFormat.ext);
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+  }
+
+  function toggleRecording() {
+    if (recorder && recorder.state === 'recording') stopRecording();
+    else startRecording();
+  }
+
+  $('recBtn').addEventListener('click', e => {
+    e.stopPropagation();
+    toggleRecording();
+  });
+
+  let guideDimmed = false;
+  function dimGuide() {
+    if (guideDimmed) return;
+    guideDimmed = true;
+    document.getElementById('guide').classList.add('dim');
+  }
+
+  // ---------- 描画 ----------
+  // イージング: 勢いよく飛び出して減速（ease-out quint）
+  function easeOutQuint(x) { return 1 - Math.pow(1 - x, 5); }
+
+  // ベジェ経路上の点（しなり付き）
+  function pointOnPath(c, u, sagAmount) {
+    const mx = (c.from.x + c.to.x) / 2;
+    const my = (c.from.y + c.to.y) / 2;
+    // 進行方向に対して垂直方向へしならせる
+    const nx = -Math.sin(c.angle), ny = Math.cos(c.angle);
+    const cx = mx + nx * sagAmount;
+    const cy = my + ny * sagAmount;
+    const v = 1 - u;
+    return {
+      x: v * v * c.from.x + 2 * v * u * cx + u * u * c.to.x,
+      y: v * v * c.from.y + 2 * v * u * cy + u * u * c.to.y,
+      // 接線角度
+      ang: Math.atan2(
+        2 * v * (cy - c.from.y) + 2 * u * (c.to.y - cy),
+        2 * v * (cx - c.from.x) + 2 * u * (c.to.x - cx)
+      ),
+    };
+  }
+
+  function drawChain(c, now, dt) {
+    c.t += dt;
+
+    const x = Math.min(1, c.t / c.duration);
+    const p = easeOutQuint(x); // 先端の進行度 0..1
+
+    if (!c.arrived && x >= 1) {
+      c.arrived = true;
+      c.arriveTime = c.t;
+      burst(c.to.x, c.to.y, c.color, 26, 320);
+    }
+
+    // しなり: 飛行中は大きく、着弾後は減衰振動して静止
+    let sagAmount;
+    const maxSag = c.len * 0.14 * c.sag;
+    if (!c.arrived) {
+      sagAmount = maxSag * Math.sin(p * Math.PI) * c.sagDir;
+    } else {
+      const ta = c.t - c.arriveTime;
+      sagAmount = maxSag * c.sagDir * Math.cos(ta * 14 + c.phase * 0) * Math.exp(-ta * 3.2)
+        * 0.8;
+      // 静止後はわずかな垂れ下がり
+      sagAmount += c.len * 0.02 * c.sag * (1 - Math.exp(-ta * 2));
+    }
+
+    // 寿命
+    if (c.autoFade && c.arrived) {
+      const age = c.t - c.arriveTime;
+      const fadeStart = c.life - 0.8;
+      if (age > fadeStart) c.alpha = Math.max(0, 1 - (age - fadeStart) / 0.8);
+      if (age > c.life) { c.dead = true; return; }
+    }
+
+    const col = c.color;
+    const coreCol = lighten(col, 0.75);
+    const w = c.width;
+    const linkLen = Math.max(w * 1.5, 12);       // リンク1個の長さ
+    const visibleLen = c.len * p;
+    const linkCount = Math.max(1, Math.floor(visibleLen / linkLen));
+
+    ctx.save();
+    ctx.globalAlpha = c.alpha;
+    ctx.globalCompositeOperation = 'lighter';
+
+    // --- グロー下地: 経路に沿った太い光の帯 ---
+    if (c.glow > 0.02) {
+      ctx.beginPath();
+      const steps = Math.max(8, linkCount);
+      for (let i = 0; i <= steps; i++) {
+        const u = (i / steps) * p;
+        const pt = pointOnPath(c, u, sagAmount);
+        i === 0 ? ctx.moveTo(pt.x, pt.y) : ctx.lineTo(pt.x, pt.y);
+      }
+      ctx.strokeStyle = rgba(col, 0.10 * c.glow + 0.02);
+      ctx.lineWidth = w * (2.5 + c.glow * 5);
+      ctx.lineCap = 'round';
+      ctx.shadowColor = rgba(col, 0.9);
+      ctx.shadowBlur = 30 * c.glow;
+      ctx.stroke();
+    }
+
+    // --- 鎖のリンク（楕円の輪を交互に向きを変えて描く） ---
+    ctx.shadowColor = rgba(col, 0.95);
+    ctx.shadowBlur = 4 + 26 * c.glow;
+    ctx.lineCap = 'round';
+
+    for (let i = 0; i < linkCount; i++) {
+      const u = ((i + 0.5) * linkLen) / c.len;
+      if (u > p) break;
+      const pt = pointOnPath(c, u, sagAmount);
+      const flat = i % 2 === 0; // 正面向き / 横向きを交互に
+
+      ctx.save();
+      ctx.translate(pt.x, pt.y);
+      ctx.rotate(pt.ang);
+
+      const rx = linkLen * 0.62;
+      const ry = flat ? w * 0.85 : w * 0.3;
+
+      // 外周（本体色）
+      ctx.beginPath();
+      ctx.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2);
+      ctx.strokeStyle = rgba(col, 0.9);
+      ctx.lineWidth = w * 0.34;
+      ctx.stroke();
+
+      // 芯（白く光る内側）
+      ctx.beginPath();
+      ctx.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2);
+      ctx.strokeStyle = rgba(coreCol, 0.55 + 0.4 * c.glow);
+      ctx.lineWidth = w * 0.13;
+      ctx.stroke();
+
+      ctx.restore();
+    }
+
+    // --- 先端の光球（飛行中） ---
+    if (!c.arrived) {
+      const tip = pointOnPath(c, p, sagAmount);
+      const r = w * (1.2 + c.glow);
+      const g = ctx.createRadialGradient(tip.x, tip.y, 0, tip.x, tip.y, r * 3);
+      g.addColorStop(0, rgba(coreCol, 0.9));
+      g.addColorStop(0.3, rgba(col, 0.5));
+      g.addColorStop(1, rgba(col, 0));
+      ctx.beginPath();
+      ctx.fillStyle = g;
+      ctx.arc(tip.x, tip.y, r * 3, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 飛行中の火花
+      if (Math.random() < 0.8) {
+        particles.push({
+          x: tip.x, y: tip.y,
+          vx: (Math.random() - 0.5) * 90,
+          vy: (Math.random() - 0.5) * 90,
+          life: 1, decay: 3 + Math.random() * 3,
+          size: 1 + Math.random() * 2,
+          color: col,
+        });
+      }
+    }
+
+    // --- 着弾直後の衝撃リング ---
+    if (c.arrived) {
+      const ta = c.t - c.arriveTime;
+      if (ta < 0.45) {
+        const k = ta / 0.45;
+        ctx.beginPath();
+        ctx.arc(c.to.x, c.to.y, 6 + k * 70, 0, Math.PI * 2);
+        ctx.strokeStyle = rgba(col, (1 - k) * 0.7);
+        ctx.lineWidth = 3 * (1 - k) + 0.5;
+        ctx.shadowBlur = 20 * c.glow;
+        ctx.stroke();
+      }
+    }
+
+    // --- 発生源のアンカー ---
+    ctx.beginPath();
+    ctx.arc(c.from.x, c.from.y, w * 0.55, 0, Math.PI * 2);
+    ctx.fillStyle = rgba(coreCol, 0.9);
+    ctx.shadowBlur = 16 * c.glow + 4;
+    ctx.fill();
+
+    ctx.restore();
+  }
+
+  function drawParticles(dt) {
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    for (let i = particles.length - 1; i >= 0; i--) {
+      const pt = particles[i];
+      pt.life -= pt.decay * dt;
+      if (pt.life <= 0) { particles.splice(i, 1); continue; }
+      pt.x += pt.vx * dt;
+      pt.y += pt.vy * dt;
+      pt.vx *= 0.96;
+      pt.vy *= 0.96;
+      ctx.beginPath();
+      ctx.fillStyle = rgba(pt.color, pt.life * 0.9);
+      ctx.arc(pt.x, pt.y, pt.size * pt.life, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  // 発生源マーカー（1クリック目の位置に脈打つリング）
+  function drawPendingSource(now) {
+    if (!pendingSource) return;
+    const col = hexToRgb(settings.color);
+    const t = (now - pendingSource.born) / 1000;
+    const pulse = 1 + Math.sin(t * 5) * 0.25;
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.beginPath();
+    ctx.arc(pendingSource.x, pendingSource.y, 9 * pulse, 0, Math.PI * 2);
+    ctx.strokeStyle = rgba(col, 0.85);
+    ctx.lineWidth = 2;
+    ctx.shadowColor = rgba(col, 1);
+    ctx.shadowBlur = 14;
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(pendingSource.x, pendingSource.y, 3, 0, Math.PI * 2);
+    ctx.fillStyle = rgba(lighten(col, 0.7), 0.95);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  // ドラッグ中のガイド線
+  function drawDragGuide() {
+    if (!dragging || !dragStart || !dragCurrent) return;
+    const col = hexToRgb(settings.color);
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.setLineDash([6, 8]);
+    ctx.beginPath();
+    ctx.moveTo(dragStart.x, dragStart.y);
+    ctx.lineTo(dragCurrent.x, dragCurrent.y);
+    ctx.strokeStyle = rgba(col, 0.35);
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.beginPath();
+    ctx.arc(dragCurrent.x, dragCurrent.y, 5, 0, Math.PI * 2);
+    ctx.strokeStyle = rgba(col, 0.7);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  // ---------- メインループ ----------
+  let last = performance.now();
+  function frame(now) {
+    const dt = Math.min(0.05, (now - last) / 1000);
+    last = now;
+
+    // 黒背景（残像なしのクリア描画）
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, W, H);
+
+    for (let i = chains.length - 1; i >= 0; i--) {
+      drawChain(chains[i], now, dt);
+      if (chains[i].dead) chains.splice(i, 1);
+    }
+    drawParticles(dt);
+    drawPendingSource(now);
+    drawDragGuide();
+
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+
+  // 初回デモ: 中央に1本発射
+  setTimeout(() => {
+    launchChain(
+      { x: W * 0.25, y: H * 0.7 },
+      { x: W * 0.75, y: H * 0.35 }
+    );
+  }, 600);
+})();
+</script>
+</body>
+</html>
