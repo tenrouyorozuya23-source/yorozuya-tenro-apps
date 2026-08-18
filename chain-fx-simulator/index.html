@@ -802,13 +802,21 @@ If you want to offset all timestamps of a track such that the first one is zero,
       const height = canvas.height & ~1;
       // H.264のプロファイル/レベル候補（高解像度対応の順）
       const candidates = ['avc1.640034', 'avc1.4D0034', 'avc1.42E034', 'avc1.640028', 'avc1.42E01F'];
-      let codec = null;
+      let config = null;
       for (const cand of candidates) {
-        const cfg = { codec: cand, width, height, bitrate: REC_BITRATE, framerate: 60 };
+        // avc: {format:'avc'} を明示すると、最初のチャンクで必ずdecoderConfig
+        // （MP4に必要なavcCヘッダ）が渡される。Safariではこれがないと保存に失敗する
+        const cfg = {
+          codec: cand,
+          width, height,
+          bitrate: REC_BITRATE,
+          framerate: 60,
+          avc: { format: 'avc' },
+        };
         const s = await VideoEncoder.isConfigSupported(cfg).catch(() => null);
-        if (s && s.supported) { codec = cand; break; }
+        if (s && s.supported) { config = cfg; break; }
       }
-      if (!codec) return false;
+      if (!config) return false;
 
       const muxer = new Mp4Muxer.Muxer({
         target: new Mp4Muxer.ArrayBufferTarget(),
@@ -817,13 +825,15 @@ If you want to offset all timestamps of a track such that the first one is zero,
         firstTimestampBehavior: 'offset',
       });
       const encoder = new VideoEncoder({
-        output: (chunk, meta) => muxer.addVideoChunk(chunk, meta),
+        // decoderConfigがnullのメタデータはmuxerに渡さない（Safari対策の保険）
+        output: (chunk, meta) =>
+          muxer.addVideoChunk(chunk, meta && meta.decoderConfig ? meta : undefined),
         error: err => {
           console.error('VideoEncoder error:', err);
           stopRecording();
         },
       });
-      encoder.configure({ codec, width, height, bitrate: REC_BITRATE, framerate: 60 });
+      encoder.configure(config);
       vc = { muxer, encoder, width, height, start: performance.now(), lastKey: -Infinity };
       return true;
     } catch (err) {
