@@ -321,7 +321,7 @@
 
 <div id="panel">
   <div class="panel-head" id="panelHead">
-    <div class="panel-title">⛓ CHAIN FX<small>光る鎖アニメーションシミュレーター</small></div>
+    <div class="panel-title">⛓ CHAIN FX<small>光る鎖アニメーションシミュレーター <span id="appVer">v1.5</span></small></div>
     <button id="toggleBtn" title="パネル開閉">▲</button>
   </div>
 
@@ -795,6 +795,49 @@ If you want to offset all timestamps of a track such that the first one is zero,
     $('recNote').textContent = REC_NOTE_IDLE;
   }
 
+  // 1フレームだけ試しにエンコードして、MP4組み立てに必要なdecoderConfig
+  // （avcCヘッダ）がメタデータで渡されるかを実際に確認する。
+  // 一部のSafariは渡してこないため、その場合はMediaRecorderに切り替える
+  // （SafariのMediaRecorderは元々正常なH.264 MP4を出力する）
+  function probeDecoderConfig(codec) {
+    return new Promise(resolve => {
+      let settled = false;
+      let enc = null;
+      const done = ok => {
+        if (settled) return;
+        settled = true;
+        try { if (enc && enc.state !== 'closed') enc.close(); } catch (e) {}
+        resolve(ok);
+      };
+      const timer = setTimeout(() => done(false), 2500);
+      try {
+        let got = false;
+        enc = new VideoEncoder({
+          output: (chunk, meta) => {
+            if (meta && meta.decoderConfig && meta.decoderConfig.description) got = true;
+          },
+          error: () => { clearTimeout(timer); done(false); },
+        });
+        enc.configure({
+          codec, width: 128, height: 128,
+          bitrate: 1_000_000, framerate: 30,
+          avc: { format: 'avc' },
+        });
+        const c = document.createElement('canvas');
+        c.width = 128; c.height = 128;
+        c.getContext('2d').fillRect(0, 0, 128, 128);
+        const frame = new VideoFrame(c, { timestamp: 0 });
+        enc.encode(frame, { keyFrame: true });
+        frame.close();
+        enc.flush().then(() => { clearTimeout(timer); done(got); })
+                   .catch(() => { clearTimeout(timer); done(false); });
+      } catch (err) {
+        clearTimeout(timer);
+        done(false);
+      }
+    });
+  }
+
   async function startWebCodecsRecording() {
     try {
       if (typeof VideoEncoder === 'undefined' || typeof Mp4Muxer === 'undefined') return false;
@@ -817,6 +860,9 @@ If you want to offset all timestamps of a track such that the first one is zero,
         if (s && s.supported) { config = cfg; break; }
       }
       if (!config) return false;
+
+      // このブラウザが本当にヘッダ情報を渡してくるか実挙動で確認
+      if (!(await probeDecoderConfig(config.codec))) return false;
 
       const muxer = new Mp4Muxer.Muxer({
         target: new Mp4Muxer.ArrayBufferTarget(),
@@ -917,7 +963,8 @@ If you want to offset all timestamps of a track such that the first one is zero,
         downloadBlob(blob, recFileName('mp4'));
       } catch (err) {
         console.error(err);
-        alert('動画の保存に失敗しました: ' + err.message);
+        alert('動画の保存に失敗しました: ' + err.message +
+          '\nページを再読み込みしてもう一度お試しください。');
       }
       return;
     }
