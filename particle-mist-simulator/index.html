@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>PARTICLE MIST — 黒いモヤモヤ粒子シミュレーター</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #f2f1ee;
+    font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic", "Noto Sans JP", sans-serif;
+    color: #333;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  #stage {
+    position: fixed;
+    inset: 0;
+    display: block;
+    cursor: crosshair;
+    background: #f2f1ee;
+    touch-action: none;
+  }
+
+  /* ---- コントロールパネル ---- */
+  #panel {
+    position: fixed;
+    top: 12px;
+    left: 12px;
+    width: 250px;
+    background: rgba(255, 255, 255, 0.82);
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    border-radius: 12px;
+    backdrop-filter: blur(8px);
+    padding: 14px 16px;
+    z-index: 10;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
+  }
+  #panel.closed .panel-body { display: none; }
+  #panel.closed { width: auto; }
+
+  .panel-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    cursor: pointer;
+  }
+  .panel-title {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: #111;
+    white-space: nowrap;
+  }
+  .panel-title small {
+    display: block;
+    font-size: 10px;
+    font-weight: 400;
+    color: #7a7a76;
+    letter-spacing: 0.04em;
+    margin-top: 2px;
+  }
+  #toggleBtn {
+    background: none;
+    border: none;
+    color: #7a7a76;
+    font-size: 14px;
+    cursor: pointer;
+    padding: 2px 4px;
+  }
+
+  .panel-body { margin-top: 12px; }
+
+  .row { margin-bottom: 13px; }
+  .row:last-child { margin-bottom: 0; }
+
+  .label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: #55554f;
+    margin-bottom: 5px;
+    letter-spacing: 0.05em;
+  }
+  .label .val { color: #111; font-variant-numeric: tabular-nums; }
+
+  input[type="range"] {
+    width: 100%;
+    height: 4px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: #d8d6d0;
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #222;
+    box-shadow: 0 0 6px rgba(0, 0, 0, 0.35);
+    cursor: pointer;
+  }
+  input[type="range"]::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    border: none;
+    border-radius: 50%;
+    background: #222;
+    box-shadow: 0 0 6px rgba(0, 0, 0, 0.35);
+    cursor: pointer;
+  }
+
+  .btn {
+    width: 100%;
+    padding: 9px 10px;
+    border: 1px solid rgba(0, 0, 0, 0.18);
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.05);
+    color: #222;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+  .btn:hover { background: rgba(0, 0, 0, 0.1); }
+
+  .btn.rec {
+    border-color: rgba(220, 40, 40, 0.5);
+    color: #c22;
+    background: rgba(220, 40, 40, 0.06);
+  }
+  .btn.rec:hover { background: rgba(220, 40, 40, 0.12); }
+  .btn.rec.recording {
+    background: #c22;
+    color: #fff;
+    border-color: #c22;
+    animation: pulse 1.2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(200, 30, 30, 0.45); }
+    50% { box-shadow: 0 0 0 8px rgba(200, 30, 30, 0); }
+  }
+
+  .rec-note {
+    font-size: 10px;
+    color: #8a8a84;
+    margin-top: 6px;
+    line-height: 1.5;
+  }
+
+  /* ---- 録画インジケータ ---- */
+  #recIndicator {
+    position: fixed;
+    top: 14px;
+    right: 14px;
+    display: none;
+    align-items: center;
+    gap: 7px;
+    background: rgba(255, 255, 255, 0.85);
+    border: 1px solid rgba(200, 30, 30, 0.4);
+    border-radius: 999px;
+    padding: 6px 14px;
+    font-size: 12px;
+    color: #c22;
+    font-weight: 700;
+    z-index: 20;
+    font-variant-numeric: tabular-nums;
+  }
+  #recIndicator.on { display: flex; }
+  #recIndicator .dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #c22;
+    animation: blink 1s step-end infinite;
+  }
+  @keyframes blink { 50% { opacity: 0.25; } }
+
+  /* ---- 操作ガイド ---- */
+  #guide {
+    position: fixed;
+    bottom: 18px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 12px;
+    color: #8a8a84;
+    background: rgba(255, 255, 255, 0.7);
+    border-radius: 999px;
+    padding: 7px 18px;
+    z-index: 5;
+    pointer-events: none;
+    white-space: nowrap;
+    transition: opacity 0.6s ease;
+  }
+  #guide.dim { opacity: 0; }
+
+  @media (max-width: 480px) {
+    #panel { width: 220px; }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="stage"></canvas>
+
+<div id="panel">
+  <div class="panel-head" id="panelHead">
+    <div class="panel-title">
+      PARTICLE MIST
+      <small>黒いモヤモヤ粒子シミュレーター</small>
+    </div>
+    <button id="toggleBtn" aria-label="パネル開閉">▲</button>
+  </div>
+  <div class="panel-body">
+    <div class="row">
+      <div class="label"><span>粒子の数</span><span class="val" id="countVal">450</span></div>
+      <input type="range" id="count" min="50" max="1200" step="10" value="450">
+    </div>
+    <div class="row">
+      <div class="label"><span>広がり</span><span class="val" id="spreadVal">120</span></div>
+      <input type="range" id="spread" min="40" max="320" step="5" value="120">
+    </div>
+    <div class="row">
+      <div class="label"><span>モヤモヤ感</span><span class="val" id="wobbleVal">60</span></div>
+      <input type="range" id="wobble" min="0" max="100" step="1" value="60">
+    </div>
+    <div class="row">
+      <div class="label"><span>追従の速さ</span><span class="val" id="followVal">50</span></div>
+      <input type="range" id="follow" min="5" max="100" step="1" value="50">
+    </div>
+    <div class="row">
+      <div class="label"><span>濃さ</span><span class="val" id="densityVal">55</span></div>
+      <input type="range" id="density" min="10" max="100" step="1" value="55">
+    </div>
+    <div class="row">
+      <div class="label"><span>残像（けむり）</span><span class="val" id="trailVal">50</span></div>
+      <input type="range" id="trail" min="0" max="95" step="1" value="50">
+    </div>
+    <div class="row">
+      <button class="btn rec" id="recBtn">⏺ 録画開始（MP4保存）</button>
+      <div class="rec-note" id="recNote">録画中の画面がそのまま動画になります（R キーでも開始/停止）</div>
+    </div>
+  </div>
+</div>
+
+<div id="recIndicator">
+  <span class="dot"></span>
+  <span id="recTime">00:00</span> 録画中
+</div>
+
+<div id="guide">画面をドラッグ（タッチ）すると粒子がカーソルに追従します</div>
+
+<script>
+(() => {
+  'use strict';
+
+  const $ = id => document.getElementById(id);
+  const canvas = $('stage');
+  const ctx = canvas.getContext('2d');
+
+  // ---------- キャンバスサイズ ----------
+  const DPR = Math.min(window.devicePixelRatio || 1, 2);
+  let W = 0, H = 0;
+
+  function resize() {
+    W = window.innerWidth;
+    H = window.innerHeight;
+    canvas.width = Math.round(W * DPR);
+    canvas.height = Math.round(H * DPR);
+    canvas.style.width = W + 'px';
+    canvas.style.height = H + 'px';
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    // リサイズ直後は背景を全面塗り（録画に透明フレームが入らないように）
+    ctx.fillStyle = BG;
+    ctx.fillRect(0, 0, W, H);
+  }
+
+  const BG = '#f2f1ee';
+
+  // ---------- 設定 ----------
+  const cfg = {
+    count: 450,
+    spread: 120,
+    wobble: 60,
+    follow: 50,
+    density: 55,
+    trail: 50,
+  };
+
+  function bindSlider(id) {
+    const input = $(id);
+    const val = $(id + 'Val');
+    input.addEventListener('input', () => {
+      cfg[id] = Number(input.value);
+      val.textContent = input.value;
+      if (id === 'count') syncParticleCount();
+    });
+  }
+  ['count', 'spread', 'wobble', 'follow', 'density', 'trail'].forEach(bindSlider);
+
+  // ---------- ポインタ（マウス / タッチ） ----------
+  // pointer: 実際の入力位置 / swarm: 粒子群の目標点（なめらかに追従）
+  const pointer = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
+  const swarm = { x: pointer.x, y: pointer.y };
+  let touching = false;
+
+  function setPointer(e) {
+    pointer.x = e.clientX;
+    pointer.y = e.clientY;
+  }
+
+  canvas.addEventListener('pointerdown', e => {
+    touching = true;
+    setPointer(e);
+    dimGuide();
+    canvas.setPointerCapture(e.pointerId);
+  });
+  canvas.addEventListener('pointermove', e => {
+    // マウスはホバーでも追従、タッチはドラッグ中のみ
+    if (e.pointerType === 'mouse' || touching) {
+      setPointer(e);
+      dimGuide();
+    }
+  });
+  canvas.addEventListener('pointerup', () => { touching = false; });
+  canvas.addEventListener('pointercancel', () => { touching = false; });
+
+  // ---------- 粒子 ----------
+  // 各粒子は目標点のまわりの「持ち場」（角度＋半径）を持ち、
+  // 持ち場自体がゆっくり回転・伸縮しながら、ノイズで揺らいでモヤモヤする
+  const particles = [];
+
+  function makeParticle() {
+    const baseR = Math.pow(Math.random(), 0.6); // 中心寄りにやや密集
+    return {
+      x: swarm.x + (Math.random() - 0.5) * 60,
+      y: swarm.y + (Math.random() - 0.5) * 60,
+      vx: 0,
+      vy: 0,
+      theta: Math.random() * Math.PI * 2,      // 持ち場の角度
+      spin: (Math.random() - 0.5) * 0.9,       // 持ち場の回転速度
+      baseR,                                    // 持ち場の半径（0〜1、spreadに乗算）
+      size: 6 + Math.random() * 26,            // 描画半径
+      alpha: 0.35 + Math.random() * 0.65,      // 個体ごとの濃度差
+      // 揺らぎ用の位相・周波数（sin波の重ねでノイズっぽく）
+      f1: 0.5 + Math.random() * 1.6,
+      f2: 0.4 + Math.random() * 1.3,
+      p1: Math.random() * Math.PI * 2,
+      p2: Math.random() * Math.PI * 2,
+      p3: Math.random() * Math.PI * 2,
+      breathe: 0.5 + Math.random() * 1.2,      // サイズの明滅速度
+    };
+  }
+
+  function syncParticleCount() {
+    while (particles.length < cfg.count) particles.push(makeParticle());
+    if (particles.length > cfg.count) particles.length = cfg.count;
+  }
+  syncParticleCount();
+
+  // ---------- 描画ループ ----------
+  let lastT = performance.now();
+
+  function frame(now) {
+    const dt = Math.min((now - lastT) / 1000, 0.05); // タブ復帰時の暴走防止
+    lastT = now;
+    const t = now / 1000;
+
+    // 粒子群の目標点をポインタへなめらかに寄せる
+    const followK = 1 - Math.pow(1 - cfg.follow / 100, dt * 60 * 0.15);
+    swarm.x += (pointer.x - swarm.x) * followK;
+    swarm.y += (pointer.y - swarm.y) * followK;
+
+    // 残像：背景色を薄く重ねて古い描画を溶かす（値が大きいほど長く残る）
+    const fade = 1 - cfg.trail / 100 * 0.92; // 0.08〜1.0
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.fillStyle = BG;
+    ctx.globalAlpha = Math.max(fade, 0.06);
+    ctx.fillRect(0, 0, W, H);
+    ctx.globalAlpha = 1;
+
+    const wob = cfg.wobble / 100;
+    const spread = cfg.spread;
+    const density = cfg.density / 100;
+
+    for (let i = 0; i < particles.length; i++) {
+      const p = particles[i];
+
+      // 持ち場をゆっくり回転
+      p.theta += p.spin * dt;
+
+      // 持ち場の半径を呼吸させ、sin波の重ねで揺らぎを加える
+      const rNoise = 1 + wob * 0.55 * Math.sin(t * p.f1 + p.p1) * Math.sin(t * p.f2 * 0.7 + p.p2);
+      const r = p.baseR * spread * rNoise;
+      const nx = wob * spread * 0.45 * Math.sin(t * p.f2 + p.p2) * Math.cos(t * p.f1 * 0.6 + p.p3);
+      const ny = wob * spread * 0.45 * Math.cos(t * p.f1 + p.p3) * Math.sin(t * p.f2 * 0.8 + p.p1);
+
+      const tx = swarm.x + Math.cos(p.theta) * r + nx;
+      const ty = swarm.y + Math.sin(p.theta) * r + ny;
+
+      // 目標へバネで引き寄せ＋減衰（ふわっとした動き）
+      const k = 4.5 + (cfg.follow / 100) * 9;
+      p.vx += (tx - p.x) * k * dt;
+      p.vy += (ty - p.y) * k * dt;
+      const damp = Math.pow(0.12, dt); // 強めの減衰でモヤの浮遊感
+      p.vx *= damp;
+      p.vy *= damp;
+      p.x += p.vx * dt * 60;
+      p.y += p.vy * dt * 60;
+
+      // サイズと濃度をゆっくり明滅させて煙らしく
+      const breathe = 0.75 + 0.25 * Math.sin(t * p.breathe + p.p1);
+      const size = p.size * breathe;
+      const a = 0.17 * density * p.alpha * (0.6 + 0.4 * breathe);
+
+      const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, size);
+      g.addColorStop(0, `rgba(10, 10, 12, ${a})`);
+      g.addColorStop(0.55, `rgba(10, 10, 12, ${a * 0.45})`);
+      g.addColorStop(1, 'rgba(10, 10, 12, 0)');
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, size, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    requestAnimationFrame(frame);
+  }
+
+  // ---------- MP4録画 ----------
+  // 対応形式を優先順で選ぶ（Chrome/Edge/SafariはMP4対応、FirefoxはWebMで保存）
+  const REC_TYPES = [
+    { mime: 'video/mp4;codecs=avc1.42E01E', ext: 'mp4' },
+    { mime: 'video/mp4;codecs=avc1', ext: 'mp4' },
+    { mime: 'video/mp4', ext: 'mp4' },
+    { mime: 'video/webm;codecs=vp9', ext: 'webm' },
+    { mime: 'video/webm;codecs=vp8', ext: 'webm' },
+    { mime: 'video/webm', ext: 'webm' },
+  ];
+
+  let recorder = null;
+  let recChunks = [];
+  let recStartTime = 0;
+  let recTimer = null;
+  let recFormat = null;
+
+  function pickRecFormat() {
+    if (typeof MediaRecorder === 'undefined') return null;
+    for (const t of REC_TYPES) {
+      if (MediaRecorder.isTypeSupported(t.mime)) return t;
+    }
+    return null;
+  }
+
+  function recFileName(ext) {
+    const d = new Date();
+    const z = n => String(n).padStart(2, '0');
+    return `particle-mist_${d.getFullYear()}${z(d.getMonth() + 1)}${z(d.getDate())}` +
+           `-${z(d.getHours())}${z(d.getMinutes())}${z(d.getSeconds())}.${ext}`;
+  }
+
+  function startRecording() {
+    recFormat = pickRecFormat();
+    if (!recFormat) {
+      alert('このブラウザは画面録画（MediaRecorder）に対応していません。');
+      return;
+    }
+    recChunks = [];
+    const stream = canvas.captureStream(60);
+    try {
+      recorder = new MediaRecorder(stream, {
+        mimeType: recFormat.mime,
+        videoBitsPerSecond: 12_000_000, // 高画質
+      });
+    } catch (err) {
+      recorder = new MediaRecorder(stream, { mimeType: recFormat.mime });
+    }
+    recorder.ondataavailable = e => { if (e.data && e.data.size) recChunks.push(e.data); };
+    recorder.onstop = saveRecording;
+    recorder.start(250); // 250msごとにチャンク取得
+
+    recStartTime = performance.now();
+    $('recBtn').classList.add('recording');
+    $('recBtn').textContent = '⏹ 停止して保存';
+    $('recIndicator').classList.add('on');
+    $('recNote').textContent = recFormat.ext === 'mp4'
+      ? '停止するとMP4ファイルをダウンロードします'
+      : 'このブラウザはMP4非対応のためWebM形式で保存します';
+    recTimer = setInterval(() => {
+      const s = Math.floor((performance.now() - recStartTime) / 1000);
+      $('recTime').textContent =
+        `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
+    }, 250);
+  }
+
+  function stopRecording() {
+    if (recorder && recorder.state !== 'inactive') recorder.stop();
+    clearInterval(recTimer);
+    $('recBtn').classList.remove('recording');
+    $('recBtn').textContent = '⏺ 録画開始（MP4保存）';
+    $('recIndicator').classList.remove('on');
+    $('recTime').textContent = '00:00';
+    $('recNote').textContent = '録画中の画面がそのまま動画になります（R キーでも開始/停止）';
+  }
+
+  function saveRecording() {
+    if (!recChunks.length) return;
+    const blob = new Blob(recChunks, { type: recFormat.mime.split(';')[0] });
+    recChunks = [];
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = recFileName(recFormat.ext);
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+  }
+
+  function toggleRecording() {
+    if (recorder && recorder.state === 'recording') stopRecording();
+    else startRecording();
+  }
+
+  $('recBtn').addEventListener('click', e => {
+    e.stopPropagation();
+    toggleRecording();
+  });
+
+  window.addEventListener('keydown', e => {
+    if ((e.key === 'r' || e.key === 'R') && !e.repeat &&
+        !/INPUT|BUTTON/.test(document.activeElement?.tagName || '')) {
+      toggleRecording();
+    }
+  });
+
+  // ---------- パネル開閉・ガイド ----------
+  $('panelHead').addEventListener('click', () => {
+    const panel = $('panel');
+    panel.classList.toggle('closed');
+    $('toggleBtn').textContent = panel.classList.contains('closed') ? '▼' : '▲';
+  });
+
+  let guideDimmed = false;
+  function dimGuide() {
+    if (guideDimmed) return;
+    guideDimmed = true;
+    $('guide').classList.add('dim');
+  }
+
+  // ---------- 起動 ----------
+  window.addEventListener('resize', resize);
+  resize();
+  requestAnimationFrame(frame);
+})();
+</script>
+
+</body>
+</html>
