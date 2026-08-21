@@ -77,9 +77,21 @@ freee_api_post { "service": "accounting", "path": "/api/1/deals", "body": {
 freee_api_get { "service": "accounting", "path": "/api/1/wallet_txns",
   "query": { "company_id": 10939384, "limit": 100 } }
 ```
-- status=1（消込待ち）の明細を一覧化し、各明細の description から科目を推定して提案表（日付/摘要/金額/提案科目）を提示
-- ユーザー承認後、出金明細は `POST /api/1/deals` で登録する。このとき payments の date・amount・口座を明細と一致させると自動で消し込まれる。入金明細で内容が売上なら type: "income"・売上高 763260719・税区分 129 で登録
+- **先に「自動登録ルール対象の明細は除外」する**（下記「自動登録ルール」参照）。freee自身が処理するため、AIが取引を作ると二重計上になる
+- 残りの status=1（消込待ち）の明細を一覧化し、description から科目を推定して提案表（日付/摘要/金額/提案科目）を提示
+- ユーザー承認後、出金明細は `POST /api/1/deals`（payments の date・amount・口座を明細と一致させる）で登録。入金明細で内容が売上なら type: "income"・売上高 763260719・税区分 129 で登録
+- **重要（API制約）**: 取引を登録しても、既存の消込待ち明細は自動では消し込まれない。明細の消込APIはfreeeに存在しない（wallet_txns は取得・作成・削除のみ）。登録完了後は必ず「freee Webの[自動で経理](https://secure.freee.co.jp/wallet_txns)画面で、各明細に表示される『登録済みの取引』候補をワンクリックで紐付けてください」と案内すること
+- 自社口座間の資金移動（GMOあおぞら⇔PayPay等）は取引にせず、Web画面の「振替」で処理するよう案内する
 - 判断がつかない明細は無理に登録せず「要確認」として残す
+
+### 自動登録ルール（登録済み・2026-08-22設定）
+
+以下のパターンの明細は freee の自動登録ルール（user_matchers）が取込時に自動で取引化するため、**AIは取引を作成しないこと**:
+
+- 自動登録: 振込手数料（完全一致）／Adobe・Canva・ANTHROPIC・CLAUDE・SLACK・VIMEO・GENSPARK（→通信費）／スタジオＳＱ（→地代家賃）／カ）ゴ－ズ・ユ－テイ－ミユ－ジツク・ライブプロの入金（→売上高）／利息の入金（→受取利息）
+- 推測のみ（Web画面でワンクリック確定）: キクチ　ユウゴ宛出金（→役員借入金返済）／ＡＭＡＺＯＮ（→消耗品費）
+
+ルールの確認・変更: `GET /api/1/user_matchers`（query: company_id）。新たな定型パターンが増えたら `POST /api/1/user_matchers` でルール追加を提案する。
 
 ## 経費区分の早見表（迷ったら）
 
