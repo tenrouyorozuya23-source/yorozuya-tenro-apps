@@ -5,19 +5,19 @@
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 
 :root{
-  --bg:#0E0D15;
-  --bg-2:#131220;
-  --surface:#1A1928;
-  --surface-2:#211F33;
-  --text:#ECEAF4;
-  --sub:#B4B1C6;
-  --muted:#7C7994;
-  --line:rgba(236,234,244,.09);
-  --line-2:rgba(236,234,244,.16);
-  --accent:#9D93F2;
-  --accent-deep:#3C3489;
-  --accent-dim:rgba(157,147,242,.12);
-  --gold:#D9B96C;
+  --bg:#0B0B0D;
+  --bg-2:#101013;
+  --surface:#141416;
+  --surface-2:#1B1B1E;
+  --text:#ECEAE4;
+  --sub:#B4B1A8;
+  --muted:#7C7A70;
+  --line:rgba(236,234,228,.09);
+  --line-2:rgba(236,234,228,.16);
+  --accent:#C9A84C;
+  --accent-deep:#A8873A;
+  --accent-dim:rgba(201,168,76,.12);
+  --gold:#C9A84C;
   --radius:16px;
   --maxw:1080px;
   --serif:'Shippori Mincho B1','Noto Serif JP',serif;
@@ -71,8 +71,8 @@ section{padding:88px 0}
   position:relative;
   padding:120px 0 100px;
   background:
-    radial-gradient(ellipse 70% 50% at 70% 0%,rgba(60,52,137,.35),transparent 65%),
-    radial-gradient(ellipse 40% 35% at 15% 20%,rgba(217,185,108,.07),transparent 70%),
+    radial-gradient(ellipse 70% 50% at 70% 0%,rgba(201,168,76,.14),transparent 65%),
+    radial-gradient(ellipse 40% 35% at 15% 20%,rgba(201,168,76,.05),transparent 70%),
     var(--bg);
   border-bottom:1px solid var(--line);
   overflow:hidden;
@@ -109,8 +109,8 @@ section{padding:88px 0}
   font-size:14px;font-weight:600;letter-spacing:.05em;
   transition:.2s;border:1px solid transparent;
 }
-.btn-primary{background:var(--accent-deep);color:#fff}
-.btn-primary:hover{background:#4A41A6;transform:translateY(-1px)}
+.btn-primary{background:var(--accent);color:#0B0B0D}
+.btn-primary:hover{background:#DDBC5F;transform:translateY(-1px)}
 .btn-ghost{border-color:var(--line-2);color:var(--sub)}
 .btn-ghost:hover{color:var(--text);border-color:var(--accent)}
 
@@ -152,7 +152,7 @@ section{padding:88px 0}
 
 /* ---------- 帯（バンド）---------- */
 .band{
-  background:linear-gradient(135deg,rgba(60,52,137,.28),rgba(60,52,137,.06)),var(--bg-2);
+  background:linear-gradient(135deg,rgba(201,168,76,.10),rgba(201,168,76,.02)),var(--bg-2);
   border-top:1px solid var(--line);
   border-bottom:1px solid var(--line);
 }
@@ -184,7 +184,7 @@ section{padding:88px 0}
 .page-head{
   padding:80px 0 56px;
   background:
-    radial-gradient(ellipse 60% 70% at 80% 0%,rgba(60,52,137,.3),transparent 65%),
+    radial-gradient(ellipse 60% 70% at 80% 0%,rgba(201,168,76,.12),transparent 65%),
     var(--bg);
   border-bottom:1px solid var(--line);
 }
@@ -205,3 +205,44 @@ section{padding:88px 0}
   border:1px dashed var(--line-2);border-radius:var(--radius);
   padding:20px 22px;color:var(--muted);font-size:13px;
 }
+
+/* ---------- 動画埋め込みカード ---------- */
+.video-card{padding:0;overflow:hidden}
+.video-card .gold-line{height:3px;background:linear-gradient(90deg,var(--accent),rgba(201,168,76,.25))}
+.video-wrap{position:relative;padding-top:56.25%;background:#000}
+.video-wrap iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.video-body{padding:18px 22px 22px}
+.video-body h3{font-family:var(--serif);color:var(--accent);font-size:16px;letter-spacing:.08em;margin-bottom:4px;font-weight:600}
+.video-body p{font-size:12.5px;color:var(--muted)}
+
+/* ---------- 定期イベントカード ---------- */
+.event-card{padding:0;overflow:hidden}
+.event-card .gold-line{height:3px;background:linear-gradient(90deg,var(--accent),rgba(201,168,76,.25))}
+.event-img{width:100%;aspect-ratio:4/3;object-fit:cover;opacity:.92}
+.event-body{padding:24px 24px 28px}
+.event-body h3{font-family:var(--serif);color:var(--accent);font-size:19px;letter-spacing:.12em;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--line);font-weight:600}
+.event-info{list-style:none;margin:0 0 18px;padding:0}
+.event-info li{display:flex;gap:14px;padding:7px 0;border-bottom:1px solid var(--line);font-size:13.5px;line-height:1.7}
+.event-info .k{color:var(--accent);min-width:3.2em;font-size:12px;letter-spacing:.12em;padding-top:2px;flex-shrink:0}
+.event-info .v{color:var(--sub)}
+.event-price{font-family:var(--serif);font-size:19px;letter-spacing:.04em;margin-bottom:20px}
+.event-price small{font-size:11px;color:var(--muted);margin-left:8px;font-family:var(--sans)}
+
+/* ---------- SNSカード ---------- */
+.sns-card{display:flex;flex-direction:column;justify-content:space-between}
+.sns-body{display:flex;align-items:center;gap:16px;margin-bottom:16px}
+.sns-icon{width:44px;height:44px;flex-shrink:0;border-radius:10px;background:var(--accent-dim);display:flex;align-items:center;justify-content:center}
+.sns-icon svg{width:24px;height:24px}
+.sns-label{color:var(--muted);font-size:10.5px;letter-spacing:.18em;margin-bottom:2px}
+.sns-name{color:var(--accent);font-size:15px;font-weight:600;letter-spacing:.03em;margin-bottom:2px}
+.sns-desc{color:var(--muted);font-size:12px;line-height:1.6}
+
+/* ---------- お問い合わせフォーム ---------- */
+.form-grid{display:grid;gap:16px;margin-top:6px}
+.form-field label{display:block;font-size:12.5px;color:var(--sub);letter-spacing:.06em;margin-bottom:6px}
+.form-field .req{color:var(--accent);font-size:10.5px;margin-left:6px}
+.form-field input,.form-field textarea,.form-field select{
+  width:100%;padding:12px 14px;font-family:var(--sans);font-size:14px;color:var(--text);
+  background:var(--surface-2);border:1px solid var(--line-2);border-radius:10px;outline:none;transition:.2s}
+.form-field input:focus,.form-field textarea:focus,.form-field select:focus{border-color:var(--accent)}
+.form-note{font-size:12px;color:var(--muted);margin-top:12px;line-height:1.8}

@@ -35,15 +35,51 @@
 
 <section>
   <div class="wrap">
-    <p class="sec-desc">映像制作・配信・音響・写真撮影のご依頼、舞台DXシステムの導入相談、天狼祭に関するお問い合わせは、すべて萬屋天狼のお問い合わせ専用公式LINEで受け付けています。友だち追加のうえ、メッセージをお送りください。</p>
+    <p class="sec-desc">映像制作・配信・音響・写真撮影のご依頼、舞台DXシステムの導入相談、天狼祭に関するお問い合わせを受け付けています。ご都合に合わせて、公式LINEまたはお問い合わせフォームをご利用ください。</p>
 
     <div class="grid grid-2">
+
       <div class="card">
         <div class="icon">💬</div>
         <h3>お問い合わせ専用公式LINE</h3>
-        <p>ご依頼内容・ご希望日程・ご予算感などをお送りください。担当者よりご返信いたします。</p>
-        <div class="wip" style="margin-top:14px">【準備中】友だち追加ボタン＆QRコードをここに設置します（LINEの友だち追加URLをご共有ください）</div>
+        <p>継続的なご相談や、スムーズなやり取りをご希望の場合はこちら。友だち追加のうえ、ご依頼内容・ご希望日程・ご予算感などをお送りください。</p>
+        <div class="wip" style="margin-top:14px">【準備中】友だち追加ボタン＆QRコードをここに設置します</div>
       </div>
+
+      <div class="card">
+        <div class="icon">✉️</div>
+        <h3>お問い合わせフォーム</h3>
+        <p>公式LINEの友だち追加なしに、メールアドレスのみでお問い合わせいただけます。ご返信は<strong>3営業日以内</strong>となります。</p>
+        <form class="form-grid" style="margin-top:18px" onsubmit="return false">
+          <div class="form-field">
+            <label>お名前<span class="req">必須</span></label>
+            <input type="text" name="name" required autocomplete="name">
+          </div>
+          <div class="form-field">
+            <label>メールアドレス<span class="req">必須</span></label>
+            <input type="email" name="email" required autocomplete="email">
+          </div>
+          <div class="form-field">
+            <label>ご用件</label>
+            <select name="category">
+              <option>映像制作のご依頼</option>
+              <option>イベント配信のご依頼</option>
+              <option>舞台音響のご依頼</option>
+              <option>写真撮影のご依頼</option>
+              <option>舞台DX・システム導入のご相談</option>
+              <option>天狼祭について</option>
+              <option>その他</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label>お問い合わせ内容<span class="req">必須</span></label>
+            <textarea name="message" rows="5" required></textarea>
+          </div>
+          <button class="btn btn-primary" type="submit" disabled style="opacity:.5;cursor:not-allowed">送信する（準備中）</button>
+          <p class="form-note">※ 送信機能は近日公開予定です。お急ぎの場合は公式SNSのDMからご連絡ください。</p>
+        </form>
+      </div>
+
     </div>
   </div>
 </section>
