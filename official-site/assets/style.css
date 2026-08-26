@@ -17,6 +17,12 @@
   --accent-dim:rgba(201,168,76,.12);
   --line:rgba(201,168,76,.18);
   --line-soft:rgba(237,235,227,.08);
+  --shu:#D9442F;
+  --shu-hi:#EF5B41;
+  --washi:#F1EDE2;
+  --paper:#FBF9F1;
+  --ink:#201E1A;
+  --gold-deep:#8A6D24;
   --maxw:1120px;
   --serif:'Shippori Mincho B1','Noto Serif JP',serif;
   --sans:'Noto Sans JP',sans-serif;
@@ -118,8 +124,8 @@ section{padding:100px 0;position:relative}
   background:rgba(201,168,76,.05);
 }
 .hero-tag::before{
-  content:"";width:6px;height:6px;background:var(--accent);border-radius:50%;
-  box-shadow:0 0 10px var(--accent);animation:blink 1.8s infinite;
+  content:"";width:6px;height:6px;background:var(--shu);border-radius:50%;
+  box-shadow:0 0 10px rgba(217,68,47,.9);animation:blink 1.8s infinite;
 }
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
 .hero h1{
@@ -151,7 +157,7 @@ section{padding:100px 0;position:relative}
   font-family:var(--en);font-weight:600;font-size:14px;letter-spacing:.3em;
   color:rgba(201,168,76,.75);padding:0 26px;white-space:nowrap;
 }
-.marquee span i{font-style:normal;color:rgba(237,235,227,.25);padding-left:52px}
+.marquee span i{font-style:normal;color:rgba(217,68,47,.55);padding-left:52px}
 @keyframes mq{to{transform:translateX(-50%)}}
 
 /* ---------- ボタン ---------- */
@@ -165,6 +171,8 @@ section{padding:100px 0;position:relative}
 .btn-primary:hover{filter:brightness(1.15);box-shadow:0 0 30px rgba(201,168,76,.45)}
 .btn-ghost{border-color:var(--accent);color:var(--accent);background:rgba(201,168,76,.04)}
 .btn-ghost:hover{background:rgba(201,168,76,.12);box-shadow:0 0 22px rgba(201,168,76,.3)}
+.btn-shu{background:linear-gradient(120deg,var(--shu-hi),#C03A26);color:#fff}
+.btn-shu:hover{filter:brightness(1.1);box-shadow:0 0 28px rgba(217,68,47,.45)}
 
 /* ---------- 見出し（[ 01 ] 自動採番）---------- */
 body{counter-reset:sec}
@@ -179,9 +187,8 @@ body{counter-reset:sec}
   letter-spacing:.07em;line-height:1.45;margin-bottom:16px;
 }
 .sec-title::after{
-  content:"";display:block;width:64px;height:2px;margin-top:20px;
-  background:linear-gradient(90deg,var(--accent),transparent);
-  box-shadow:0 0 10px rgba(201,168,76,.6);
+  content:"";display:block;width:76px;height:2px;margin-top:20px;
+  background:linear-gradient(90deg,var(--shu) 0 22px,transparent 22px 28px,var(--accent) 28px,transparent);
 }
 .sec-desc{color:var(--sub);max-width:640px;font-size:14.5px;margin:26px 0 48px}
 
@@ -192,25 +199,37 @@ body{counter-reset:sec}
 @media(max-width:900px){.grid-3{grid-template-columns:1fr 1fr}}
 @media(max-width:620px){.grid-3,.grid-2{grid-template-columns:1fr}}
 
-/* ---------- HUDカード ---------- */
+/* ---------- 和風カード（隅切り＋額装内枠＋透かし番号）---------- */
+.grid{counter-reset:cardn}
 .card{
-  position:relative;
+  position:relative;counter-increment:cardn;
   background:linear-gradient(160deg,var(--surface),#0D0D10);
   border:1px solid var(--line-soft);
-  padding:32px 28px;
+  padding:34px 30px;
+  clip-path:polygon(0 0,calc(100% - 22px) 0,100% 22px,100% 100%,0 100%);
   transition:.3s;
 }
-.card::before,.card::after{
-  content:"";position:absolute;width:20px;height:20px;transition:.35s;
-  border-color:var(--accent);border-style:solid;opacity:.6;z-index:2;pointer-events:none;
+.card::before{ /* 透かし採番 */
+  content:"0" counter(cardn);
+  position:absolute;top:12px;right:30px;z-index:1;
+  font-family:var(--en);font-weight:700;font-size:46px;line-height:1;
+  color:transparent;-webkit-text-stroke:1px rgba(201,168,76,.22);
+  pointer-events:none;transition:.3s;
 }
-.card::before{top:-1px;left:-1px;border-width:2px 0 0 2px}
-.card::after{bottom:-1px;right:-1px;border-width:0 2px 2px 0}
+.card::after{ /* 額装の内枠 */
+  content:"";position:absolute;inset:9px;pointer-events:none;transition:.3s;
+  border:1px solid rgba(201,168,76,.14);
+  clip-path:polygon(0 0,calc(100% - 16px) 0,100% 16px,100% 100%,0 100%);
+}
 .card:hover{
-  transform:translateY(-5px);border-color:var(--line);
-  box-shadow:0 0 0 1px rgba(201,168,76,.22), 0 18px 50px rgba(0,0,0,.5), 0 0 40px rgba(201,168,76,.1);
+  transform:translateY(-4px);
+  border-color:rgba(201,168,76,.42);
+  box-shadow:0 20px 50px rgba(0,0,0,.55), 0 0 34px rgba(201,168,76,.08), inset 3px 0 0 var(--shu);
 }
-.card:hover::before,.card:hover::after{width:100%;height:100%;opacity:.9}
+.card:hover::before{-webkit-text-stroke:1px rgba(201,168,76,.45)}
+.card:hover::after{inset:6px;border-color:rgba(201,168,76,.3)}
+.video-card::before,.event-card::before,.sns-card::before,
+.video-card::after,.event-card::after,.sns-card::after{content:none}
 .card .icon{
   width:46px;height:46px;
   background:var(--accent-dim);border:1px solid var(--line);
@@ -316,7 +335,7 @@ body{counter-reset:sec}
   background:rgba(7,7,8,.8);padding:8px 18px;border:1px solid var(--line);
   text-align:center;line-height:1.9;
 }
-.ph-card{min-height:150px;margin:-32px -28px 22px} /* カード上部いっぱいに */
+.ph-card{min-height:150px;margin:-34px -30px 22px} /* カード上部いっぱいに */
 .ph-wide{min-height:320px}
 .ph-hero{min-height:380px;margin-top:44px}
 
@@ -367,3 +386,63 @@ body{counter-reset:sec}
   border-color:var(--accent);box-shadow:0 0 14px rgba(201,168,76,.18);
 }
 .form-note{font-size:12px;color:var(--muted);margin-top:12px;line-height:1.8}
+
+
+/* ============================================================
+   明セクション（生成り・和紙）— ダークとの交互配置でメリハリ
+   ============================================================ */
+section.light{
+  background:
+    radial-gradient(rgba(138,109,36,.06) 1px,transparent 1px),
+    var(--washi);
+  background-size:24px 24px,auto;
+  color:var(--ink);
+}
+section.light .sec-title{color:var(--ink)}
+section.light .sec-desc{color:#5C594E}
+section.light .sec-label{color:var(--gold-deep)}
+section.light .card{
+  background:var(--paper);border-color:#E2DCCB;
+  box-shadow:0 10px 30px rgba(32,30,26,.08);
+}
+section.light .card h3{color:#23211C}
+section.light .card p{color:#5C594E}
+section.light .card::before{-webkit-text-stroke:1px rgba(138,109,36,.3)}
+section.light .card::after{border-color:rgba(138,109,36,.18)}
+section.light .card:hover{
+  border-color:rgba(138,109,36,.45);
+  box-shadow:0 18px 44px rgba(32,30,26,.16), inset 3px 0 0 var(--shu);
+}
+section.light .card:hover::before{-webkit-text-stroke:1px rgba(138,109,36,.5)}
+section.light .icon{background:rgba(138,109,36,.09);border-color:rgba(138,109,36,.25)}
+section.light .tag{background:rgba(138,109,36,.09);color:var(--gold-deep);border-color:rgba(138,109,36,.25)}
+section.light .card a.more{color:#B23A28}
+section.light .event-body h3{color:var(--gold-deep);border-color:#E2DCCB}
+section.light .event-info li{border-color:#E8E3D5}
+section.light .event-info .k{color:var(--gold-deep)}
+section.light .event-info .v{color:#4C4A42}
+section.light .event-price{color:var(--ink)}
+section.light .event-price small{color:#8B8676}
+section.light .spec th{color:var(--gold-deep)}
+section.light .spec td{color:#33312B}
+section.light .spec th,section.light .spec td{border-color:#E4DFD0}
+section.light .wip{border-color:rgba(138,109,36,.4);color:#7C7866;background:rgba(138,109,36,.04)}
+section.light .ph{
+  border-color:rgba(138,109,36,.45);
+  background:repeating-linear-gradient(45deg,rgba(138,109,36,.06) 0 12px,transparent 12px 24px),#F7F4EA;
+}
+section.light .ph span{color:var(--gold-deep);background:rgba(251,249,241,.92);border-color:rgba(138,109,36,.3)}
+section.light .form-field label{color:#5C594E}
+section.light .form-field input,section.light .form-field textarea,section.light .form-field select{
+  background:#FFFFFF;border-color:#DDD7C6;color:var(--ink);
+}
+section.light .form-field input:focus,section.light .form-field textarea:focus,section.light .form-field select:focus{
+  border-color:var(--gold-deep);box-shadow:0 0 12px rgba(138,109,36,.2);
+}
+section.light .form-note{color:#8B8676}
+section.light .btn-ghost{border-color:var(--gold-deep);color:var(--gold-deep);background:rgba(138,109,36,.04)}
+section.light .btn-ghost:hover{background:rgba(138,109,36,.1);box-shadow:0 0 18px rgba(138,109,36,.25)}
+section.light .sns-name{color:var(--gold-deep)}
+section.light .sns-label,section.light .sns-desc{color:#8B8676}
+section.light .sns-icon{background:rgba(138,109,36,.09);border-color:rgba(138,109,36,.25)}
+section.light strong{color:var(--ink)}
