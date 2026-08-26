@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>デザインコンセプト：デジタル×高級和｜萬屋天狼</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Shippori+Mincho+B1:wght@500;600;700;800&family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#070708;
+  --bg2:#0C0C0E;
+  --surface:#121214;
+  --text:#EDEBE3;
+  --sub:#AFACA0;
+  --muted:#6E6C63;
+  --gold:#C9A84C;
+  --gold-hi:#EED98A;
+  --gold-dim:rgba(201,168,76,.12);
+  --line:rgba(201,168,76,.18);
+  --line-soft:rgba(237,235,227,.08);
+  --serif:'Shippori Mincho B1',serif;
+  --sans:'Noto Sans JP',sans-serif;
+  --en:'Rajdhani',sans-serif;
+  --mono:'Share Tech Mono',monospace;
+}
+html{scroll-behavior:smooth}
+body{
+  font-family:var(--sans);background:var(--bg);color:var(--text);line-height:1.8;
+  -webkit-font-smoothing:antialiased;overflow-x:hidden;
+}
+a{color:inherit;text-decoration:none}
+
+/* ====== 背景グリッド＋ノイズ ====== */
+.bg-grid{
+  position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:
+    linear-gradient(rgba(201,168,76,.045) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(201,168,76,.045) 1px,transparent 1px);
+  background-size:56px 56px;
+  mask-image:radial-gradient(ellipse 90% 70% at 50% 0%,#000 30%,transparent 75%);
+}
+.bg-noise{
+  position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.05;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='0.6'/%3E%3C/svg%3E");
+}
+main{position:relative;z-index:1}
+.wrap{max-width:1120px;margin:0 auto;padding:0 24px}
+
+/* ====== ヘッダー ====== */
+.hd{
+  position:sticky;top:0;z-index:50;
+  background:rgba(7,7,8,.75);backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--line-soft);
+}
+.hd .wrap{display:flex;align-items:center;justify-content:space-between;height:66px}
+.brand{display:flex;align-items:center;gap:12px}
+.brand .kamon{
+  width:34px;height:34px;border:1px solid var(--gold);border-radius:50%;
+  display:flex;align-items:center;justify-content:center;font-size:15px;
+  box-shadow:0 0 14px rgba(201,168,76,.35), inset 0 0 8px rgba(201,168,76,.15);
+}
+.brand .name{font-family:var(--serif);font-size:18px;letter-spacing:.16em;font-weight:700}
+.brand .en{font-family:var(--en);font-size:10px;letter-spacing:.34em;color:var(--gold);display:block;line-height:1;margin-top:2px}
+.nav{display:flex;gap:26px;font-size:13px;letter-spacing:.08em}
+.nav a{color:var(--sub);position:relative;padding:4px 0}
+.nav a:hover{color:var(--gold-hi);text-shadow:0 0 12px rgba(201,168,76,.6)}
+.nav a.on{color:var(--text)}
+.nav a.on::after{content:"";position:absolute;left:0;right:0;bottom:-2px;height:2px;background:linear-gradient(90deg,var(--gold),transparent);box-shadow:0 0 8px var(--gold)}
+@media(max-width:760px){.nav{display:none}}
+
+/* ====== ヒーロー ====== */
+.hero{position:relative;min-height:92vh;display:flex;align-items:center;overflow:hidden;border-bottom:1px solid var(--line)}
+.hero-watermark{
+  position:absolute;right:-1.5vw;top:6vh;z-index:0;
+  font-family:var(--en);font-weight:700;font-size:clamp(90px,17vw,240px);line-height:.9;
+  color:transparent;-webkit-text-stroke:1px rgba(201,168,76,.14);
+  letter-spacing:.02em;user-select:none;white-space:nowrap;
+}
+.hero-vertical{
+  position:absolute;right:34px;top:50%;transform:translateY(-50%);
+  writing-mode:vertical-rl;font-family:var(--serif);font-size:15px;letter-spacing:.5em;
+  color:var(--sub);border-right:1px solid var(--line);padding-right:16px;
+}
+.hero-vertical b{color:var(--gold);font-weight:600}
+@media(max-width:760px){.hero-vertical{display:none}}
+.hero-inner{position:relative;z-index:2;padding:100px 0 120px}
+.hero-tag{
+  display:inline-flex;align-items:center;gap:10px;
+  font-family:var(--mono);font-size:11.5px;letter-spacing:.22em;color:var(--gold);
+  border:1px solid var(--line);padding:7px 16px;margin-bottom:30px;
+  background:rgba(201,168,76,.05);position:relative;
+}
+.hero-tag::before{content:"";width:6px;height:6px;background:var(--gold);border-radius:50%;
+  box-shadow:0 0 10px var(--gold);animation:blink 1.8s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
+.hero h1{
+  font-family:var(--serif);font-weight:700;
+  font-size:clamp(38px,6.6vw,72px);line-height:1.42;letter-spacing:.06em;margin-bottom:26px;
+}
+.hero h1 .gold{
+  background:linear-gradient(100deg,var(--gold) 10%,var(--gold-hi) 45%,var(--gold) 80%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 0 18px rgba(201,168,76,.35));
+}
+.hero p.lead{max-width:560px;color:var(--sub);font-size:15px;margin-bottom:40px}
+.cta-row{display:flex;gap:16px;flex-wrap:wrap}
+.btn{
+  position:relative;display:inline-flex;align-items:center;gap:10px;
+  font-size:13.5px;font-weight:700;letter-spacing:.14em;
+  padding:15px 34px;transition:.25s;
+  clip-path:polygon(12px 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%,0 12px);
+}
+.btn-gold{background:linear-gradient(120deg,var(--gold),#B8983F);color:#0B0B0D}
+.btn-gold:hover{filter:brightness(1.15);box-shadow:0 0 30px rgba(201,168,76,.45)}
+.btn-line{border:1px solid var(--gold);color:var(--gold);background:rgba(201,168,76,.04)}
+.btn-line:hover{background:rgba(201,168,76,.12);box-shadow:0 0 22px rgba(201,168,76,.3)}
+/* 走査ライン */
+.scanline{
+  position:absolute;left:0;right:0;height:1px;z-index:1;
+  background:linear-gradient(90deg,transparent,rgba(201,168,76,.7),transparent);
+  animation:scan 7s linear infinite;opacity:.5;
+}
+@keyframes scan{0%{top:8%}100%{top:92%}}
+
+/* ====== マーキー帯 ====== */
+.marquee{
+  border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+  background:linear-gradient(180deg,rgba(201,168,76,.06),rgba(201,168,76,.02));
+  overflow:hidden;padding:14px 0;position:relative;
+}
+.marquee-track{display:flex;gap:0;width:max-content;animation:mq 26s linear infinite}
+.marquee span{
+  font-family:var(--en);font-weight:600;font-size:15px;letter-spacing:.3em;
+  color:rgba(201,168,76,.75);padding:0 26px;white-space:nowrap;
+}
+.marquee span i{font-style:normal;color:rgba(237,235,227,.25);padding-left:52px}
+@keyframes mq{to{transform:translateX(-50%)}}
+
+/* ====== セクション共通 ====== */
+section{padding:110px 0;position:relative}
+.sec-head{display:flex;align-items:baseline;gap:22px;margin-bottom:16px;flex-wrap:wrap}
+.sec-num{font-family:var(--mono);font-size:13px;color:var(--gold);letter-spacing:.2em}
+.sec-en{font-family:var(--en);font-weight:700;font-size:13px;letter-spacing:.4em;color:var(--muted);text-transform:uppercase}
+.sec-title{font-family:var(--serif);font-size:clamp(26px,3.8vw,40px);font-weight:700;letter-spacing:.08em;line-height:1.4;margin-bottom:16px}
+.sec-title .g{color:var(--gold)}
+.sec-desc{color:var(--sub);max-width:620px;font-size:14.5px;margin-bottom:52px}
+.gold-rule{width:64px;height:2px;background:linear-gradient(90deg,var(--gold),transparent);box-shadow:0 0 10px rgba(201,168,76,.6);margin-bottom:28px}
+
+/* ====== HUDカード ====== */
+.grid{display:grid;gap:22px}
+.g3{grid-template-columns:repeat(3,1fr)}
+@media(max-width:900px){.g3{grid-template-columns:1fr 1fr}}
+@media(max-width:600px){.g3{grid-template-columns:1fr}}
+.hud{
+  position:relative;background:linear-gradient(160deg,var(--surface),#0D0D10);
+  border:1px solid var(--line-soft);padding:34px 28px 30px;transition:.3s;
+}
+.hud::before,.hud::after{
+  content:"";position:absolute;width:22px;height:22px;transition:.3s;
+  border-color:var(--gold);border-style:solid;opacity:.65;
+}
+.hud::before{top:-1px;left:-1px;border-width:2px 0 0 2px}
+.hud::after{bottom:-1px;right:-1px;border-width:0 2px 2px 0}
+.hud:hover{
+  transform:translateY(-5px);border-color:var(--line);
+  box-shadow:0 0 0 1px rgba(201,168,76,.25), 0 18px 50px rgba(0,0,0,.5), 0 0 40px rgba(201,168,76,.12);
+}
+.hud:hover::before,.hud:hover::after{width:100%;height:100%;opacity:.9}
+.hud .no{font-family:var(--mono);font-size:12px;color:var(--gold);letter-spacing:.2em;margin-bottom:16px;display:block}
+.hud h3{font-family:var(--serif);font-size:19px;font-weight:700;letter-spacing:.1em;margin-bottom:12px}
+.hud p{font-size:13px;color:var(--sub)}
+.hud .jp-side{
+  position:absolute;top:30px;right:18px;writing-mode:vertical-rl;
+  font-family:var(--serif);font-size:11px;letter-spacing:.34em;color:rgba(201,168,76,.35);
+}
+
+/* ====== 斜め区切りの帯セクション ====== */
+.diag{
+  position:relative;padding:130px 0;
+  background:linear-gradient(135deg,rgba(201,168,76,.10),rgba(201,168,76,.02)),var(--bg2);
+  clip-path:polygon(0 46px,100% 0,100% calc(100% - 46px),0 100%);
+}
+.diag .stat-row{display:flex;gap:60px;flex-wrap:wrap;margin-top:36px}
+.stat .v{font-family:var(--en);font-weight:700;font-size:46px;color:var(--gold-hi);line-height:1;
+  text-shadow:0 0 24px rgba(201,168,76,.4)}
+.stat .v small{font-size:18px;margin-left:4px}
+.stat .k{font-size:12px;color:var(--sub);letter-spacing:.14em;margin-top:8px}
+
+/* ====== フッター ====== */
+footer{border-top:1px solid var(--line);padding:46px 0;background:var(--bg2);position:relative;z-index:1}
+footer .wrap{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px}
+.f-brand{font-family:var(--serif);letter-spacing:.16em;font-size:15px}
+.f-en{font-family:var(--en);font-size:10px;letter-spacing:.34em;color:var(--gold);display:block;margin-top:3px}
+.f-copy{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.1em}
+</style>
+</head>
+<body>
+<div class="bg-grid"></div>
+<div class="bg-noise"></div>
+
+<header class="hd">
+  <div class="wrap">
+    <a class="brand" href="#">
+      <span class="kamon">🐺</span>
+      <span><span class="name">萬屋天狼</span><span class="en">YOROZUYA TENRO</span></span>
+    </a>
+    <nav class="nav">
+      <a class="on" href="#">ホーム</a><a href="#">事業内容</a><a href="#">イベント</a>
+      <a href="#">実績・開発</a><a href="#">音源配布</a><a href="#">会社概要</a><a href="#">お問い合わせ</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+<div class="hero">
+  <div class="scanline"></div>
+  <div class="hero-watermark">TENRO</div>
+  <div class="hero-vertical">舞台 × 映像 × <b>技術</b></div>
+  <div class="wrap hero-inner">
+    <span class="hero-tag">STAGE TECH COMPANY — TOKYO</span>
+    <h1>舞台の熱を、<br>映像と技術で<span class="gold">残す。届ける。</span></h1>
+    <p class="lead">映像制作・イベント配信・舞台音響・舞台DX・写真撮影。伝統ある舞台の世界に、最先端のテクノロジーを持ち込む「万屋」です。</p>
+    <div class="cta-row">
+      <a class="btn btn-gold" href="#">事業内容を見る</a>
+      <a class="btn btn-line" href="#">お問い合わせ</a>
+    </div>
+  </div>
+</div>
+
+<div class="marquee">
+  <div class="marquee-track">
+    <span>VIDEO PRODUCTION<i>/</i></span><span>LIVE STREAMING<i>/</i></span><span>STAGE SOUND<i>/</i></span><span>STAGE DX<i>/</i></span><span>PHOTOGRAPHY<i>/</i></span>
+    <span>VIDEO PRODUCTION<i>/</i></span><span>LIVE STREAMING<i>/</i></span><span>STAGE SOUND<i>/</i></span><span>STAGE DX<i>/</i></span><span>PHOTOGRAPHY<i>/</i></span>
+  </div>
+</div>
+
+<section>
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-num">[ 01 ]</span><span class="sec-en">Services</span></div>
+    <h2 class="sec-title">現場で使える技術を、<span class="g">ぜんぶ。</span></h2>
+    <div class="gold-rule"></div>
+    <p class="sec-desc">撮る・流す・鳴らす・回す・写す。公演とイベントに必要な技術を一気通貫で引き受けます。</p>
+    <div class="grid g3">
+      <div class="hud"><span class="jp-side">映像制作</span><span class="no">SVC_01</span><h3>映像制作事業</h3><p>企画・演出・撮影・編集・各種納品形式まで、すべて自社完結のオールインワンプラン。</p></div>
+      <div class="hud"><span class="jp-side">配信</span><span class="no">SVC_02</span><h3>イベント配信事業</h3><p>企業イベントや舞台のライブ配信・アーカイブ配信。FullHD画質、最大7台のカメラで撮影可能。</p></div>
+      <div class="hud"><span class="jp-side">音響</span><span class="no">SVC_03</span><h3>舞台音響事業</h3><p>音響オペレータ、殺陣サンプラーに対応。殺陣経験豊富なスタッフの迫力ある効果音が舞台を盛り上げます。</p></div>
+      <div class="hud"><span class="jp-side">DX</span><span class="no">SVC_04</span><h3>舞台DX事業</h3><p>予約管理・物販・受付・レジ・精算・公式LINE運用・LP制作まで、AI活用で舞台運営をまるごと自動化。</p></div>
+      <div class="hud"><span class="jp-side">写真</span><span class="no">SVC_05</span><h3>写真撮影事業</h3><p>宣材写真、イベント写真、ブロマイド撮影などをご依頼いただけます。</p></div>
+      <div class="hud"><span class="jp-side">音源</span><span class="no">SVC_EX</span><h3>無料オリジナル音源配布</h3><p>自社制作のオリジナル音源を無料配布中。舞台・映像作品にご利用ください。</p></div>
+    </div>
+  </div>
+</section>
+
+<div class="diag">
+  <div class="wrap">
+    <div class="sec-head"><span class="sec-num">[ 02 ]</span><span class="sec-en">Featured</span></div>
+    <h2 class="sec-title">天狼祭 — <span class="g">自社主催公演</span></h2>
+    <div class="gold-rule"></div>
+    <p class="sec-desc">殺陣と舞台の祭典「天狼祭」を主催。予約から当日運営までを自社システムで動かす、萬屋天狼のショーケースです。</p>
+    <div class="stat-row">
+      <div class="stat"><div class="v">5<small>公演</small></div><div class="k">2026年開催</div></div>
+      <div class="stat"><div class="v">7<small>cam</small></div><div class="k">最大カメラ台数</div></div>
+      <div class="stat"><div class="v">100<small>%</small></div><div class="k">自社システム運営</div></div>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <div><div class="f-brand">🐺 合同会社萬屋天狼</div><span class="f-en">YOROZUYA TENRO LLC</span></div>
+    <div class="f-copy">© YOROZUYA TENRO LLC — ALL RIGHTS RESERVED</div>
+  </div>
+</footer>
+
+</body>
+</html>
