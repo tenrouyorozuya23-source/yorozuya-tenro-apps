@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>天狼祭2026 キャスト向け予約ガイド</title>
+<style>
+:root{
+  --ink:#201E1A; --sub:#5C594E; --muted:#8B8676;
+  --gold:#8A6D24; --gold-l:#C9A84C; --shu:#C93A26;
+  --paper:#FFFFFF; --washi:#F4F1E8; --line:#E2DCCB;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:"IPAPGothic","IPAGothic",sans-serif;
+  color:var(--ink);background:#fff;
+  font-size:10.5pt;line-height:1.75;
+}
+.page{
+  width:210mm;height:296mm;padding:14mm 16mm 12mm;
+  page-break-after:always;position:relative;overflow:hidden;
+  background:#fff;
+}
+.page:last-child{page-break-after:auto}
+
+/* ヘッダー */
+.head{
+  display:flex;justify-content:space-between;align-items:flex-end;
+  border-bottom:2.5px solid var(--ink);padding-bottom:3.5mm;margin-bottom:5.5mm;
+}
+.head .t1{font-size:9pt;letter-spacing:.3em;color:var(--shu);margin-bottom:1mm}
+.head h1{font-size:19pt;letter-spacing:.12em;line-height:1.3}
+.head .who{
+  text-align:right;font-size:8.5pt;color:var(--muted);line-height:1.6;
+}
+.head .who b{display:block;font-size:10pt;color:var(--ink);letter-spacing:.1em}
+
+/* セクション */
+.sec{margin-bottom:4.6mm}
+.sec-h{
+  display:flex;align-items:center;gap:3mm;margin-bottom:3mm;
+}
+.sec-h .num{
+  width:8.5mm;height:8.5mm;flex-shrink:0;
+  background:var(--ink);color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-size:11pt;
+  clip-path:polygon(0 0,calc(100% - 2.4mm) 0,100% 2.4mm,100% 100%,0 100%);
+}
+.sec-h h2{font-size:13pt;letter-spacing:.1em}
+.sec-h .en{font-size:7.5pt;letter-spacing:.24em;color:var(--gold);margin-left:auto}
+
+/* URLボックス */
+.urlbox{
+  border:1.5px solid var(--gold-l);background:var(--washi);
+  padding:4mm 5mm;margin:2.5mm 0;
+  clip-path:polygon(0 0,calc(100% - 4mm) 0,100% 4mm,100% 100%,0 100%);
+}
+.urlbox .lbl{font-size:8.5pt;color:var(--gold);letter-spacing:.14em;margin-bottom:1mm}
+.urlbox .url{font-size:11pt;letter-spacing:.02em}
+.urlbox .note{font-size:8.5pt;color:var(--sub);margin-top:1mm}
+.urlbox.danger{border-color:var(--shu)}
+.urlbox.danger .lbl{color:var(--shu)}
+
+/* 手順フロー */
+.flow{display:flex;gap:2.5mm;margin:3mm 0}
+.step{
+  flex:1;background:var(--washi);border:1px solid var(--line);
+  padding:3.5mm 3.5mm 3mm;position:relative;
+}
+.step .sn{font-size:8pt;color:var(--shu);letter-spacing:.16em;margin-bottom:1mm}
+.step .st{font-size:10pt;line-height:1.5;margin-bottom:1mm}
+.step .sd{font-size:8.2pt;color:var(--sub);line-height:1.6}
+.arrow{align-self:center;color:var(--gold-l);font-size:12pt;flex-shrink:0}
+
+/* 表 */
+table{width:100%;border-collapse:collapse;font-size:9.5pt;margin:2mm 0}
+th,td{border:1px solid var(--line);padding:2.2mm 3mm;text-align:left;vertical-align:top}
+th{background:var(--washi);color:var(--gold);font-weight:normal;letter-spacing:.08em;white-space:nowrap}
+td b{color:var(--shu)}
+
+/* 箇条書き */
+ul.pts{list-style:none}
+ul.pts li{
+  padding-left:5mm;position:relative;margin-bottom:1.2mm;font-size:9.8pt;
+}
+ul.pts li::before{
+  content:"";position:absolute;left:0;top:.42em;
+  width:2.6mm;height:2.6mm;background:var(--gold-l);
+  clip-path:polygon(0 0,70% 0,100% 30%,100% 100%,0 100%);
+}
+ul.pts li.warn::before{background:var(--shu)}
+ul.pts b{color:var(--ink)}
+.small{font-size:8.5pt;color:var(--sub)}
+
+/* 要確認マーカー */
+.todo{
+  display:inline-block;background:#FCE8E4;color:var(--shu);
+  font-size:8pt;padding:.2mm 2mm;letter-spacing:.06em;border:1px solid #F0BFB6;
+}
+
+/* コールアウト */
+.callout{
+  border-left:3px solid var(--shu);background:var(--washi);
+  padding:2.6mm 4mm;font-size:9.3pt;margin:2mm 0;
+}
+.callout .cl{color:var(--shu);letter-spacing:.1em;font-size:9pt;margin-bottom:.5mm}
+
+/* フッター */
+.foot{
+  position:absolute;left:16mm;right:16mm;bottom:8mm;
+  display:flex;justify-content:space-between;align-items:center;
+  border-top:1px solid var(--line);padding-top:2.5mm;
+  font-size:8pt;color:var(--muted);letter-spacing:.1em;
+}
+.foot .pg{color:var(--gold)}
+</style>
+</head>
+<body>
+
+<!-- ============ PAGE 1 ============ -->
+<div class="page">
+  <div class="head">
+    <div>
+      <div class="t1">TENROUSAI 2026 — CAST GUIDE</div>
+      <h1>天狼祭2026　キャスト向け<br>チケット予約 とりまとめガイド</h1>
+    </div>
+    <div class="who"><b>🐺 萬屋天狼</b>2026年10月23日（金）〜25日（日）<br>高島平バルスタジオ・全5公演</div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-h"><div class="num">1</div><h2>あなた専用の「2つのURL」</h2><div class="en">YOUR URLS</div></div>
+    <p style="font-size:9.8pt;margin-bottom:2mm">運営から、あなた専用のURLを2つお渡しします。<b>役割がまったく違う</b>ので注意してください。</p>
+    <div class="urlbox">
+      <div class="lbl">■ 申込フォームURL（お客様に配ってOK）</div>
+      <div class="url">https://tenrousai.tenrou.info/ticket?cast=（あなたの番号）</div>
+      <div class="note">SNS・DM・口頭など、どこで案内しても大丈夫です。このURLから予約が入ると、自動であなたの取り扱いになります。</div>
+    </div>
+    <div class="urlbox danger">
+      <div class="lbl">■ 予約リストURL（あなた専用・共有厳禁）</div>
+      <div class="url">https://tenrousai.tenrou.info/list?t=（あなたの合言葉）</div>
+      <div class="note">自分の予約状況をいつでも確認できるページです。<b>URLを知っている人は誰でも見られる</b>ため、お客様や他のキャストには絶対に送らないでください。</div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-h"><div class="num">2</div><h2>お客様に予約してもらう（基本の流れ）</h2><div class="en">WEB RESERVATION</div></div>
+    <div class="flow">
+      <div class="step"><div class="sn">STEP 1</div><div class="st">申込フォームURLを案内</div><div class="sd">SNSやDMで、あなた専用の申込フォームURLをお客様に送ります。</div></div>
+      <div class="arrow">▶</div>
+      <div class="step"><div class="sn">STEP 2</div><div class="st">お客様がフォーム入力</div><div class="sd">公演日時・席種・枚数・お名前などを入力して送信してもらいます。</div></div>
+      <div class="arrow">▶</div>
+      <div class="step"><div class="sn">STEP 3</div><div class="st">予約番号が自動発行</div><div class="sd">「R-0000」形式の予約番号が発行され、あなたの予約リストに即反映されます。</div></div>
+      <div class="arrow">▶</div>
+      <div class="step"><div class="sn">STEP 4</div><div class="st">当日は受付で番号かお名前</div><div class="sd">お客様は当日、受付で予約番号またはお名前を伝えるだけでOK。</div></div>
+    </div>
+    <ul class="pts">
+      <li>席種と料金：<b>S席 ¥6,000／A席 ¥4,500／U18学割 ¥2,500</b>（当日払い：現金・カード対応）</li>
+      <li>満席の公演は、フォームから<b>キャンセル待ち</b>に登録できます。空きが出ると登録順に自動でご案内が届きます。</li>
+    </ul>
+  </div>
+
+  <div class="sec">
+    <div class="sec-h"><div class="num">3</div><h2>LINEで「取り置き」を登録する</h2><div class="en">LINE HOLD</div></div>
+    <p style="font-size:9.8pt;margin-bottom:2mm">お客様から直接「取っておいて」と頼まれた分は、<b>公式LINEから自分で取り置き登録</b>できます（予約番号は「T-0000」形式で発行されます）。</p>
+    <div class="flow">
+      <div class="step"><div class="sn">STEP 1</div><div class="st">公式LINEを友だち追加</div><div class="sd">キャスト用の公式LINEアカウントを追加します（運営から案内済み）。</div></div>
+      <div class="arrow">▶</div>
+      <div class="step"><div class="sn">STEP 2</div><div class="st">メニューから取り置き</div><div class="sd">画面下のメニューから取り置き登録を開きます。</div></div>
+      <div class="arrow">▶</div>
+      <div class="step"><div class="sn">STEP 3</div><div class="st">お名前・公演・枚数を送信</div><div class="sd">案内に沿って入力すると、その場でT-番号が発行されます。</div></div>
+    </div>
+    <div class="callout"><div class="cl">※ 取り置き分のお支払い</div>取り置き（T-番号）は当日払いです。お客様には「当日、受付でお名前を伝えて精算」と案内してください。</div>
+  </div>
+
+  <div class="foot"><span>🐺 合同会社萬屋天狼 — 天狼祭2026</span><span class="pg">1 / 2</span></div>
+</div>
+
+<!-- ============ PAGE 2 ============ -->
+<div class="page">
+
+  <div class="sec">
+    <div class="sec-h"><div class="num">4</div><h2>予約の確認方法（3つ）</h2><div class="en">CHECK YOUR LIST</div></div>
+    <table>
+      <tr><th style="width:34mm">方法</th><th>内容</th></tr>
+      <tr><td>予約リストURL</td><td>あなた専用のリストページ。<b>いつでも最新</b>の予約一覧・枚数・ステータスを確認できます。ブックマーク推奨。</td></tr>
+      <tr><td>毎日のLINE通知</td><td>毎晩、その日に入った新規予約が公式LINEに自動で届きます。</td></tr>
+      <tr><td>状況便</td><td>自分の予約実績と全公演の残席がまとめて届く定期便です。</td></tr>
+    </table>
+    <p style="font-size:9.8pt;margin:2mm 0 1mm">リストに表示される<b>ステータスの意味</b>：</p>
+    <table>
+      <tr><th style="width:26mm">仮予約</th><td>フォームから申込直後の状態。このあと運営の確認で本予約になります。</td></tr>
+      <tr><th>本予約</th><td>予約確定。お客様は当日受付に来ればOKです。</td></tr>
+      <tr><th>受付済</th><td>当日、来場・精算が完了した状態です。</td></tr>
+      <tr><th>キャンセル</th><td>キャンセル確定。席は解放され、キャンセル待ちの方に自動で案内が回ります。</td></tr>
+    </table>
+  </div>
+
+  <div class="sec">
+    <div class="sec-h"><div class="num">5</div><h2>キャンセル・変更したいとき</h2><div class="en">CANCEL</div></div>
+    <div class="flow">
+      <div class="step"><div class="sn">STEP 1</div><div class="st">公式LINEからキャンセル申請</div><div class="sd">メニューのキャンセル申請から、対象の予約番号を送ります。</div></div>
+      <div class="arrow">▶</div>
+      <div class="step"><div class="sn">STEP 2</div><div class="st">運営が承認</div><div class="sd">運営の承認をもって確定します（勝手に消えることはありません）。</div></div>
+      <div class="arrow">▶</div>
+      <div class="step"><div class="sn">STEP 3</div><div class="st">席が解放される</div><div class="sd">解放された席は、キャンセル待ちの方へ登録順に自動でご案内されます。</div></div>
+    </div>
+    <ul class="pts">
+      <li><b>枚数の変更・公演日の変更</b>は、いったんキャンセル申請→取り直しが確実です。急ぎの場合は運営に直接連絡してください。</li>
+    </ul>
+  </div>
+
+  <div class="sec">
+    <div class="sec-h"><div class="num">6</div><h2>お願い・注意事項</h2><div class="en">NOTES</div></div>
+    <ul class="pts">
+      <li class="warn"><b>予約リストURLは誰にも共有しない。</b>SNSのスクショにURLが写り込まないよう注意してください。</li>
+      <li class="warn">お客様の個人情報（お名前・連絡先）が見えます。<b>スクショの外部共有・転載は禁止</b>です。</li>
+      <li>同じお客様が誤って2回申し込んだ場合は、そのままにせず運営に連絡してください（片方をキャンセル処理します）。</li>
+      <li>予約の受付締切：<b>各公演の開演予定時刻まで</b>予約できます。当日も、ネットで席をお取りいただいてからのご来場が可能です（残席はほぼリアルタイムで反映されます。席に余裕があれば直前でも予約OK）。</li>
+    </ul>
+  </div>
+
+  <div class="sec">
+    <div class="sec-h"><div class="num">7</div><h2>困ったときは</h2><div class="en">SUPPORT</div></div>
+    <div class="callout">
+      <div class="cl">運営への連絡先（基本はメール）</div>
+      下記メールアドレスにご連絡ください。天狼祭運営事務局より担当者がご返信いたします。<br>
+      <b style="font-size:11pt;letter-spacing:.04em">info.tenrou.event@gmail.com</b><br>
+      <span class="small">※ 急ぎの確認は公式LINEでメッセージを送っていただいても構いません。</span>
+    </div>
+  </div>
+
+  <div class="foot"><span>🐺 合同会社萬屋天狼 — 天狼祭2026</span><span class="pg">2 / 2</span></div>
+</div>
+
+</body>
+</html>
