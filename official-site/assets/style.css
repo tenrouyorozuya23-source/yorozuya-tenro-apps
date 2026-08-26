@@ -191,6 +191,15 @@ section{padding:88px 0}
 .page-head h1{font-family:var(--serif);font-size:clamp(26px,4vw,38px);letter-spacing:.08em;font-weight:600}
 .page-head .en{font-size:12px;letter-spacing:.28em;color:var(--accent);text-transform:uppercase;margin-bottom:12px;font-weight:500}
 
+/* ---------- 課題→改善（実績・開発）---------- */
+.case-before,.case-after{font-size:13.5px;color:var(--sub);margin-top:12px}
+.case-label{
+  display:inline-block;font-size:11px;font-weight:600;letter-spacing:.08em;
+  padding:2px 12px;border-radius:999px;margin-right:8px;vertical-align:1px;
+}
+.case-label.bad{background:rgba(163,45,45,.18);color:#E89393}
+.case-label.good{background:rgba(15,110,86,.22);color:#7FD9BC}
+
 /* ---------- 準備中プレースホルダー ---------- */
 .wip{
   border:1px dashed var(--line-2);border-radius:var(--radius);
