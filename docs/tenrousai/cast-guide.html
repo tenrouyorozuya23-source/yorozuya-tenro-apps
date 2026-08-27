@@ -13,10 +13,10 @@
 body{
   font-family:"IPAPGothic","IPAGothic",sans-serif;
   color:var(--ink);background:#fff;
-  font-size:10.5pt;line-height:1.75;
+  font-size:10.2pt;line-height:1.72;
 }
 .page{
-  width:210mm;height:296mm;padding:14mm 16mm 12mm;
+  width:210mm;height:296mm;padding:13mm 16mm 24mm;
   page-break-after:always;position:relative;overflow:hidden;
   background:#fff;
 }
@@ -25,51 +25,43 @@ body{
 /* ヘッダー */
 .head{
   display:flex;justify-content:space-between;align-items:flex-end;
-  border-bottom:2.5px solid var(--ink);padding-bottom:3.5mm;margin-bottom:5.5mm;
+  border-bottom:2.5px solid var(--ink);padding-bottom:3mm;margin-bottom:4.4mm;
 }
 .head .t1{font-size:9pt;letter-spacing:.3em;color:var(--shu);margin-bottom:1mm}
-.head h1{font-size:19pt;letter-spacing:.12em;line-height:1.3}
-.head .who{
-  text-align:right;font-size:8.5pt;color:var(--muted);line-height:1.6;
-}
+.head h1{font-size:18pt;letter-spacing:.12em;line-height:1.3}
+.head .who{text-align:right;font-size:8.5pt;color:var(--muted);line-height:1.6}
 .head .who b{display:block;font-size:10pt;color:var(--ink);letter-spacing:.1em}
 
 /* セクション */
-.sec{margin-bottom:3.8mm}
-.sec-h{
-  display:flex;align-items:center;gap:3mm;margin-bottom:2.4mm;
-}
+.sec{margin-bottom:4mm}
+.sec-h{display:flex;align-items:center;gap:3mm;margin-bottom:2.4mm}
 .sec-h .num{
   width:8.5mm;height:8.5mm;flex-shrink:0;
   background:var(--ink);color:#fff;
-  display:flex;align-items:center;justify-content:center;
-  font-size:11pt;
+  display:flex;align-items:center;justify-content:center;font-size:11pt;
   clip-path:polygon(0 0,calc(100% - 2.4mm) 0,100% 2.4mm,100% 100%,0 100%);
 }
-.sec-h h2{font-size:13pt;letter-spacing:.1em}
+.sec-h h2{font-size:12.5pt;letter-spacing:.1em}
 .sec-h .en{font-size:7.5pt;letter-spacing:.24em;color:var(--gold);margin-left:auto}
 
 /* URLボックス */
 .urlbox{
   border:1.5px solid var(--gold-l);background:var(--washi);
-  padding:4mm 5mm;margin:2.5mm 0;
+  padding:3mm 5mm;margin:1.8mm 0;
   clip-path:polygon(0 0,calc(100% - 4mm) 0,100% 4mm,100% 100%,0 100%);
 }
-.urlbox .lbl{font-size:8.5pt;color:var(--gold);letter-spacing:.14em;margin-bottom:1mm}
-.urlbox .url{font-size:11pt;letter-spacing:.02em}
-.urlbox .note{font-size:8.5pt;color:var(--sub);margin-top:1mm}
+.urlbox .lbl{font-size:8.5pt;color:var(--gold);letter-spacing:.14em;margin-bottom:.8mm}
+.urlbox .url{font-size:10.5pt;letter-spacing:.02em}
+.urlbox .note{font-size:8.3pt;color:var(--sub);margin-top:.8mm}
 .urlbox.danger{border-color:var(--shu)}
 .urlbox.danger .lbl{color:var(--shu)}
 
 /* 手順フロー */
 .flow{display:flex;gap:2.5mm;margin:2.2mm 0}
-.step{
-  flex:1;background:var(--washi);border:1px solid var(--line);
-  padding:3.5mm 3.5mm 3mm;position:relative;
-}
-.step .sn{font-size:8pt;color:var(--shu);letter-spacing:.16em;margin-bottom:1mm}
-.step .st{font-size:10pt;line-height:1.5;margin-bottom:1mm}
-.step .sd{font-size:8.2pt;color:var(--sub);line-height:1.6}
+.step{flex:1;background:var(--washi);border:1px solid var(--line);padding:3mm 3.2mm 2.6mm}
+.step .sn{font-size:8pt;color:var(--shu);letter-spacing:.16em;margin-bottom:.8mm}
+.step .st{font-size:9.6pt;line-height:1.45;margin-bottom:.8mm}
+.step .sd{font-size:8pt;color:var(--sub);line-height:1.55}
 .arrow{align-self:center;color:var(--gold-l);font-size:12pt;flex-shrink:0}
 
 /* 表 */
@@ -80,37 +72,85 @@ td b{color:var(--shu)}
 
 /* 箇条書き */
 ul.pts{list-style:none}
-ul.pts li{
-  padding-left:5mm;position:relative;margin-bottom:1.2mm;font-size:9.8pt;
-}
+ul.pts li{padding-left:5mm;position:relative;margin-bottom:1mm;font-size:9.6pt}
 ul.pts li::before{
-  content:"";position:absolute;left:0;top:.42em;
-  width:2.6mm;height:2.6mm;background:var(--gold-l);
-  clip-path:polygon(0 0,70% 0,100% 30%,100% 100%,0 100%);
+  content:"";position:absolute;left:0;top:.42em;width:2.6mm;height:2.6mm;
+  background:var(--gold-l);clip-path:polygon(0 0,70% 0,100% 30%,100% 100%,0 100%);
 }
 ul.pts li.warn::before{background:var(--shu)}
-ul.pts b{color:var(--ink)}
 .small{font-size:8.5pt;color:var(--sub)}
 
-/* 要確認マーカー */
-.todo{
-  display:inline-block;background:#FCE8E4;color:var(--shu);
-  font-size:8pt;padding:.2mm 2mm;letter-spacing:.06em;border:1px solid #F0BFB6;
+/* コールアウト */
+.callout{border-left:3px solid var(--shu);background:var(--washi);padding:2.4mm 4mm;font-size:9.2pt;margin:2mm 0}
+.callout .cl{color:var(--shu);letter-spacing:.1em;font-size:9pt;margin-bottom:.4mm}
+
+/* ===== サンプル図版 ===== */
+.fig-row{display:flex;gap:5mm;align-items:flex-start}
+.fig{flex:1}
+.fig-label{
+  display:inline-block;font-size:7.5pt;letter-spacing:.18em;color:#fff;
+  background:var(--gold-l);padding:.6mm 3mm;margin-bottom:1.6mm;
+}
+.fig-note{font-size:7.8pt;color:var(--muted);margin-top:1.2mm}
+
+/* スマホ枠 */
+.phone{
+  width:100%;border:1.8px solid #2A2824;border-radius:5mm;
+  padding:3.5mm 3mm;background:#FDFCF8;
+  box-shadow:0 1.5mm 4mm rgba(32,30,26,.12);
+}
+.phone .bar{width:16mm;height:1.4mm;background:#D8D4C8;border-radius:1mm;margin:0 auto 2.5mm}
+.scr-title{font-size:9.5pt;letter-spacing:.08em;text-align:center;border-bottom:1.5px solid var(--gold-l);padding-bottom:1.6mm;margin-bottom:2.2mm}
+.scr-title small{display:block;font-size:6.8pt;color:var(--muted);letter-spacing:.2em}
+
+/* フォームUI */
+.f-field{margin-bottom:1.8mm}
+.f-label{font-size:7.2pt;color:var(--sub);margin-bottom:.4mm}
+.f-label i{font-style:normal;color:var(--shu);font-size:6.4pt;margin-left:1mm}
+.f-input{
+  border:1px solid #CFC9B8;background:#fff;border-radius:1mm;
+  padding:1.3mm 2.2mm;font-size:8.2pt;color:var(--ink);
+}
+.f-input.ph{color:#B7B2A2}
+.f-select::after{content:" ▾";color:var(--muted)}
+.f-btn{
+  background:#C93A26;color:#fff;text-align:center;border-radius:1mm;
+  padding:2mm;font-size:8.8pt;letter-spacing:.14em;margin-top:2.4mm;
 }
 
-/* コールアウト */
-.callout{
-  border-left:3px solid var(--shu);background:var(--washi);
-  padding:2.6mm 4mm;font-size:9.3pt;margin:2mm 0;
-}
-.callout .cl{color:var(--shu);letter-spacing:.1em;font-size:9pt;margin-bottom:.5mm}
+/* リスト画面UI */
+.list-scr{border:1.8px solid #2A2824;border-radius:2.5mm;background:#FDFCF8;padding:3mm;box-shadow:0 1.5mm 4mm rgba(32,30,26,.12)}
+.tabs{display:flex;gap:1.4mm;margin-bottom:2mm}
+.tab{font-size:7pt;padding:.8mm 2.4mm;border:1px solid var(--line);border-radius:.8mm;color:var(--muted)}
+.tab.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.summ{display:flex;gap:1.6mm;margin-bottom:2mm}
+.summ div{flex:1;background:var(--washi);border:1px solid var(--line);text-align:center;padding:1.4mm 0}
+.summ .v{font-size:11pt;color:var(--gold)}
+.summ .k{font-size:6.6pt;color:var(--muted);letter-spacing:.1em}
+.lrow{display:flex;align-items:center;gap:2mm;border-bottom:1px solid #EDE9DD;padding:1.5mm .6mm;font-size:8pt}
+.lrow .no{font-size:7.4pt;color:var(--gold);width:12mm;flex-shrink:0}
+.lrow .nm{flex:1}
+.lrow .cnt{color:var(--sub);width:9mm;text-align:right}
+.badge{font-size:6.4pt;padding:.4mm 1.8mm;border-radius:2mm;white-space:nowrap}
+.badge.hon{background:#E3F0E6;color:#1E6B3A}
+.badge.kari{background:#FBF3D9;color:#8A6D24}
+.badge.uke{background:#E4EDF7;color:#1F5A96}
+
+/* メールUI */
+.mail{border:1.2px solid #CFC9B8;background:#fff;border-radius:1.5mm;overflow:hidden;box-shadow:0 1mm 3mm rgba(32,30,26,.08)}
+.mail-h{background:var(--washi);border-bottom:1px solid var(--line);padding:2mm 3.5mm;font-size:8pt}
+.mail-h .sj{font-size:9pt;margin-bottom:.6mm}
+.mail-h .meta{color:var(--muted);font-size:7.2pt}
+.mail-b{padding:2.6mm 3.5mm;font-size:8.2pt;line-height:1.75;color:#33312B}
+.mail-b .box{border:1px dashed var(--gold-l);background:var(--washi);padding:1.8mm 2.6mm;margin:1.6mm 0;font-size:8pt}
 
 /* フッター */
 .foot{
-  position:absolute;left:16mm;right:16mm;bottom:8mm;
+  position:absolute;left:16mm;right:16mm;bottom:9mm;
   display:flex;justify-content:space-between;align-items:center;
-  border-top:1px solid var(--line);padding-top:2.5mm;
+  border-top:1px solid var(--line);padding-top:2.2mm;
   font-size:8pt;color:var(--muted);letter-spacing:.1em;
+  background:#fff;
 }
 .foot .pg{color:var(--gold)}
 </style>
@@ -129,7 +169,7 @@ ul.pts b{color:var(--ink)}
 
   <div class="sec">
     <div class="sec-h"><div class="num">1</div><h2>あなた専用の「2つのURL」</h2><div class="en">YOUR URLS</div></div>
-    <p style="font-size:9.8pt;margin-bottom:2mm">運営から、あなた専用のURLを2つお渡しします。<b>役割がまったく違う</b>ので注意してください。</p>
+    <p style="font-size:9.6pt;margin-bottom:1.6mm">運営から、あなた専用のURLを2つお渡しします。<b>役割がまったく違う</b>ので注意してください。</p>
     <div class="urlbox">
       <div class="lbl">■ 申込フォームURL（お客様に配ってOK）</div>
       <div class="url">https://tenrousai.tenrou.info/ticket?cast=（あなたの番号）</div>
@@ -144,25 +184,48 @@ ul.pts b{color:var(--ink)}
 
   <div class="sec">
     <div class="sec-h"><div class="num">2</div><h2>お客様に予約してもらう（基本の流れ）</h2><div class="en">WEB RESERVATION</div></div>
-    <div class="flow">
-      <div class="step"><div class="sn">STEP 1</div><div class="st">申込フォームURLを案内</div><div class="sd">SNSやDMで、あなた専用の申込フォームURLをお客様に送ります。</div></div>
-      <div class="arrow">▶</div>
-      <div class="step"><div class="sn">STEP 2</div><div class="st">お客様がフォーム入力</div><div class="sd">公演日時・席種・枚数・お名前などを入力して送信してもらいます。</div></div>
-      <div class="arrow">▶</div>
-      <div class="step"><div class="sn">STEP 3</div><div class="st">予約番号が自動発行</div><div class="sd">「R-0000」形式の予約番号が発行され、あなたの予約リストに即反映されます。</div></div>
-      <div class="arrow">▶</div>
-      <div class="step"><div class="sn">STEP 4</div><div class="st">当日は受付で番号かお名前</div><div class="sd">お客様は当日、受付で予約番号またはお名前を伝えるだけでOK。</div></div>
+    <div class="fig-row">
+      <div style="flex:1.35">
+        <div class="flow" style="flex-direction:column;gap:1.8mm">
+          <div class="step"><div class="sn">STEP 1</div><div class="st">申込フォームURLを案内</div><div class="sd">SNSやDMで、あなた専用の申込フォームURLをお客様に送ります。</div></div>
+          <div class="step"><div class="sn">STEP 2</div><div class="st">お客様がフォーム入力（右のサンプル）</div><div class="sd">公演日時・席種・枚数・お名前などを入力して送信してもらいます。</div></div>
+          <div class="step"><div class="sn">STEP 3</div><div class="st">予約番号が自動発行</div><div class="sd">「R-0000」形式の予約番号が発行され、あなたの予約リストに即反映。お客様には予約完了メールが届きます。</div></div>
+          <div class="step"><div class="sn">STEP 4</div><div class="st">当日は受付で番号かお名前</div><div class="sd">お客様は当日、受付で予約番号またはお名前を伝えるだけでOK。</div></div>
+        </div>
+        <ul class="pts" style="margin-top:2mm">
+          <li>席種と料金：<b>S席 ¥6,000／A席 ¥4,500／U18学割 ¥2,500</b></li>
+          <li>お支払いは<b>すべて当日、会場受付にて</b>（現金または電子決済）。事前決済はありません。</li>
+          <li>予約は<b>各公演の開演予定時刻まで</b>可能。残席はほぼリアルタイム反映なので、当日予約→ご来場もOK。</li>
+          <li>満席の公演はフォームから<b>キャンセル待ち</b>に登録OK。空きが出ると登録順に自動でご案内。</li>
+        </ul>
+      </div>
+      <div class="fig" style="max-width:62mm">
+        <span class="fig-label">SAMPLE　予約フォームの画面イメージ</span>
+        <div class="phone">
+          <div class="bar"></div>
+          <div class="scr-title">天狼祭2026 予約フォーム<small>TENROUSAI 2026</small></div>
+          <div class="f-field"><div class="f-label">取り扱いキャスト</div><div class="f-input">高嶺 瀧 【天狼殺陣会】（自動選択）</div></div>
+          <div class="f-field"><div class="f-label">公演日時<i>必須</i></div><div class="f-input f-select">10/24(土) 13:00　◎ 余裕あり</div></div>
+          <div class="f-field"><div class="f-label">席種<i>必須</i></div><div class="f-input f-select">S席（自由席）　￥6,000</div></div>
+          <div class="f-field"><div class="f-label">枚数<i>必須</i></div><div class="f-input f-select">2枚</div></div>
+          <div class="f-field"><div class="f-label">お名前・ふりがな<i>必須</i></div><div class="f-input ph">例：山田 太郎（やまだ たろう）</div></div>
+          <div class="f-field"><div class="f-label">メールアドレス<i>必須</i></div><div class="f-input ph">例：sample@example.com</div></div>
+          <div class="f-btn">この内容で予約する</div>
+        </div>
+        <div class="fig-note">※ サンプルです。実際の画面とは項目・デザインが一部異なる場合があります。</div>
+      </div>
     </div>
-    <ul class="pts">
-      <li>席種と料金：<b>S席 ¥6,000／A席 ¥4,500／U18学割 ¥2,500</b></li>
-      <li>お支払いは<b>すべて当日、会場受付にて</b>（現金または電子決済）。事前決済はありません。</li>
-      <li>満席の公演は、フォームから<b>キャンセル待ち</b>に登録できます。空きが出ると登録順に自動でご案内が届きます。</li>
-    </ul>
   </div>
+
+  <div class="foot"><span>🐺 合同会社萬屋天狼 — 天狼祭2026</span><span class="pg">1 / 3</span></div>
+</div>
+
+<!-- ============ PAGE 2 ============ -->
+<div class="page">
 
   <div class="sec">
     <div class="sec-h"><div class="num">3</div><h2>LINEで「取り置き」を登録する</h2><div class="en">LINE HOLD</div></div>
-    <p style="font-size:9.8pt;margin-bottom:2mm">お客様から直接「取っておいて」と頼まれた分は、<b>公式LINEから自分で取り置き登録</b>できます（予約番号は「T-0000」形式で発行されます）。</p>
+    <p style="font-size:9.6pt;margin-bottom:1.6mm">お客様から直接「取っておいて」と頼まれた分は、<b>公式LINEから自分で取り置き登録</b>できます（予約番号は「T-0000」形式で発行されます）。</p>
     <div class="flow">
       <div class="step"><div class="sn">STEP 1</div><div class="st">公式LINEを友だち追加</div><div class="sd">キャスト用の公式LINEアカウントを追加します（運営から案内済み）。</div></div>
       <div class="arrow">▶</div>
@@ -173,32 +236,80 @@ ul.pts b{color:var(--ink)}
     <div class="callout"><div class="cl">※ お支払いについて</div>予約（R-番号）も取り置き（T-番号）も、お支払いは<b>すべて当日・会場受付にて</b>（現金または電子決済）。事前決済はありません。お客様には「当日、受付でお名前を伝えて精算」と案内してください。</div>
   </div>
 
-  <div class="foot"><span>🐺 合同会社萬屋天狼 — 天狼祭2026</span><span class="pg">1 / 2</span></div>
+  <div class="sec">
+    <div class="sec-h"><div class="num">4</div><h2>予約の確認方法（3つ）</h2><div class="en">CHECK YOUR LIST</div></div>
+    <div class="fig-row">
+      <div style="flex:1.3">
+        <table>
+          <tr><th style="width:30mm">方法</th><th>内容</th></tr>
+          <tr><td>予約リストURL</td><td>あなた専用のリストページ（右のサンプル）。<b>いつでも最新</b>の予約一覧・枚数・ステータスを確認できます。ブックマーク推奨。</td></tr>
+          <tr><td>毎日のLINE通知</td><td>毎日<b>21時</b>に、その日に入った新規予約が公式LINEに自動で届きます。<span style="color:#5C594E">※新規予約がない日は通知されません。</span></td></tr>
+          <tr><td>メール通知（希望制）</td><td>LINEの代わりに<b>メール通知</b>も選べます。通知を受け取りたいメールアドレスから運営宛（info.tenrou.event@gmail.com）に「メール通知希望」とご連絡ください。</td></tr>
+          <tr><td>状況便</td><td>自分の予約実績と全公演の残席がまとめて届く定期便です。</td></tr>
+        </table>
+        <p style="font-size:9.4pt;margin:1.6mm 0 .8mm">リストの<b>ステータスの意味</b>：</p>
+        <table>
+          <tr><th style="width:22mm">仮予約</th><td>フォーム申込直後の状態。運営の確認で本予約になります。</td></tr>
+          <tr><th>本予約</th><td>予約確定。お客様は当日受付に来ればOKです。</td></tr>
+          <tr><th>受付済</th><td>当日、来場・精算が完了した状態です。</td></tr>
+          <tr><th>キャンセル</th><td>キャンセル確定。席は解放され、待ちの方へ自動案内。</td></tr>
+        </table>
+      </div>
+      <div class="fig" style="max-width:64mm">
+        <span class="fig-label">SAMPLE　予約リスト画面のイメージ</span>
+        <div class="list-scr">
+          <div class="scr-title" style="text-align:left;border-bottom:none;padding:0;margin-bottom:1.6mm">高嶺 瀧 さんの予約リスト<small style="letter-spacing:.1em">最終更新：たった今</small></div>
+          <div class="tabs"><span class="tab on">10/24 13:00</span><span class="tab">10/24 18:00</span><span class="tab">10/25 11:30</span></div>
+          <div class="summ">
+            <div><div class="v">6</div><div class="k">件数</div></div>
+            <div><div class="v">11</div><div class="k">枚数</div></div>
+            <div><div class="v">◎</div><div class="k">残席</div></div>
+          </div>
+          <div class="lrow"><span class="no">R-0004</span><span class="nm">山田 太郎 様</span><span class="cnt">2枚</span><span class="badge hon">本予約</span></div>
+          <div class="lrow"><span class="no">R-0009</span><span class="nm">佐藤 花子 様</span><span class="cnt">1枚</span><span class="badge hon">本予約</span></div>
+          <div class="lrow"><span class="no">T-0002</span><span class="nm">鈴木 一郎 様</span><span class="cnt">3枚</span><span class="badge kari">仮予約</span></div>
+          <div class="lrow"><span class="no">R-0015</span><span class="nm">田中 美咲 様</span><span class="cnt">2枚</span><span class="badge uke">受付済</span></div>
+          <div class="lrow" style="border-bottom:none"><span class="no">R-0018</span><span class="nm">高橋 健 様</span><span class="cnt">3枚</span><span class="badge hon">本予約</span></div>
+        </div>
+        <div class="fig-note">※ サンプルです。お名前・番号は架空のものです。</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="foot"><span>🐺 合同会社萬屋天狼 — 天狼祭2026</span><span class="pg">2 / 3</span></div>
 </div>
 
-<!-- ============ PAGE 2 ============ -->
+<!-- ============ PAGE 3 ============ -->
 <div class="page">
 
   <div class="sec">
-    <div class="sec-h"><div class="num">4</div><h2>予約の確認方法（3つ）</h2><div class="en">CHECK YOUR LIST</div></div>
-    <table>
-      <tr><th style="width:34mm">方法</th><th>内容</th></tr>
-      <tr><td>予約リストURL</td><td>あなた専用のリストページ。<b>いつでも最新</b>の予約一覧・枚数・ステータスを確認できます。ブックマーク推奨。</td></tr>
-      <tr><td>毎日のLINE通知</td><td>毎日<b>21時</b>に、その日に入った新規予約が公式LINEに自動で届きます。<span style="color:#5C594E">※その日に新規予約がない場合、通知は届きません。</span></td></tr>
-      <tr><td>メール通知（希望制）</td><td>LINEの代わりに<b>メールでの通知</b>も選べます。ご希望の方は、通知を受け取りたいメールアドレスから運営宛（info.tenrou.event@gmail.com）に「メール通知希望」とご連絡ください。</td></tr>
-      <tr><td>状況便</td><td>自分の予約実績と全公演の残席がまとめて届く定期便です。</td></tr>
-    </table>
-    <p style="font-size:9.8pt;margin:2mm 0 1mm">リストに表示される<b>ステータスの意味</b>：</p>
-    <table>
-      <tr><th style="width:26mm">仮予約</th><td>フォームから申込直後の状態。このあと運営の確認で本予約になります。</td></tr>
-      <tr><th>本予約</th><td>予約確定。お客様は当日受付に来ればOKです。</td></tr>
-      <tr><th>受付済</th><td>当日、来場・精算が完了した状態です。</td></tr>
-      <tr><th>キャンセル</th><td>キャンセル確定。席は解放され、キャンセル待ちの方に自動で案内が回ります。</td></tr>
-    </table>
+    <div class="sec-h"><div class="num">5</div><h2>お客様に届く「予約完了メール」</h2><div class="en">CONFIRMATION MAIL</div></div>
+    <div class="fig-row">
+      <div class="fig">
+        <span class="fig-label">SAMPLE　予約完了メールのイメージ</span>
+        <div class="mail">
+          <div class="mail-h">
+            <div class="sj">【天狼祭2026】ご予約ありがとうございます（予約番号：R-0004）</div>
+            <div class="meta">差出人：天狼祭運営事務局 &lt;info.tenrou.event@gmail.com&gt;</div>
+          </div>
+          <div class="mail-b">
+            山田 太郎 様<br>
+            この度は「天狼祭2026」にご予約いただき、誠にありがとうございます。<br>
+            <div class="box">
+              予約番号：<b>R-0004</b>　／　公演：10/24（土）13:00<br>
+              席種：S席（自由席）　／　枚数：2枚　／　合計：￥12,000
+            </div>
+            当日は会場受付にて、<b>予約番号またはお名前</b>をお伝えください。<br>
+            お支払いは<b>当日・会場受付にて</b>承ります（現金または電子決済）。
+          </div>
+        </div>
+        <div class="fig-note">※ サンプルです。実際のメールとは文面が一部異なる場合があります。お客様から「メールが届かない」と相談されたら、迷惑メールフォルダの確認を案内し、それでも見つからなければ運営へご連絡ください。</div>
+      </div>
+    </div>
   </div>
 
   <div class="sec">
-    <div class="sec-h"><div class="num">5</div><h2>キャンセル・変更したいとき</h2><div class="en">CANCEL</div></div>
+    <div class="sec-h"><div class="num">6</div><h2>キャンセル・変更したいとき</h2><div class="en">CANCEL</div></div>
     <div class="flow">
       <div class="step"><div class="sn">STEP 1</div><div class="st">公式LINEからキャンセル申請</div><div class="sd">メニューのキャンセル申請から、対象の予約番号を送ります。</div></div>
       <div class="arrow">▶</div>
@@ -212,24 +323,23 @@ ul.pts b{color:var(--ink)}
   </div>
 
   <div class="sec">
-    <div class="sec-h"><div class="num">6</div><h2>お願い・注意事項</h2><div class="en">NOTES</div></div>
+    <div class="sec-h"><div class="num">7</div><h2>お願い・注意事項</h2><div class="en">NOTES</div></div>
     <ul class="pts">
       <li class="warn"><b>予約リストURLは誰にも共有しない。</b>SNSのスクショにURLが写り込まないよう注意してください。</li>
       <li class="warn">お客様の個人情報（お名前・連絡先）が見えます。<b>スクショの外部共有・転載は禁止</b>です。</li>
       <li>同じお客様が誤って2回申し込んだ場合は、そのままにせず運営に連絡してください（片方をキャンセル処理します）。</li>
-      <li>予約の受付締切：<b>各公演の開演予定時刻まで</b>予約できます。当日も、ネットで席をお取りいただいてからのご来場が可能です（残席はほぼリアルタイムで反映されます。席に余裕があれば直前でも予約OK）。</li>
     </ul>
   </div>
 
   <div class="sec">
-    <div class="sec-h"><div class="num">7</div><h2>困ったときは</h2><div class="en">SUPPORT</div></div>
+    <div class="sec-h"><div class="num">8</div><h2>困ったときは</h2><div class="en">SUPPORT</div></div>
     <table>
       <tr><th style="width:34mm">メールで問い合わせ</th><td>運営事務局へ直接メールしてください。担当者よりご返信いたします。<br><b>info.tenrou.event@gmail.com</b></td></tr>
       <tr><th>公式LINEで問い合わせ</th><td>公式LINEに<b>問い合わせ内容を一文で</b>そのまま送信すると、自動で受け付けられ<b>「Q-0000」形式の受付番号</b>が付きます。回答は公式LINEの返信メッセージで順次届きます。</td></tr>
     </table>
   </div>
 
-  <div class="foot"><span>🐺 合同会社萬屋天狼 — 天狼祭2026</span><span class="pg">2 / 2</span></div>
+  <div class="foot"><span>🐺 合同会社萬屋天狼 — 天狼祭2026</span><span class="pg">3 / 3</span></div>
 </div>
 
 </body>
