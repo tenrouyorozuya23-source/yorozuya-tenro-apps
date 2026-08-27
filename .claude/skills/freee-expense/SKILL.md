@@ -37,7 +37,7 @@ company-master.md の「経費でよく使う科目」表から選ぶ。判断�
 
 | 支払方法 | from_walletable_type | from_walletable_id |
 |---|---|---|
-| **役員立替**（社長が個人財布で支払い） | `private_account_item` | **763260802**（役員貸付金。2026-08-24〜。旧: 役員借入金763260803） |
+| **役員立替**（社長が個人財布で支払い） | `private_account_item` | **763260803**（役員借入金）※役員貸付金(763260802)は収入取引の決済にしか使えずAPIエラーになる。詳細はcompany-master.mdの「役員貸付金の運用」参照 |
 | 現金（小口） | `wallet` | 5502883 |
 | freeeカード Unlimited | `credit_card` | 2568791 |
 | PayPay VISAデビット | `credit_card` | 1971666 |
