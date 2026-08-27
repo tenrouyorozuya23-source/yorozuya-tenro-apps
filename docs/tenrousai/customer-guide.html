@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>天狼祭2026 チケット予約のご案内</title>
+<style>
+:root{
+  --ink:#201E1A; --sub:#5C594E; --muted:#8B8676;
+  --gold:#8A6D24; --gold-l:#C9A84C; --shu:#C93A26;
+  --washi:#F4F1E8; --line:#E2DCCB;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:"IPAPGothic","IPAGothic",sans-serif;
+  color:var(--ink);background:#fff;
+  font-size:9.8pt;line-height:1.58;
+}
+.page{
+  width:210mm;height:296mm;padding:12mm 15mm 22mm;
+  position:relative;overflow:hidden;background:#fff;
+}
+
+/* ヘッダー */
+.head{
+  text-align:center;
+  border-bottom:2.5px solid var(--ink);padding-bottom:3mm;margin-bottom:4mm;
+}
+.head .t1{font-size:9pt;letter-spacing:.34em;color:var(--shu);margin-bottom:1.2mm}
+.head h1{font-size:19pt;letter-spacing:.16em;margin-bottom:1.2mm}
+.head .sub{font-size:9.5pt;color:var(--sub);letter-spacing:.08em}
+.head .sub b{color:var(--ink)}
+
+/* セクション */
+.sec{margin-bottom:3.4mm}
+.sec-h{display:flex;align-items:center;gap:3mm;margin-bottom:2mm}
+.sec-h .num{
+  width:8mm;height:8mm;flex-shrink:0;background:var(--ink);color:#fff;
+  display:flex;align-items:center;justify-content:center;font-size:10.5pt;
+  clip-path:polygon(0 0,calc(100% - 2.2mm) 0,100% 2.2mm,100% 100%,0 100%);
+}
+.sec-h h2{font-size:12.5pt;letter-spacing:.1em}
+.sec-h .en{font-size:7.2pt;letter-spacing:.24em;color:var(--gold);margin-left:auto}
+
+/* 予約URL 大ボックス */
+.bigurl{
+  border:2px solid var(--gold-l);background:var(--washi);
+  text-align:center;padding:3mm 5mm;margin:1.6mm 0 1mm;
+  clip-path:polygon(0 0,calc(100% - 5mm) 0,100% 5mm,100% 100%,0 100%);
+}
+.bigurl .lbl{font-size:8.5pt;color:var(--gold);letter-spacing:.2em;margin-bottom:1mm}
+.bigurl .url{font-size:13.5pt;letter-spacing:.02em}
+.bigurl .note{font-size:8pt;color:var(--sub);margin-top:1mm}
+
+/* 手順フロー */
+.flow{display:flex;gap:2.4mm;margin:2mm 0}
+.step{flex:1;background:var(--washi);border:1px solid var(--line);padding:2.4mm 2.8mm 2.2mm;text-align:center}
+.step .sn{font-size:7.8pt;color:var(--shu);letter-spacing:.18em;margin-bottom:1mm}
+.step .ic{font-size:15pt;line-height:1;margin-bottom:1.4mm}
+.step .st{font-size:9.6pt;line-height:1.45;margin-bottom:.8mm}
+.step .sd{font-size:7.8pt;color:var(--sub);line-height:1.55;text-align:left}
+.arrow{align-self:center;color:var(--gold-l);font-size:11pt;flex-shrink:0}
+
+/* 料金表 */
+table{width:100%;border-collapse:collapse;font-size:9.4pt;margin:1.4mm 0}
+th,td{border:1px solid var(--line);padding:1.8mm 3mm;text-align:left;vertical-align:top}
+th{background:var(--washi);color:var(--gold);font-weight:normal;letter-spacing:.08em;white-space:nowrap}
+.price-row{display:flex;gap:2.4mm;margin:2mm 0}
+.price{
+  flex:1;text-align:center;border:1.5px solid var(--gold-l);background:var(--washi);
+  padding:1.8mm 2mm;
+}
+.price .k{font-size:9pt;letter-spacing:.14em;color:var(--gold);margin-bottom:.6mm}
+.price .v{font-size:15pt;letter-spacing:.02em}
+.price .n{font-size:7.4pt;color:var(--muted)}
+
+/* コールアウト */
+.callout{border-left:3px solid var(--shu);background:var(--washi);padding:2mm 4mm;font-size:9.2pt;margin:1.6mm 0}
+.callout .cl{color:var(--shu);letter-spacing:.1em;font-size:9pt;margin-bottom:.4mm}
+
+/* FAQ */
+.faq{border:1px solid var(--line);margin-bottom:1.2mm;background:#FDFCF8}
+.faq .q{
+  display:flex;gap:2.4mm;align-items:baseline;
+  background:var(--washi);padding:1.3mm 3.4mm;font-size:9.4pt;
+}
+.faq .q::before{content:"Q";color:var(--shu);font-size:10pt;flex-shrink:0}
+.faq .a{display:flex;gap:2.4mm;align-items:baseline;padding:1.3mm 3.4mm;font-size:9pt;color:#3A3830}
+.faq .a::before{content:"A";color:var(--gold);font-size:10pt;flex-shrink:0}
+.faq b{color:var(--shu)}
+
+/* フッター */
+.foot{
+  position:absolute;left:15mm;right:15mm;bottom:8mm;
+  display:flex;justify-content:space-between;align-items:center;
+  border-top:1px solid var(--line);padding-top:2.2mm;
+  font-size:8pt;color:var(--muted);letter-spacing:.1em;background:#fff;
+}
+</style>
+</head>
+<body>
+
+<div class="page">
+  <div class="head">
+    <div class="t1">TENROUSAI 2026 — TICKET GUIDE</div>
+    <h1>チケット予約のご案内</h1>
+    <div class="sub"><b>天狼祭2026</b>　2026年10月23日（金）〜25日（日）　高島平バルスタジオ・全5公演</div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-h"><div class="num">1</div><h2>ご予約はWEBフォームから</h2><div class="en">RESERVE ONLINE</div></div>
+    <div class="bigurl">
+      <div class="lbl">■ 予約フォーム（24時間受付）</div>
+      <div class="url">https://tenrousai.tenrou.info/ticket</div>
+      <div class="note">出演キャストから案内されたURL・QRコードからのご予約もこちらと同じフォームです。</div>
+    </div>
+    <div class="flow">
+      <div class="step"><div class="sn">STEP 1</div><div class="ic">📱</div><div class="st">フォームに入力</div><div class="sd">ご希望の公演日時・席種・枚数・お名前・メールアドレスを入力して送信。</div></div>
+      <div class="arrow">▶</div>
+      <div class="step"><div class="sn">STEP 2</div><div class="ic">✉️</div><div class="st">予約完了メールが届く</div><div class="sd">予約番号（R-0000）入りの完了メールが自動で届きます。当日まで保管を。</div></div>
+      <div class="arrow">▶</div>
+      <div class="step"><div class="sn">STEP 3</div><div class="ic">🎫</div><div class="st">当日、受付へ</div><div class="sd">会場受付で予約番号またはお名前をお伝えください。</div></div>
+      <div class="arrow">▶</div>
+      <div class="step"><div class="sn">STEP 4</div><div class="ic">💴</div><div class="st">お支払い・ご入場</div><div class="sd">受付でお支払いのうえ、ご入場ください（現金・電子決済対応）。</div></div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-h"><div class="num">2</div><h2>チケット料金・お支払い</h2><div class="en">PRICE</div></div>
+    <div class="price-row">
+      <div class="price"><div class="k">S 席</div><div class="v">￥6,000</div><div class="n">自由席</div></div>
+      <div class="price"><div class="k">A 席</div><div class="v">￥4,500</div><div class="n">自由席</div></div>
+      <div class="price"><div class="k">U18 学割</div><div class="v">￥2,500</div><div class="n">18歳以下対象</div></div>
+    </div>
+    <div class="callout"><div class="cl">お支払いはすべて当日・会場受付にて</div>事前のお支払いは不要です。当日、会場受付にて<b>現金または電子決済</b>でお支払いください。</div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-h"><div class="num">3</div><h2>よくあるご質問</h2><div class="en">FAQ</div></div>
+
+    <div class="faq">
+      <div class="q">いつまで予約できますか？</div>
+      <div class="a"><span><b>各公演の開演予定時刻まで</b>ご予約いただけます。残席はほぼリアルタイムで反映されるため、席に余裕があれば<b>当日、会場に向かいながらのご予約もOK</b>です。</span></div>
+    </div>
+
+    <div class="faq">
+      <div class="q">予約完了メールが届きません。</div>
+      <div class="a"><span>迷惑メールフォルダをご確認ください。見つからない場合は下記の運営事務局までご連絡ください。ご予約状況をお調べします。</span></div>
+    </div>
+
+    <div class="faq">
+      <div class="q">満席の公演を観たいのですが…</div>
+      <div class="a"><span>予約フォームから<b>キャンセル待ち</b>にご登録ください。空きが出るとご登録順にメールで自動的にご案内します（回答期限あり）。</span></div>
+    </div>
+
+    <div class="faq">
+      <div class="q">キャンセル・変更したいときは？</div>
+      <div class="a"><span>運営事務局まで<b>予約番号とお名前</b>を添えてメールでご連絡ください。キャスト経由のご予約は、そのキャストへのご連絡でも承ります。</span></div>
+    </div>
+
+  </div>
+
+  <div class="callout" style="border-left-color:var(--gold-l)">
+    <div class="cl" style="color:var(--gold)">お問い合わせ：天狼祭運営事務局</div>
+    <b>info.tenrou.event@gmail.com</b>　※担当者よりご返信いたします。公演直前のお急ぎのご用件は件名に「至急」とお書き添えください。
+  </div>
+
+  <div class="foot"><span>🐺 主催：合同会社萬屋天狼 — 天狼祭2026</span><span style="color:var(--gold)">tenrousai.tenrou.info</span></div>
+</div>
+
+</body>
+</html>
