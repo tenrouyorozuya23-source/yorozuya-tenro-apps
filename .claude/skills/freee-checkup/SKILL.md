@@ -41,6 +41,7 @@ freee_api_get { "service": "accounting", "path": "/api/1/reports/trial_bs",
 - **役員借入金**（account_item_id 763260803）の closing_balance → 会社が役員から借りている額
 - **役員貸付金**（account_item_id 763260802）の closing_balance → **残高があれば要注意**（役員への貸付は認定利息・税務リスクの論点。0でなければ必ず警告する）
 - 現金・預金合計
+- **役員借入金が0でなく、かつ役員貸付金も残高がある場合**: company-master.md の「役員借入金との定期相殺」運用に従い、役員借入金の全額を役員貸付金と相殺する仕訳（manual_journals、借方763260803／貸方763260802、tax_code 2、金額は役員借入金の残高）を「要対応」に提案する（自動実行はせず、ユーザー承認後に登録）
 
 ### 4. 口座残高と同期状態
 
