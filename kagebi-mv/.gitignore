@@ -1,1 +1,2 @@
-output/
+output/*
+!output/kagebi-mv-1080p-web.mp4
