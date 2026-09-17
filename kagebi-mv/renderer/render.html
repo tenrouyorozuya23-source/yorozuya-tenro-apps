@@ -43,19 +43,20 @@ function smoothstep(x) { x = Math.min(1, Math.max(0, x)); return x * x * (3 - 2 
 
 // ---------- section score (the visual storyboard) ----------
 // numeric params are interpolated across section boundaries (2.5 s crossfade)
+// theme: 赤 × 青紫 (crimson fire against blue-violet night)
 const SECTIONS = [
-  { id:'intro',    t:0.0,   skyTop:'#04050c', skyBot:'#101226', glow:'#ff7a2a', glowI:0.22, mist:0.85, accent:'#8fb4c9', petals:0.0, streaks:0.0, moon:0.35, cold:0.15, ring:0, lantern:0, kanji:'宵' },
-  { id:'verse1',   t:13.5,  skyTop:'#060a18', skyBot:'#182240', glow:'#ff8434', glowI:0.34, mist:0.7,  accent:'#9fc3d8', petals:0.0, streaks:0.0, moon:0.85, cold:0.1,  ring:0, lantern:0, kanji:'宵' },
-  { id:'chorus1',  t:37.6,  skyTop:'#140b12', skyBot:'#331b23', glow:'#ffa040', glowI:0.72, mist:0.4,  accent:'#ffcf8a', petals:1.0, streaks:0.15,moon:0.4,  cold:0,    ring:0, lantern:0, kanji:'灯' },
-  { id:'verse2',   t:50.4,  skyTop:'#0a0e1f', skyBot:'#1f2947', glow:'#ff8434', glowI:0.42, mist:0.6,  accent:'#a8c8da', petals:0.25,streaks:0.0, moon:0.7,  cold:0.05, ring:0, lantern:0, kanji:'祈' },
-  { id:'bridgeC',  t:73.8,  skyTop:'#04070f', skyBot:'#102035', glow:'#7ab8ff', glowI:0.3,  mist:0.95, accent:'#bcd9f2', petals:0.0, streaks:0.0, moon:0.95, cold:1,    ring:0, lantern:0, kanji:'魂' },
-  { id:'bridgeF',  t:85.5,  skyTop:'#0c0911', skyBot:'#2c1622', glow:'#ff6a1a', glowI:0.62, mist:0.5,  accent:'#ffb37a', petals:0.0, streaks:0.3, moon:0.5,  cold:0,    ring:0, lantern:0, kanji:'魂' },
-  { id:'solo1',    t:94.6,  skyTop:'#120a17', skyBot:'#371a2e', glow:'#ff8a30', glowI:0.8,  mist:0.3,  accent:'#ffd9a0', petals:0.45,streaks:0.7, moon:0.3,  cold:0,    ring:1, lantern:0, kanji:'焔' },
-  { id:'chorusF',  t:130.6, skyTop:'#1b0c13', skyBot:'#4a2322', glow:'#ffab3d', glowI:0.95, mist:0.25, accent:'#ffe2b0', petals:1.0, streaks:1.0, moon:0.25, cold:0,    ring:0, lantern:0, kanji:'花' },
-  { id:'solo2',    t:154.0, skyTop:'#140b19', skyBot:'#3b1a30', glow:'#ff9435', glowI:0.85, mist:0.3,  accent:'#ffd9a0', petals:0.55,streaks:0.85,moon:0.3,  cold:0,    ring:1, lantern:0, kanji:'焔' },
-  { id:'outroV',   t:179.2, skyTop:'#0d0811', skyBot:'#271326', glow:'#ff7a2a', glowI:0.72, mist:0.5,  accent:'#ffc890', petals:0.4, streaks:0.2, moon:0.45, cold:0,    ring:0, lantern:1, kanji:'灯' },
-  { id:'outroC',   t:210.8, skyTop:'#0a0710', skyBot:'#201122', glow:'#ff8430', glowI:0.8,  mist:0.5,  accent:'#ffc890', petals:0.6, streaks:0.4, moon:0.5,  cold:0,    ring:0, lantern:1, kanji:'灯' },
-  { id:'fade',     t:246.0, skyTop:'#050409', skyBot:'#0d0913', glow:'#ff7a2a', glowI:0.4,  mist:0.6,  accent:'#cbb8a8', petals:0.2, streaks:0.0, moon:0.3,  cold:0.1,  ring:0, lantern:1, kanji:'灯' }
+  { id:'intro',    t:0.0,   skyTop:'#06040f', skyBot:'#151033', glow:'#ff4838', glowI:0.22, mist:0.85, accent:'#9d8fd0', petals:0.0, streaks:0.0, moon:0.35, cold:0.15, ring:0, lantern:0, kanji:'宵' },
+  { id:'verse1',   t:13.5,  skyTop:'#0a0820', skyBot:'#201948', glow:'#ff5340', glowI:0.34, mist:0.7,  accent:'#a89ade', petals:0.0, streaks:0.0, moon:0.85, cold:0.1,  ring:0, lantern:0, kanji:'宵' },
+  { id:'chorus1',  t:37.6,  skyTop:'#160a1c', skyBot:'#391734', glow:'#ff4a3c', glowI:0.72, mist:0.4,  accent:'#e8aed0', petals:1.0, streaks:0.15,moon:0.4,  cold:0,    ring:0, lantern:0, kanji:'灯' },
+  { id:'verse2',   t:50.4,  skyTop:'#0d0a24', skyBot:'#231c4e', glow:'#ff5340', glowI:0.42, mist:0.6,  accent:'#ab9de0', petals:0.25,streaks:0.0, moon:0.7,  cold:0.05, ring:0, lantern:0, kanji:'祈' },
+  { id:'bridgeC',  t:73.8,  skyTop:'#05071a', skyBot:'#101d40', glow:'#6a8aff', glowI:0.3,  mist:0.95, accent:'#b8c4f2', petals:0.0, streaks:0.0, moon:0.95, cold:1,    ring:0, lantern:0, kanji:'魂' },
+  { id:'bridgeF',  t:85.5,  skyTop:'#140a1a', skyBot:'#341428', glow:'#ff3a28', glowI:0.62, mist:0.5,  accent:'#ff9a88', petals:0.0, streaks:0.3, moon:0.5,  cold:0,    ring:0, lantern:0, kanji:'魂' },
+  { id:'solo1',    t:94.6,  skyTop:'#170b22', skyBot:'#3b1741', glow:'#ff4a35', glowI:0.8,  mist:0.3,  accent:'#c8a0e8', petals:0.45,streaks:0.7, moon:0.3,  cold:0,    ring:1, lantern:0, kanji:'焔' },
+  { id:'chorusF',  t:130.6, skyTop:'#1c0a18', skyBot:'#4a1730', glow:'#ff5238', glowI:0.95, mist:0.25, accent:'#f2b4cc', petals:1.0, streaks:1.0, moon:0.25, cold:0,    ring:0, lantern:0, kanji:'花' },
+  { id:'solo2',    t:154.0, skyTop:'#180b24', skyBot:'#3e173a', glow:'#ff4a35', glowI:0.85, mist:0.3,  accent:'#c8a0e8', petals:0.55,streaks:0.85,moon:0.3,  cold:0,    ring:1, lantern:0, kanji:'焔' },
+  { id:'outroV',   t:179.2, skyTop:'#100822', skyBot:'#2b1338', glow:'#ff4a30', glowI:0.72, mist:0.5,  accent:'#d8a8c8', petals:0.4, streaks:0.2, moon:0.45, cold:0,    ring:0, lantern:1, kanji:'灯' },
+  { id:'outroC',   t:210.8, skyTop:'#0d0720', skyBot:'#241030', glow:'#ff5334', glowI:0.8,  mist:0.5,  accent:'#d8a8c8', petals:0.6, streaks:0.4, moon:0.5,  cold:0,    ring:0, lantern:1, kanji:'灯' },
+  { id:'fade',     t:246.0, skyTop:'#06040e', skyBot:'#100a1c', glow:'#ff4a30', glowI:0.4,  mist:0.6,  accent:'#bfaec8', petals:0.2, streaks:0.0, moon:0.3,  cold:0.1,  ring:0, lantern:1, kanji:'灯' }
 ];
 const XFADE = 2.5;
 const NUMKEYS = ['glowI','mist','petals','streaks','moon','cold','ring','lantern'];
@@ -98,7 +99,7 @@ const vigCv = document.createElement('canvas'); vigCv.width = W; vigCv.height = 
   g.fillStyle = grad; g.fillRect(0, 0, W, H);
 }
 // pre-rendered glow sprites for embers (avoids per-particle shadowBlur)
-const EMBER_COLORS = ['#ffb060', '#ff7a3a', '#ffd98e', '#9fd0ff'];
+const EMBER_COLORS = ['#ff8a5a', '#ff4a38', '#ffc9a0', '#9aa8ff', '#b090ff'];
 const emberSprites = EMBER_COLORS.map(col => {
   const c = document.createElement('canvas'); c.width = c.height = 48;
   const g = c.getContext('2d');
@@ -110,7 +111,7 @@ const emberSprites = EMBER_COLORS.map(col => {
   return c;
 });
 // pre-rendered mist sprites
-const mistSprites = ['#41536f', '#4a3f5c'].map(col => {
+const mistSprites = ['#3a3f6f', '#4a3162'].map(col => {
   const c = document.createElement('canvas'); c.width = c.height = 512;
   const g = c.getContext('2d');
   const gr = g.createRadialGradient(256, 256, 0, 256, 256, 256);
@@ -221,7 +222,7 @@ function drawTitle(t) {
   ctx.save();
   ctx.textAlign = 'center';
   ctx.font = '150px Yuji';
-  ctx.shadowColor = '#ff9a4a'; ctx.shadowBlur = 42;
+  ctx.shadowColor = '#ff5a4a'; ctx.shadowBlur = 42;
   ctx.fillStyle = `rgba(248,240,228,${a})`;
   ctx.fillText((LYR.titleKanji || LYR.title).split('').join(' '), W / 2, H * 0.43);
   ctx.font = '44px Yuji';
@@ -243,7 +244,7 @@ function drawCredits(t) {
   ctx.fillRect(0, 0, W, H);
   ctx.textAlign = 'center';
   ctx.font = '64px Yuji';
-  ctx.shadowColor = '#ff9a4a'; ctx.shadowBlur = 26;
+  ctx.shadowColor = '#ff5a4a'; ctx.shadowBlur = 26;
   ctx.fillStyle = `rgba(240,232,220,${a})`;
   ctx.fillText((LYR.titleKanji || LYR.title).split('').join(' '), W / 2, H * 0.72);
   ctx.font = '400 24px Shippori';
@@ -379,14 +380,14 @@ function renderFrame(i, skipEncode) {
   ctx.globalCompositeOperation = 'screen';
   const R1 = (330 + sec.glowI * 300) * breathe;
   const g1 = ctx.createRadialGradient(gcx, gcy, 0, gcx, gcy, R1);
-  g1.addColorStop(0, rgba('#ffdda6', 0.26 * sec.glowI + bass * 0.12));
+  g1.addColorStop(0, rgba('#ffb8a0', 0.26 * sec.glowI + bass * 0.12));
   g1.addColorStop(0.35, lerpHex(sec.glowA, sec.glowB, sec.f).replace('rgb', 'rgba').replace(')', `,${0.24 * sec.glowI})`));
   g1.addColorStop(1, 'rgba(0,0,0,0)');
   ctx.fillStyle = g1;
   ctx.fillRect(gcx - R1, gcy - R1, R1 * 2, R1 * 2);
   const R2 = (130 + sec.glowI * 120) * breathe;
   const g2 = ctx.createRadialGradient(gcx, gcy, 0, gcx, gcy, R2);
-  g2.addColorStop(0, rgba('#fff1cf', 0.5 * sec.glowI));
+  g2.addColorStop(0, rgba('#ffdcc8', 0.5 * sec.glowI));
   g2.addColorStop(1, 'rgba(0,0,0,0)');
   ctx.fillStyle = g2;
   ctx.fillRect(gcx - R2, gcy - R2, R2 * 2, R2 * 2);
@@ -407,12 +408,12 @@ function renderFrame(i, skipEncode) {
       const len = 14 + v * 120;
       const x0 = gcx + Math.cos(ang) * baseR, y0 = gcy + Math.sin(ang) * baseR;
       const x1 = gcx + Math.cos(ang) * (baseR + len), y1 = gcy + Math.sin(ang) * (baseR + len);
-      ctx.strokeStyle = rgba('#ffce8e', sec.ring * (0.10 + v * 0.42));
+      ctx.strokeStyle = rgba('#ff9a88', sec.ring * (0.10 + v * 0.42));
       ctx.lineWidth = 4.5;
       ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke();
     }
     // base circle
-    ctx.strokeStyle = rgba('#ffb066', sec.ring * 0.28);
+    ctx.strokeStyle = rgba('#b8a0f0', sec.ring * 0.30);
     ctx.lineWidth = 2;
     ctx.beginPath(); ctx.arc(gcx, gcy, baseR - 6, 0, Math.PI * 2); ctx.stroke();
     ctx.restore();
@@ -481,13 +482,13 @@ function renderFrame(i, skipEncode) {
       if (!started) { ctx.moveTo(x, y); started = true; } else ctx.lineTo(x, y);
     }
     // soft halo, then bright core — reads as a blade of light
-    ctx.strokeStyle = rgba('#7ea8d8', a * 0.35);
+    ctx.strokeStyle = rgba('#8a7ad8', a * 0.35);
     ctx.lineWidth = s.w * 6;
     ctx.stroke();
-    ctx.strokeStyle = rgba('#bcd8f5', a * 0.6);
+    ctx.strokeStyle = rgba('#c2b0f5', a * 0.6);
     ctx.lineWidth = s.w * 2.4;
     ctx.stroke();
-    ctx.strokeStyle = rgba('#f2f8ff', a);
+    ctx.strokeStyle = rgba('#f5f2ff', a);
     ctx.lineWidth = s.w;
     ctx.stroke();
   }
@@ -501,7 +502,7 @@ function renderFrame(i, skipEncode) {
     ctx.save();
     ctx.translate(p.x, p.y);
     ctx.rotate(p.rot);
-    const col = p.hue < 0.55 ? '#f2b8c0' : '#f5cfa2';
+    const col = p.hue < 0.55 ? '#f5a8b4' : '#cdb8f0';
     ctx.fillStyle = rgba(col, a);
     ctx.beginPath();
     ctx.moveTo(0, -p.size);
@@ -519,7 +520,7 @@ function renderFrame(i, skipEncode) {
     const p = e.life / e.maxLife;
     const a = Math.sin(Math.PI * Math.min(1, p)) * 0.9;
     if (a < 0.02) continue;
-    const si = e.cold > 0.5 ? 3 : (e.hue < 0.6 ? 0 : (e.hue < 0.85 ? 1 : 2));
+    const si = e.cold > 0.5 ? 3 : (e.hue < 0.5 ? 0 : (e.hue < 0.78 ? 1 : (e.hue < 0.92 ? 2 : 4)));
     const s = e.r * 7;
     ctx.globalAlpha = a;
     ctx.drawImage(emberSprites[si], e.x - s / 2, e.y - s / 2, s, s);

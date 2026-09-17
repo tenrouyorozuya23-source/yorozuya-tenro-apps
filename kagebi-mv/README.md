@@ -1,4 +1,4 @@
-# kagebi-mv — 「影火 (Kagebi)」リリックMV 制作パイプライン
+# kagebi-mv — 「翳火 -Kagebi-」リリックMV 制作パイプライン
 
 楽曲「Kagebi — Electronic Band Mix」（Suno製）の音源から、音に反応するリリックMV（1920x1080 / 24fps / H.264）を自動生成するパイプライン。
 
@@ -35,6 +35,7 @@ node pipeline/render.mjs
 
 ## 映像の演出（ストーリーボード）
 
+テーマカラーは **赤 × 青紫**（青紫の常夜に灯る赤い火）。
 セクションごとの配色・演出は `renderer/render.html` の `SECTIONS` 配列で定義。
 歌詞の内容に合わせた構成:
 
@@ -55,14 +56,11 @@ node pipeline/render.mjs
 ## 調整ポイント
 
 - **歌詞のタイミング・表記・ルビ**: `data/lyrics.json`（`seg` の `r` がルビ）
-- **タイトルの漢字表記**: `data/lyrics.json` の `titleKanji`（現状は「影火」と仮置き）
+- **タイトルの漢字表記**: `data/lyrics.json` の `titleKanji`（「翳火」）
 - **色・演出の強さ**: `renderer/render.html` の `SECTIONS`
 - **画質・fps**: `pipeline/render.mjs` の ffmpeg 引数 / `analyze.py` の `FPS`（fps変更時は features.json 再生成が必要）
 
 ## 既知の注意点
 
-- 211〜229秒付近に歌詞カードに無いボーカル（アウトロの追加行）があり、
-  文字起こしの確度が低いため字幕を出していない。正しい歌詞が分かれば
-  `lyrics.json` に行を追加するだけで表示される。
 - 文字起こし（transcript.json）は Whisper small によるもので誤認識を含む。
   表示用の正式歌詞は lyrics.json 側で管理する。
