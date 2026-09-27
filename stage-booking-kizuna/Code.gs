@@ -86,6 +86,10 @@ var CONFIG = {
     cast:        true   // LINE未登録のキャストへ予約・キャンセル通知をメールで送信
   },
 
+  // ウェブアプリの公開URL（デプロイを管理 に表示される /exec のURL）
+  // ScriptApp.getService().getUrl() はエディタ実行時に /dev（作成者専用）を返すため固定で持つ
+  webAppUrl: "https://script.google.com/macros/s/AKfycbykKQ8mfdPuVXsM52TPlKU-IntZ9Z-b_gYOJvHwAVdh5f2T2OvmZDdnWUqq9HhEI7MB/exec",
+
   // レジの領収書PDFを保存するGoogleドライブのフォルダID
   receiptFolderId: "1tsDjfrVTEoIwNoC1PMZI3FBFFDEkJZmh",
 
@@ -1469,7 +1473,7 @@ function test_line() {
   } else {
     Logger.log("❌ LINE接続エラー：" + res.getResponseCode() + " / " + res.getContentText());
   }
-  Logger.log("ウェブアプリURL（LINEのWebhook URLと一致しているか確認）: " + ScriptApp.getService().getUrl());
+  Logger.log("ウェブアプリURL（LINEのWebhook URLと一致しているか確認）: " + getWebAppUrl());
 }
 
 // ============================================================
@@ -1713,7 +1717,7 @@ function getCastLabelByUserId(userId, castData) {
   return "";
 }
 
-function getWebAppUrl() { return ScriptApp.getService().getUrl(); }
+function getWebAppUrl() { return CONFIG.webAppUrl || ScriptApp.getService().getUrl(); }
 
 // ============================================================
 // WebアプリURL出力（doGet）
@@ -2182,7 +2186,7 @@ function addRegisterButton() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sheet = ss.getSheetByName("操作パネル");
 
-  var webAppUrl = ScriptApp.getService().getUrl();
+  var webAppUrl = getWebAppUrl();
   var registerUrl = webAppUrl + "?page=register";
 
   // レジURLを記載
@@ -2318,7 +2322,7 @@ function createCastSheets() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var castSheet = ss.getSheetByName("キャスト設定");
   var castData = castSheet.getDataRange().getValues();
-  var webAppUrl = ScriptApp.getService().getUrl();
+  var webAppUrl = getWebAppUrl();
 
   var created = 0;
   var skipped = 0;
@@ -2476,7 +2480,7 @@ function buildControlPanel() {
 
   // ===== リンクセクション =====
   var linkRow = headerRow + ops.length + 2;
-  var webAppUrl = ScriptApp.getService().getUrl();
+  var webAppUrl = getWebAppUrl();
   var registerUrl = webAppUrl + "?page=register";
 
   var linkTitle = sheet.getRange(linkRow, 1);
@@ -2709,7 +2713,7 @@ function updateCastUrls() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var castSheet = ss.getSheetByName("キャスト設定");
   var castData = castSheet.getDataRange().getValues();
-  var webAppUrl = ScriptApp.getService().getUrl();
+  var webAppUrl = getWebAppUrl();
 
   var updated = 0;
   for (var i = 1; i < castData.length; i++) {
