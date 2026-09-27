@@ -233,6 +233,29 @@ function fix_20260928() {
 }
 
 // ============================================================
+// 修正用：フォームの回答シートを「予約一覧」と重複しないよう整理（1回だけ実行）
+//   予約の管理は「予約一覧」で行う。フォームの回答シートは自動記録用として
+//   名前を「フォーム回答（自動記録）」に変えて非表示にする（削除するとフォーム連携が切れるため残す）
+// ============================================================
+function fix_formSheet() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheets = ss.getSheets();
+  for (var i = 0; i < sheets.length; i++) {
+    var sh = sheets[i];
+    if (sh.getFormUrl() && sh.getName() !== "予約一覧") {
+      sh.setName("フォーム回答（自動記録）");
+      sh.hideSheet();
+      Logger.log("✅ フォームの回答シートを「フォーム回答（自動記録）」に変更して非表示にしました");
+    }
+  }
+  var main = ss.getSheetByName("予約一覧");
+  if (main) {
+    ss.setActiveSheet(main);
+    ss.moveActiveSheet(1);
+  }
+}
+
+// ============================================================
 // STEP 1: シート作成
 // ============================================================
 function createSheets(ss) {
