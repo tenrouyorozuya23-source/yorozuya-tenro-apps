@@ -90,6 +90,19 @@ var CONFIG = {
   // ScriptApp.getService().getUrl() はエディタ実行時に /dev（作成者専用）を返すため固定で持つ
   webAppUrl: "https://script.google.com/macros/s/AKfycbykKQ8mfdPuVXsM52TPlKU-IntZ9Z-b_gYOJvHwAVdh5f2T2OvmZDdnWUqq9HhEI7MB/exec",
 
+  // LINEリッチメニュー「公式サイト」で案内するリンク（空欄の項目は「準備中」と表示）
+  //   予約フォームは空欄なら自動で本システムのフォームURLを使う
+  links: {
+    site:      "",  // 予約サイト（公式サイト）
+    form:      "",  // 予約フォーム
+    streaming: ""   // 配信購入ページ
+  },
+
+  // リッチメニュー画像（2500×1686 PNG）。setup_richMenu() で使う
+  //   richMenuImageId（ドライブのファイルID）があればそちらを優先、なければ URL から取得
+  richMenuImageId:  "",
+  richMenuImageUrl: "https://raw.githubusercontent.com/tenrouyorozuya23-source/yorozuya-tenro-apps/claude/practical-darwin-m904yk/stage-booking-kizuna/richmenu.png",
+
   // レジの領収書PDFを保存するGoogleドライブのフォルダID
   receiptFolderId: "1tsDjfrVTEoIwNoC1PMZI3FBFFDEkJZmh",
 
@@ -1444,7 +1457,40 @@ function getLineToken() {
   return json.access_token;
 }
 
+// doPost 処理中の返信バッファ（replyToken で返せる相手への送信はここに溜める）
+var LINE_OUTBOX = null;
+
+function flushLineOutbox() {
+  var box = LINE_OUTBOX;
+  LINE_OUTBOX = null;
+  if (!box || box.messages.length === 0) return;
+  // 応答メッセージは1回5件まで。超えた分はプッシュで送る
+  var first = box.messages.slice(0, 5), rest = box.messages.slice(5);
+  var ok = false;
+  if (box.replyToken) {
+    var res = UrlFetchApp.fetch("https://api.line.me/v2/bot/message/reply", {
+      method: "post",
+      contentType: "application/json",
+      headers: { "Authorization": "Bearer " + getLineToken() },
+      payload: JSON.stringify({ replyToken: box.replyToken, messages: first.map(function(t){ return { type: "text", text: t }; }) }),
+      muteHttpExceptions: true
+    });
+    ok = res.getResponseCode() === 200;
+    if (!ok) lineLog("返信エラー", res.getResponseCode() + " / " + res.getContentText(), box.userId);
+  }
+  var pushList = ok ? rest : box.messages;
+  for (var i = 0; i < pushList.length; i++) pushLineMessage(box.userId, pushList[i]);
+}
+
 function sendLineMessage(userId, message) {
+  if (LINE_OUTBOX && LINE_OUTBOX.userId === userId && LINE_OUTBOX.replyToken) {
+    LINE_OUTBOX.messages.push(message);
+    return;
+  }
+  pushLineMessage(userId, message);
+}
+
+function pushLineMessage(userId, message) {
   var token = getLineToken();
   Logger.log("sendLineMessage 開始 userId=" + userId + " tokenLength=" + (token ? token.length : 0));
 
@@ -1479,6 +1525,60 @@ function lineLog(kind, detail, userId) {
   } catch(e) {
     Logger.log("lineLog error: " + e.message);
   }
+}
+
+// ============================================================
+// リッチメニュー作成（Apps Scriptエディタから1回実行）
+//   2×2：予約確認／取り置き/キャンセル／公式サイト／個別URL
+//   タップするとその文言がトークに送られ、handleMessage が返信する
+//   画像は CONFIG.richMenuImageId / richMenuImageUrl（2500×1686 PNG、stage-booking-kizuna/richmenu.png）
+//   再実行すると同名の古いメニューを削除して作り直す
+// ============================================================
+function setup_richMenu() {
+  var token = getLineToken();
+  var name = CONFIG.title + " メニュー";
+  var auth = { "Authorization": "Bearer " + token };
+
+  // 同名の古いメニューを削除
+  var list = JSON.parse(UrlFetchApp.fetch("https://api.line.me/v2/bot/richmenu/list", { headers: auth }).getContentText());
+  (list.richmenus || []).forEach(function(m) {
+    if (m.name === name) {
+      UrlFetchApp.fetch("https://api.line.me/v2/bot/richmenu/" + m.richMenuId, { method: "delete", headers: auth });
+      Logger.log("古いメニューを削除: " + m.richMenuId);
+    }
+  });
+
+  var W = 2500, H = 1686, hw = W / 2, hh = H / 2;
+  var labels = [["予約確認", "取り置き/キャンセル"], ["公式サイト", "個別URL"]];
+  var areas = [];
+  for (var r = 0; r < 2; r++) {
+    for (var c = 0; c < 2; c++) {
+      areas.push({
+        bounds: { x: c * hw, y: r * hh, width: hw, height: hh },
+        action: { type: "message", label: labels[r][c], text: labels[r][c] }
+      });
+    }
+  }
+  var res = UrlFetchApp.fetch("https://api.line.me/v2/bot/richmenu", {
+    method: "post", contentType: "application/json", headers: auth, muteHttpExceptions: true,
+    payload: JSON.stringify({ size: { width: W, height: H }, selected: true, name: name, chatBarText: "メニュー", areas: areas })
+  });
+  if (res.getResponseCode() !== 200) throw new Error("リッチメニュー作成エラー: " + res.getContentText());
+  var menuId = JSON.parse(res.getContentText()).richMenuId;
+
+  var blob = CONFIG.richMenuImageId
+    ? DriveApp.getFileById(CONFIG.richMenuImageId).getBlob()
+    : UrlFetchApp.fetch(CONFIG.richMenuImageUrl).getBlob().setContentType("image/png");
+  res = UrlFetchApp.fetch("https://api-data.line.me/v2/bot/richmenu/" + menuId + "/content", {
+    method: "post", contentType: blob.getContentType(), headers: auth, payload: blob.getBytes(), muteHttpExceptions: true
+  });
+  if (res.getResponseCode() !== 200) throw new Error("画像アップロードエラー: " + res.getContentText());
+
+  res = UrlFetchApp.fetch("https://api.line.me/v2/bot/user/all/richmenu/" + menuId, {
+    method: "post", headers: auth, muteHttpExceptions: true
+  });
+  if (res.getResponseCode() !== 200) throw new Error("デフォルト設定エラー: " + res.getContentText());
+  Logger.log("✅ リッチメニューを作成し、全員のデフォルトに設定しました（" + menuId + "）");
 }
 
 // LINE接続テスト：トークンが有効か確認する（Apps Scriptエディタから実行）
@@ -1544,10 +1644,16 @@ function doPost(e) {
       }
 
       lineLog("受信", event.type + (event.message && event.message.text ? "：" + event.message.text : ""), event.source.userId);
-      if (event.type === "follow") {
-        handleFollow(event.source.userId);
-      } else if (event.type === "message" && event.message.type === "text") {
-        handleMessage(event.source.userId, event.message.text);
+      // このイベントへの返信は応答メッセージ（無料・送信数にカウントされない）でまとめて返す
+      LINE_OUTBOX = { userId: event.source.userId, replyToken: event.replyToken, messages: [] };
+      try {
+        if (event.type === "follow") {
+          handleFollow(event.source.userId);
+        } else if (event.type === "message" && event.message.type === "text") {
+          handleMessage(event.source.userId, event.message.text);
+        }
+      } finally {
+        flushLineOutbox();
       }
     }
   } catch(err) {
@@ -1559,10 +1665,109 @@ function doPost(e) {
     .setMimeType(ContentService.MimeType.JSON);
 }
 
+// ============================================================
+// リッチメニュー用の返信文
+// ============================================================
+
+// 予約確認：残席状況＋予約リストURL
+function reservationStatusText(castName, webUrl) {
+  try { updateRemainingSeats(); } catch(e) {}
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var data = ss.getSheetByName("公演マスタ").getDataRange().getValues();
+  var lines = [];
+  var inShows = false;
+  for (var i = 0; i < data.length; i++) {
+    if (String(data[i][0]).indexOf("公演ID") !== -1) { inShows = true; continue; }
+    if (!inShows || !data[i][1]) continue;
+    var remain = Number(data[i][4]);
+    var mark = remain <= 0 ? "×満席" : remain <= 10 ? "△残" + remain : "○残" + remain;
+    lines.push(String(data[i][1]) + "　" + mark);
+  }
+  return "📋 残席状況（" + Utilities.formatDate(new Date(), "Asia/Tokyo", "M/d HH:mm") + "時点）\n\n" +
+    lines.join("\n") + "\n\n" +
+    "📝 " + castName + "さんの予約リスト👇\n" + webUrl;
+}
+
+function toriokiGuideText() {
+  var seats = CONFIG.seatTypes.map(function(s){ return s.name; }).join("／");
+  return "🎫 取り置きのしかた\n" +
+    "次のメッセージ（【取り置き】から始まる文）を長押しでコピーし、内容を書き換えて送ってください。登録されると予約番号（T-001など）が届きます。\n\n" +
+    "・公演日時：\n" + CONFIG.shows.map(function(s){ return "　" + s.dt; }).join("\n") + "\n" +
+    "・席種：" + seats + "\n" +
+    "・枚数：数字のみ\n\n" +
+    "🗑 キャンセルのしかた\n" +
+    "「キャンセル 予約番号」を送ってください（最後のメッセージをコピーして番号を書き換え）。\n" +
+    "キャンセル申請として受け付け、運営が確認後に確定します。ご自身の取り扱い予約のみ申請できます。";
+}
+
+function toriokiTemplate() {
+  return "【取り置き】\n" +
+    "お客様名：\n" +
+    "ふりがな：\n" +
+    "公演日時：" + CONFIG.shows[0].dt + "\n" +
+    "席種：" + defaultSeatType() + "\n" +
+    "枚数：1\n" +
+    "備考：";
+}
+
+// 予約フォームの公開URL
+function getFormPublishedUrl() {
+  if (CONFIG.links.form) return CONFIG.links.form;
+  var formId = PropertiesService.getScriptProperties().getProperty("FORM_ID");
+  return formId ? FormApp.openById(formId).getPublishedUrl() : "";
+}
+
+function officialLinksText() {
+  var l = CONFIG.links;
+  var form = "";
+  try { form = getFormPublishedUrl(); } catch(e) {}
+  return "🌐 " + CONFIG.title + " 公式リンク\n\n" +
+    "■ 予約サイト\n" + (l.site || "準備中") + "\n\n" +
+    "■ 予約フォーム\n" + (form || "準備中") + "\n\n" +
+    "■ 配信購入ページ\n" + (l.streaming || "準備中");
+}
+
+// 個別URL：取り扱いキャストが入力済みの予約フォーム（お客様に送る用）
+function getCastFormUrl(castLabel) {
+  var formId = PropertiesService.getScriptProperties().getProperty("FORM_ID");
+  if (!formId) return "";
+  var form = FormApp.openById(formId);
+  var items = form.getItems(FormApp.ItemType.LIST);
+  for (var i = 0; i < items.length; i++) {
+    if (items[i].getTitle() === "取り扱いキャスト") {
+      var resp = form.createResponse().withItemResponse(items[i].asListItem().createResponse(castLabel));
+      return resp.toPrefilledUrl();
+    }
+  }
+  return form.getPublishedUrl();
+}
+
+function personalUrlText(castName, castLabel) {
+  var url = "";
+  try { url = getCastFormUrl(castLabel); } catch(e) { Logger.log("個別URLエラー: " + e.message); }
+  return "🔗 " + castName + "さん専用の予約URL\n" +
+    "お客様にこのURLを送ると、取り扱いキャストが「" + castName + "」になった状態で予約フォームが開きます。\n\n" +
+    (url || "（フォームが見つかりません。運営にお問い合わせください）");
+}
+
 function handleFollow(userId) {
+  var names = [];
+  for (var gi=0; gi<CONFIG.groups.length; gi++) {
+    for (var ci=0; ci<CONFIG.groups[gi].casts.length; ci++) names.push(CONFIG.groups[gi].casts[ci].name);
+  }
   sendLineMessage(userId,
-    "🐺 " + CONFIG.title + " 公式LINEへようこそ！\n\nキャスト名を送ってください。\n例：" + CONFIG.groups[0].casts[0].name
+    CONFIG.organizer + "「" + CONFIG.title + "」予約管理LINEへようこそ！\n\n" +
+    "【キャストの方へ】\n" +
+    "ご自身のお名前をこのトークにそのまま送ってください。キャスト登録が完了し、下のメニューから\n" +
+    "・予約確認（残席・予約リスト）\n" +
+    "・取り置き／キャンセル\n" +
+    "・公式サイト\n" +
+    "・個別URL（お客様用の予約リンク）\n" +
+    "が使えるようになります。\n\n" +
+    "例：" + names[0] + "\n\n" +
+    "※登録はお一人1回です。名前は下の一覧と同じ表記で送ってください。"
   );
+  sendLineMessage(userId, "登録できるキャスト名\n\n" + names.join("\n"));
 }
 
 function handleMessage(userId, text) {
@@ -1586,18 +1791,33 @@ function handleMessage(userId, text) {
           userId, castData[i][0], castData[i][1],
           Utilities.formatDate(new Date(),"Asia/Tokyo","yyyy/MM/dd HH:mm")
         ]]);
-        sendLineMessage(userId, "✅ " + text + "さんとして登録しました！\nメニューから予約確認・取り置き予約ができます。");
+        sendLineMessage(userId, "✅ " + castData[i][0] + "さんとして登録しました！\n\n下のメニューから「予約確認」「取り置き/キャンセル」「公式サイト」「個別URL」が使えます。\nまずは「個別URL」で、お客様にお送りする予約リンクを受け取ってください。");
         matched = true; break;
       }
     }
-    if (!matched) sendLineMessage(userId, "キャスト名が見つかりませんでした。\n正確なキャスト名を送ってください。\n例：" + CONFIG.groups[0].casts[0].name);
+    if (!matched) {
+      if (text.trim() === "公式サイト") {
+        sendLineMessage(userId, officialLinksText());
+      } else {
+        sendLineMessage(userId, "キャスト登録がまだ完了していません。\nご自身のお名前をそのまま送ってください。\n例：" + CONFIG.groups[0].casts[0].name);
+      }
+    }
   } else {
     var castName  = getCastNameByUserId(userId, castData);
     var castLabel = getCastLabelByUserId(userId, castData); // 「名前 【団体名】」形式
     var webUrl    = getWebAppUrl() + "?cast=" + encodeURIComponent(castName);
 
-    if (text.indexOf("予約") !== -1 || text.indexOf("確認") !== -1 || text.indexOf("リスト") !== -1) {
-      sendLineMessage(userId, "📋 " + castName + "さんの最新予約リストはこちら👇\n\n" + webUrl);
+    var cmd = text.trim();
+    if (cmd === "予約確認") {
+      sendLineMessage(userId, reservationStatusText(castName, webUrl));
+    } else if (cmd === "取り置き/キャンセル" || cmd === "取り置き・キャンセル") {
+      sendLineMessage(userId, toriokiGuideText());
+      sendLineMessage(userId, toriokiTemplate());
+      sendLineMessage(userId, "キャンセル " + "R-001");
+    } else if (cmd === "公式サイト") {
+      sendLineMessage(userId, officialLinksText());
+    } else if (cmd === "個別URL") {
+      sendLineMessage(userId, personalUrlText(castName, castLabel));
     } else if (text.indexOf("【取り置き】") !== -1) {
       // 取り置きフォーマットをパースして予約登録
       var result = parseTorioki(text, castLabel, userId);
@@ -1625,6 +1845,8 @@ function handleMessage(userId, text) {
           "備考：（任意）"
         );
       }
+    } else if (text.indexOf("予約") !== -1 || text.indexOf("確認") !== -1 || text.indexOf("リスト") !== -1) {
+      sendLineMessage(userId, reservationStatusText(castName, webUrl));
     } else if (text.indexOf("取り置き") !== -1 || text.indexOf("とりおき") !== -1) {
       sendLineMessage(userId,
         "\ud83c\udfab 取り置き予約を追加するには以下の形式で送ってください\ud83d\udc47\n\n" +
@@ -2847,7 +3069,7 @@ function processCancelRequest(userId, text, castLabel) {
     };
   }
 
-  var resNo = match[0].toUpperCase();
+  var resNo = match[0].toUpperCase().replace(/^([RT])-?/, "$1-");
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sheet = ss.getSheetByName("予約一覧");
   var data  = sheet.getDataRange().getValues();
