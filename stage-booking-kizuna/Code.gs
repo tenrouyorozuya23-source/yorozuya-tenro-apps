@@ -4,7 +4,8 @@
 // 使い方：
 //   1. このファイル（コード.gs）と index.html / checkin.html / register.html を
 //      同じGASプロジェクトに貼り付ける
-//   2. CONFIG の ★要入力 の項目（公演日時・料金・LINEトークン・領収書フォルダ）を埋める
+//   2. プロジェクトの設定 → スクリプト プロパティに LINE_CHANNEL_SECRET を登録
+//      （チャネルシークレットはコードに書かない。README 参照）
 //   3. setup_1 〜 setup_4 を順番に実行
 // ============================================================
 
@@ -14,12 +15,11 @@ var CONFIG = {
   venue:     "シアターグリーン BASE THEATER",
   creditRate: 0.0326,
 
-  // 席種設定（販売有無はスプシの公演マスタで変更可）
-  // ★要入力：料金（0円のままだと売上管理が0円になる）
+  // 席種設定（販売有無・単価はスプシの公演マスタで変更可）
   seatTypes: [
-    { name: "SS席", price: 0, enabled: true },
-    { name: "S席",  price: 0, enabled: true },
-    { name: "A席",  price: 0, enabled: true }
+    { name: "SS席", price: 8000, enabled: true, note: "最前列確保／非売品・役者ブロマイド付" },
+    { name: "S席",  price: 6000, enabled: true, note: "2列目確保" },
+    { name: "A席",  price: 5000, enabled: true, note: "3列目以降" }
   ],
 
   // 特別チケット（なし）
@@ -28,17 +28,17 @@ var CONFIG = {
   specialTickets: [],
   zentsuuSeat: "S席",
 
-  // ★要入力：全7公演・各60席。dt は「3/14(土) 13:00」のような形式で、
-  //   フォームの選択肢・受付シート名に使われるため setup 前に確定させること
+  // 全7公演・各60席（dt は開演時刻。フォームの選択肢・受付シート名に使われる）
   shows: [
-    { dt: "第1公演 日時未定", cap: 60 },
-    { dt: "第2公演 日時未定", cap: 60 },
-    { dt: "第3公演 日時未定", cap: 60 },
-    { dt: "第4公演 日時未定", cap: 60 },
-    { dt: "第5公演 日時未定", cap: 60 },
-    { dt: "第6公演 日時未定", cap: 60 },
-    { dt: "第7公演 日時未定", cap: 60 }
+    { dt: "12/4(金) 18:30", cap: 60 },
+    { dt: "12/5(土) 13:00", cap: 60 },
+    { dt: "12/5(土) 18:30", cap: 60 },
+    { dt: "12/6(日) 13:00", cap: 60 },
+    { dt: "12/6(日) 18:30", cap: 60 },
+    { dt: "12/7(月) 18:30", cap: 60 },
+    { dt: "12/8(火) 14:00", cap: 60 }
   ],
+  doorsOpenMinutes: 30, // 開場は開演の30分前
 
   groups: [
     {
@@ -70,16 +70,65 @@ var CONFIG = {
     line: true,
     mail: false,
     hour: 22,
-    lineToken:  "YOUR_LINE_TOKEN_HERE",
-    lineSecret: "YOUR_LINE_SECRET_HERE",
+    // チャネルシークレットはスクリプト プロパティ LINE_CHANNEL_SECRET に登録する。
+    // 長期のチャネルアクセストークンを使う場合は LINE_CHANNEL_ACCESS_TOKEN に登録すればそちらを優先。
+    lineChannelId: "2011762472"
   },
 
-  // ★要入力：レジの領収書PDFを保存するGoogleドライブのフォルダID
-  receiptFolderId: "YOUR_RECEIPT_FOLDER_ID_HERE",
+  // レジの領収書PDFを保存するGoogleドライブのフォルダID
+  receiptFolderId: "1tsDjfrVTEoIwNoC1PMZI3FBFFDEkJZmh",
 
-  // 物販（商品が決まったら追加。例：{ id: "A-001", name: "チェキ", price: 1000 }）
-  goods: []
+  // 物販商品（価格は予価）。全キャスト分を「キャスト名_商品名」で展開する → buildCastGoods()
+  goodsItems: [
+    { code: "P1", name: "応援ブロマイド（2Lサイズ/2種類）",           price: 3000, note: "事前予約商品" },
+    { code: "P2", name: "お祝い札（2種類）",                          price: 2000, note: "事前予約商品" },
+    { code: "P3", name: "応援ブロマイド＆お祝い札セット（特典付き）", price: 5000, note: "事前予約商品" },
+    { code: "P4", name: "アクリルスタンド",                           price: 2000, note: "事前予約商品" },
+    { code: "P5", name: "ブロマイド2種類（L版・3枚1組）",             price: 1000, note: "" },
+    { code: "P6", name: "サイン入りランダムソロチェキ",               price: 1500, note: "" },
+    { code: "P7", name: "終演後のチェキ撮影（サインなし）",           price: 2000, note: "" },
+    { code: "P8", name: "宵牙狼オリジナルキーホルダー（2種類）",      price: 1000, note: "" }
+  ]
 };
+
+// 物販商品を「キャスト名_商品名」で全キャスト分に展開（商品ID：商品コード-キャスト番号 例 P1-01）
+CONFIG.goods = buildCastGoods();
+
+function buildCastGoods() {
+  var goods = [];
+  var no = 0;
+  for (var gi=0; gi<CONFIG.groups.length; gi++) {
+    var casts = CONFIG.groups[gi].casts;
+    for (var ci=0; ci<casts.length; ci++) {
+      no++;
+      for (var pi=0; pi<CONFIG.goodsItems.length; pi++) {
+        var item = CONFIG.goodsItems[pi];
+        goods.push({
+          id:    item.code + "-" + (no < 10 ? "0" : "") + no,
+          name:  casts[ci].name + "_" + item.name,
+          price: item.price,
+          note:  item.note || ""
+        });
+      }
+    }
+  }
+  return goods;
+}
+
+// 開演時刻（"12/4(金) 18:30"）から開場時刻（"18:00"）を求める
+function doorsOpenTime(dt) {
+  var m = String(dt).match(/(\d{1,2}):(\d{2})\s*$/);
+  if (!m) return "";
+  var t = Number(m[1]) * 60 + Number(m[2]) - (CONFIG.doorsOpenMinutes || 0);
+  return Math.floor(t / 60) + ":" + (t % 60 < 10 ? "0" : "") + (t % 60);
+}
+
+// フォーム・案内文用の公演スケジュール（開場／開演）
+function scheduleText() {
+  return CONFIG.shows.map(function(s){
+    return "・" + s.dt.replace(/\s*\d{1,2}:\d{2}$/, "") + "　開場 " + doorsOpenTime(s.dt) + "／開演 " + s.dt.match(/\d{1,2}:\d{2}$/)[0];
+  }).join("\n");
+}
 
 // ============================================================
 // セットアップは3ステップに分けて実行してください
@@ -217,7 +266,7 @@ function setupMasterSheet(ss) {
     _r4.setValue(st.price);
     _r4.setNumberFormat("¥#,##0");
     sheet.getRange(r,3).insertCheckboxes().setValue(st.enabled);
-    sheet.getRange(r,4).setValue("");
+    sheet.getRange(r,4).setValue(st.note || "");
   }
 
   // 特別チケットテーブル
@@ -330,14 +379,11 @@ function setupSalesInput(ss) {
   );
   sheet.getRange("A3:E3").setValues([["商品ID","商品名","単価","数量","小計"]]);
   styleHeader(sheet.getRange("A3:E3"));
-  for (var i=0; i<CONFIG.goods.length; i++) {
-    var g = CONFIG.goods[i];
-    var row = 4+i;
-    sheet.getRange(row,1).setValue(g.id);
-    sheet.getRange(row,2).setValue(g.name);
-    sheet.getRange(row,3).setValue(g.price);
-    sheet.getRange(row,4).setValue(0);
-    sheet.getRange(row,5).setFormula("=C"+row+"*D"+row);
+  // 商品数が多い（キャスト×商品）ので一括書き込み
+  var n = CONFIG.goods.length;
+  if (n > 0) {
+    sheet.getRange(4,1,n,4).setValues(CONFIG.goods.map(function(g){ return [g.id, g.name, g.price, 0]; }));
+    sheet.getRange(4,5,n,1).setFormulas(CONFIG.goods.map(function(g,i){ return ["=C"+(4+i)+"*D"+(4+i)]; }));
   }
 }
 
@@ -369,23 +415,15 @@ function setupGoodsMasterSheet(ss) {
   styleHeader(sheet.getRange(4,1,1,headers.length));
   sheet.setFrozenRows(4);
 
-  for (var i=0; i<CONFIG.goods.length; i++) {
-    var g = CONFIG.goods[i];
-    var r = 5 + i;
-    sheet.getRange(r,1).setValue(g.id);
-    sheet.getRange(r,2).setValue(g.name);
-    sheet.getRange(r,3).setValue(g.price);
-    sheet.getRange(r,3).setNumberFormat("¥#,##0");
+  var n = CONFIG.goods.length;
+  if (n > 0) {
+    sheet.getRange(5,1,n,3).setValues(CONFIG.goods.map(function(g){ return [g.id, g.name, g.price]; }));
   }
-
-  // 商品追加用の空行（20行）
-  var startR = 5 + CONFIG.goods.length;
-  for (var i=0; i<20; i++) {
-    sheet.getRange(startR+i, 3).setNumberFormat("¥#,##0");
-  }
+  // 単価の書式（商品追加用の空行20行分を含む）
+  sheet.getRange(5,3,n+20,1).setNumberFormat("¥#,##0");
 
   sheet.setColumnWidth(1, 80);
-  sheet.setColumnWidth(2, 180);
+  sheet.setColumnWidth(2, 320);
   sheet.setColumnWidth(3, 100);
 }
 
@@ -410,37 +448,38 @@ function setupGoodsSheet(ss) {
   styleHeader(sheet.getRange(4,1,1,headers.length));
   sheet.setFrozenRows(4);
 
-  // 商品データ
-  for (var i=0; i<CONFIG.goods.length; i++) {
-    var g = CONFIG.goods[i];
-    var r = 5 + i;
-    sheet.getRange(r,1).setValue(g.id);
-    sheet.getRange(r,2).setValue(g.name);
-    sheet.getRange(r,3).setValue(g.price);
-    sheet.getRange(r,3).setNumberFormat("¥#,##0");
-    sheet.getRange(r,4).setFormula('=SUMIF(在庫ログ!B:B,"' + g.id + '",在庫ログ!D:D)');
-    sheet.getRange(r,5).setFormula('=SUMIF(売上ログ!B:B,"' + g.id + '",売上ログ!E:E)');
-    sheet.getRange(r,6).setFormula("=D"+r+"-E"+r);
-    sheet.getRange(r,7).setFormula(
-      '=IF(F'+r+'<=0,"⚠️ 在庫なし",IF(F'+r+'<=5,"△ 残りわずか","◎ 在庫あり"))'
-    );
-    sheet.getRange(r,8).setValue("");
+  // 商品データ（商品数が多いので一括書き込み）
+  var n = CONFIG.goods.length;
+  if (n > 0) {
+    sheet.getRange(5,1,n,3).setValues(CONFIG.goods.map(function(g){ return [g.id, g.name, g.price]; }));
+    sheet.getRange(5,4,n,4).setFormulas(CONFIG.goods.map(function(g,i){
+      var r = 5 + i;
+      return [
+        '=SUMIF(在庫ログ!B:B,"' + g.id + '",在庫ログ!D:D)',
+        '=SUMIF(売上ログ!B:B,"' + g.id + '",売上ログ!E:E)',
+        "=D"+r+"-E"+r,
+        '=IF(F'+r+'<=0,"⚠️ 在庫なし",IF(F'+r+'<=5,"△ 残りわずか","◎ 在庫あり"))'
+      ];
+    }));
+    sheet.getRange(5,8,n,1).setValues(CONFIG.goods.map(function(g){ return [g.note || ""]; }));
   }
 
   // 商品追加用の空行（10行）
+  var extra = [];
   for (var i=0; i<10; i++) {
-    var r = 5 + CONFIG.goods.length + i;
-    sheet.getRange(r,3).setNumberFormat("¥#,##0");
-    sheet.getRange(r,4).setFormula('=IF(A'+r+'="","",SUMIF(在庫ログ!B:B,A'+r+',在庫ログ!D:D))');
-    sheet.getRange(r,5).setFormula('=IF(A'+r+'="","",SUMIF(売上ログ!B:B,A'+r+',売上ログ!E:E))');
-    sheet.getRange(r,6).setFormula('=IF(A'+r+'="","",D'+r+'-E'+r+')');
-    sheet.getRange(r,7).setFormula(
+    var r = 5 + n + i;
+    extra.push([
+      '=IF(A'+r+'="","",SUMIF(在庫ログ!B:B,A'+r+',在庫ログ!D:D))',
+      '=IF(A'+r+'="","",SUMIF(売上ログ!B:B,A'+r+',売上ログ!E:E))',
+      '=IF(A'+r+'="","",D'+r+'-E'+r+')',
       '=IF(A'+r+'="","",IF(F'+r+'<=0,"⚠️ 在庫なし",IF(F'+r+'<=5,"△ 残りわずか","◎ 在庫あり")))'
-    );
+    ]);
   }
+  sheet.getRange(5+n,4,10,4).setFormulas(extra);
+  sheet.getRange(5,3,n+10,1).setNumberFormat("¥#,##0");
 
   // 列幅
-  var colWidths = [80,180,90,100,100,90,130,200];
+  var colWidths = [80,320,90,100,100,90,130,200];
   for (var i=0; i<colWidths.length; i++) sheet.setColumnWidth(i+1, colWidths[i]);
 
   setupStockLogSheet(ss);
@@ -470,33 +509,27 @@ function setupStockLogSheet(ss) {
     .requireValueInList(goodsIds).build();
 
   var today = Utilities.formatDate(new Date(), "Asia/Tokyo", "yyyy/MM/dd");
-  for (var i=0; i<CONFIG.goods.length; i++) {
-    var g = CONFIG.goods[i];
-    var r = 5 + i;
-    sheet.getRange(r,1).setValue(today);
-    var _r11 = sheet.getRange(r,2);
-    _r11.setValue(g.id);
-    _r11.setDataValidation(idValidation);
-    sheet.getRange(r,3).setValue(g.name);
-    sheet.getRange(r,4).setValue(0);
-    sheet.getRange(r,5).setValue("初期在庫");
-    sheet.getRange(r,6).setValue("");
+  var n = CONFIG.goods.length;
+  if (n > 0) {
+    sheet.getRange(5,1,n,6).setValues(CONFIG.goods.map(function(g){
+      return [today, g.id, g.name, 0, "初期在庫", ""];
+    }));
   }
 
   // 追加行（50行分）
-  var startRow = 5 + CONFIG.goods.length;
+  var startRow = 5 + n;
+  var lookups = [];
   for (var i=0; i<50; i++) {
     var r = startRow + i;
-    sheet.getRange(r,2).setDataValidation(idValidation);
-    sheet.getRange(r,3).setFormula(
-      '=IF(B'+r+'="","",VLOOKUP(B'+r+',物販マスタ!A:B,2,FALSE))'
-    );
+    lookups.push(['=IF(B'+r+'="","",VLOOKUP(B'+r+',物販マスタ!A:B,2,FALSE))']);
   }
+  sheet.getRange(startRow,3,50,1).setFormulas(lookups);
+  sheet.getRange(5,2,n+50,1).setDataValidation(idValidation);
 
-  sheet.getRange(5,1,100,1).setNumberFormat("yyyy/MM/dd");
-  sheet.getRange(5,4,100,1).setNumberFormat("0");
+  sheet.getRange(5,1,n+50,1).setNumberFormat("yyyy/MM/dd");
+  sheet.getRange(5,4,n+50,1).setNumberFormat("0");
 
-  var colWidths = [110,80,180,70,200,100];
+  var colWidths = [110,80,320,70,200,100];
   for (var i=0; i<colWidths.length; i++) sheet.setColumnWidth(i+1, colWidths[i]);
 }
 
@@ -811,7 +844,15 @@ function createForm(ss) {
   var seatChoices = getSeatChoicesFromMaster(masterSheet);
 
   var form = FormApp.create(CONFIG.title + " 予約フォーム");
-  form.setDescription(CONFIG.venue + "\n\nご予約後、取り扱いキャストより確認の連絡をお待ちください。");
+  var seatText = CONFIG.seatTypes.map(function(st){
+    return "・" + st.name + "　¥" + String(st.price).replace(/\B(?=(\d{3})+(?!\d))/g, ",") + (st.note ? "　" + st.note : "");
+  }).join("\n");
+  form.setDescription(
+    CONFIG.organizer + "\n" + CONFIG.venue + "\n\n" +
+    "【公演日時】（開場は開演の" + CONFIG.doorsOpenMinutes + "分前）\n" + scheduleText() + "\n\n" +
+    "【チケット】\n" + seatText + "\n\n" +
+    "ご予約後、取り扱いキャストより確認の連絡をお待ちください。"
+  );
   form.setCollectEmail(false);
   form.setConfirmationMessage("ご予約ありがとうございます！取り扱いキャストよりご連絡をお待ちください。");
 
@@ -835,7 +876,7 @@ function createForm(ss) {
   form.addListItem().setTitle("ご希望の公演日時").setChoiceValues(showChoices).setRequired(true);
 
   // 質問6：席種（販売中のもののみ）
-  form.addListItem().setTitle("席種").setChoiceValues(seatChoices).setRequired(true);
+  form.addListItem().setTitle("席種").setHelpText(seatText).setChoiceValues(seatChoices).setRequired(true);
 
   // 質問7：枚数
   form.addListItem().setTitle("枚数").setChoiceValues(["1枚","2枚","3枚","4枚","5枚"]).setRequired(true);
@@ -1267,8 +1308,42 @@ function buildNotificationMessage(castName, entries) {
   return msg;
 }
 
+// LINE のチャネルアクセストークンを取得
+//   1) スクリプト プロパティ LINE_CHANNEL_ACCESS_TOKEN（長期トークン）があればそれを使う
+//   2) なければチャネルID＋LINE_CHANNEL_SECRET で短期トークン（30日）を発行してキャッシュ
+function getLineToken() {
+  var props = PropertiesService.getScriptProperties();
+  var longToken = props.getProperty("LINE_CHANNEL_ACCESS_TOKEN");
+  if (longToken) return longToken;
+
+  var cached  = props.getProperty("LINE_TOKEN_CACHE");
+  var expires = Number(props.getProperty("LINE_TOKEN_EXPIRES") || 0);
+  if (cached && Date.now() < expires) return cached;
+
+  var secret = props.getProperty("LINE_CHANNEL_SECRET");
+  if (!secret) throw new Error("スクリプト プロパティ LINE_CHANNEL_SECRET が未設定です");
+  var res = UrlFetchApp.fetch("https://api.line.me/v2/oauth/accessToken", {
+    method: "post",
+    contentType: "application/x-www-form-urlencoded",
+    payload: {
+      grant_type:    "client_credentials",
+      client_id:     CONFIG.notify.lineChannelId,
+      client_secret: secret
+    },
+    muteHttpExceptions: true
+  });
+  if (res.getResponseCode() !== 200) {
+    throw new Error("LINEトークン発行エラー: " + res.getResponseCode() + " / " + res.getContentText());
+  }
+  var json = JSON.parse(res.getContentText());
+  // 有効期限の1日前に再発行する
+  props.setProperty("LINE_TOKEN_CACHE", json.access_token);
+  props.setProperty("LINE_TOKEN_EXPIRES", String(Date.now() + (json.expires_in - 86400) * 1000));
+  return json.access_token;
+}
+
 function sendLineMessage(userId, message) {
-  var token = CONFIG.notify.lineToken;
+  var token = getLineToken();
   Logger.log("sendLineMessage 開始 userId=" + userId + " tokenLength=" + (token ? token.length : 0));
 
   var response = UrlFetchApp.fetch("https://api.line.me/v2/bot/message/push", {
@@ -1853,7 +1928,6 @@ function getRegisterData() {
   Logger.log("物販マスタ行数: " + goodsData.length);
   for (var i = 4; i < goodsData.length; i++) {
     var row = goodsData[i];
-    Logger.log("行" + (i+1) + ": " + JSON.stringify(row));
     if (!row[0] || !row[1] || !row[2]) continue;
     var rawPrice = row[2];
     // 書式付きの場合は数値に変換

@@ -49,6 +49,8 @@ body{font-family:'Helvetica Neue',Arial,'Hiragino Kaku Gothic ProN',sans-serif;
 .goods-btn:active{transform:scale(.97)}
 .goods-btn.in-cart{border-color:var(--accent);background:#D6EAF8;box-shadow:0 2px 8px rgba(41,128,185,0.2)}
 .goods-name{font-size:13px;font-weight:600;margin-bottom:4px}
+.goods-filter{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.goods-filter select,.goods-filter input{font-size:14px;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;background:#FFFFFF;flex:1;min-width:140px}
 .goods-price{font-size:12px;color:var(--muted)}
 
 /* カート内アイテム */
@@ -186,6 +188,10 @@ body{font-family:'Helvetica Neue',Arial,'Hiragino Kaku Gothic ProN',sans-serif;
   <!-- 左：商品選択 -->
   <div class="left">
     <p class="section-title">物販商品</p>
+    <div class="goods-filter">
+      <select id="castFilter" onchange="renderGoods()"><option value="">全キャスト</option></select>
+      <input id="goodsSearch" type="search" placeholder="商品名・キャスト名で検索" oninput="renderGoods()">
+    </div>
     <div class="goods-grid" id="goodsGrid"></div>
 
     <p class="section-title">カート</p>
@@ -325,6 +331,7 @@ function loadData() {
   google.script.run
     .withSuccessHandler(function(data) {
       goods = data.goods || [];
+      renderCastFilter();
       renderGoods();
     })
     .withFailureHandler(function(e) {
@@ -339,12 +346,37 @@ function loadData() {
 // ============================================================
 // 商品グリッド
 // ============================================================
+// 商品名「キャスト名_商品名」からキャスト名を取り出す
+function castOf(g) {
+  var i = g.name.indexOf("_");
+  return i === -1 ? "" : g.name.substring(0, i);
+}
+
+function renderCastFilter() {
+  var sel = document.getElementById("castFilter");
+  var seen = {};
+  goods.forEach(function(g) {
+    var c = castOf(g);
+    if (!c || seen[c]) return;
+    seen[c] = true;
+    var opt = document.createElement("option");
+    opt.value = c;
+    opt.textContent = c;
+    sel.appendChild(opt);
+  });
+}
+
 function renderGoods() {
   var grid = document.getElementById("goodsGrid");
   grid.innerHTML = "";
+  var cast = document.getElementById("castFilter").value;
+  var q = document.getElementById("goodsSearch").value.trim();
+  var cartIds = state.cart.map(function(c){ return c.id; });
   goods.forEach(function(g) {
+    if (cast && castOf(g) !== cast) return;
+    if (q && g.name.indexOf(q) === -1) return;
     var btn = document.createElement("button");
-    btn.className = "goods-btn";
+    btn.className = "goods-btn" + (cartIds.indexOf(g.id) !== -1 ? " in-cart" : "");
     btn.id = "goods-" + g.id;
     btn.innerHTML =
       '<div class="goods-name">' + esc(g.name) + '</div>' +
