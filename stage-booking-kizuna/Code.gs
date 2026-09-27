@@ -195,9 +195,46 @@ function setup_4_triggers() {
 }
 
 // ============================================================
+// 修正用（2026/09/28）：作成済みのスプレッドシートに1回だけ実行
+//   ・物販マスタの在庫数式（#N/A）を入れ直す
+//   ・売上管理シートを作り直す（公演マスタ参照の1行ズレ修正）
+//   在庫ログ・予約一覧などのデータは消さない
+// ============================================================
+function fix_20260928() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName("物販マスタ");
+  var n = CONFIG.goods.length;
+  sheet.getRange(5,4,n,4).setFormulas(CONFIG.goods.map(function(g,i){
+    var r = 5 + i;
+    return [
+      '=SUMIF(在庫ログ!B:B,"' + g.id + '",在庫ログ!D:D)',
+      '=SUMIF(売上ログ!B:B,"' + g.id + '",売上ログ!E:E)',
+      "=D"+r+"-E"+r,
+      '=IF(F'+r+'<=0,"⚠️ 在庫なし",IF(F'+r+'<=5,"△ 残りわずか","◎ 在庫あり"))'
+    ];
+  }));
+  var extra = [];
+  for (var i=0; i<10; i++) {
+    var r = 5 + n + i;
+    extra.push([
+      '=IF(A'+r+'="","",SUMIF(在庫ログ!B:B,A'+r+',在庫ログ!D:D))',
+      '=IF(A'+r+'="","",SUMIF(売上ログ!B:B,A'+r+',売上ログ!E:E))',
+      '=IF(A'+r+'="","",D'+r+'-E'+r+')',
+      '=IF(A'+r+'="","",IF(F'+r+'<=0,"⚠️ 在庫なし",IF(F'+r+'<=5,"△ 残りわずか","◎ 在庫あり")))'
+    ]);
+  }
+  sheet.getRange(5+n,4,10,4).setFormulas(extra);
+  setupSalesManagementSheet(ss);
+  Logger.log("✅ 物販マスタの数式と売上管理シートを修正しました");
+}
+
+// ============================================================
 // STEP 1: シート作成
 // ============================================================
 function createSheets(ss) {
+  // シート間参照の数式が「存在しないシート」を指してエラーのまま残らないよう、先に全シートを用意する
+  ["公演マスタ","キャスト設定","操作パネル","販売入力","売上ログ","物販マスタ","在庫ログ","商品マスタ","レシート","LINEユーザー","売上管理"]
+    .forEach(function(name){ if (!ss.getSheetByName(name)) ss.insertSheet(name); });
   var defaultSheet = ss.getSheets()[0];
   if (defaultSheet.getName() !== "予約一覧") defaultSheet.setName("予約一覧");
   setupReservationSheet(ss, defaultSheet);
@@ -684,7 +721,8 @@ function setupSalesManagementSheet(ss) {
   sheet.setFrozenRows(4);
 
   // 公演マスタの公演リスト開始行を計算
-  var masterShowHeadRow = 7 + CONFIG.seatTypes.length + 1 + CONFIG.specialTickets.length + 2 + 1;
+  // 公演マスタ：席種(7行目〜) → 空行 → 特別チケット見出し・ヘッダー → 特別チケット → 空行 → 公演一覧見出し → ヘッダー
+  var masterShowHeadRow = 7 + CONFIG.seatTypes.length + CONFIG.specialTickets.length + 5;
   var L = columnToLetter;
   var live = '予約一覧!K:K,"<>キャンセル"';
 
@@ -1013,15 +1051,9 @@ function onFormSubmit(e) {
     }
   }
 
-  // 見つからない場合は予約番号列が空の最終行にフォールバック
+  // 見つからない場合（回答が「フォームの回答 1」シートに入る構成）は予約一覧に行を追加する
   if (targetRow === -1) {
-    var lastRow = sheet.getLastRow();
-    for (var r = lastRow; r >= 2; r--) {
-      if (!sheet.getRange(r, colMap.resNo).getValue()) {
-        targetRow = r;
-        break;
-      }
-    }
+    targetRow = appendResponseToReservationSheet(sheet, headers, answers, responseTimestamp);
   }
 
   if (targetRow === -1) {
@@ -1057,6 +1089,25 @@ function onFormSubmit(e) {
   try { sendReservationReceivedMail(e.response, reservationNo); } catch(err) { Logger.log("予約受付メール送信エラー: " + err.message); }
 }
 
+
+// フォーム回答を予約一覧の見出しに合わせて1行追加し、その行番号を返す
+function appendResponseToReservationSheet(sheet, headers, answers, timestamp) {
+  var byTitle = {};
+  for (var i = 0; i < answers.length; i++) {
+    byTitle[answers[i].getItem().getTitle()] = answers[i].getResponse();
+  }
+  // 予約一覧の見出し → フォームの質問名
+  var alias = { "公演日時": "ご希望の公演日時", "備考": "備考・ご要望" };
+  var row = headers.map(function(h) {
+    h = String(h);
+    if (h === "タイムスタンプ") return timestamp;
+    var v = byTitle[alias[h] || h];
+    return v === undefined ? "" : v;
+  });
+  var newRow = sheet.getLastRow() + 1;
+  sheet.getRange(newRow, 1, 1, row.length).setValues([row]);
+  return newRow;
+}
 
 // 特定公演の受付表のみ更新（フォーム送信時に使用）
 function updateSingleAttendanceSheet(ss, showDt) {
