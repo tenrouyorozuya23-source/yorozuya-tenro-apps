@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title><?= config.title ?> 予約リスト</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#F7F6F3;--surface:#fff;--text:#1A1A18;--muted:#9B9B97;--sec:#6B6B67;
+  --border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.14);
+  --accent:#3C3489;--accent-l:#EEEDFE;
+  --green:#0F6E56;--green-l:#E1F5EE;
+  --blue:#185FA5;--blue-l:#E6F1FB;
+  --amber:#854F0B;--amber-l:#FAEEDA;
+  --red:#A32D2D;--red-l:#FCEBEB;
+  --gray:#5F5E5A;--gray-l:#F1EFE8;
+  --orange:#8B4513;--orange-l:#FDF0E6;
+}
+body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:1.5rem 1rem 4rem;-webkit-font-smoothing:antialiased}
+.container{max-width:600px;margin:0 auto}
+.header{margin-bottom:1.5rem}
+.header-label{font-size:11px;font-weight:500;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px}
+.header-title{font-size:22px;font-weight:700;margin-bottom:4px}
+.header-updated{font-size:12px;color:var(--muted);margin-bottom:12px}
+.cast-chip{display:inline-flex;align-items:center;gap:6px;background:var(--accent-l);color:var(--accent);font-size:13px;font-weight:500;padding:5px 14px;border-radius:999px}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:1.5rem}
+.stat{background:var(--surface);border-radius:12px;padding:14px 16px;border:.5px solid var(--border)}
+.stat-label{font-size:11px;color:var(--muted);margin-bottom:5px}
+.stat-value{font-size:24px;font-weight:700;line-height:1}
+.stat-unit{font-size:12px;color:var(--sec);font-weight:400;margin-left:2px}
+
+/* フィルターバー */
+.filter-bar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.filter-btn{padding:6px 14px;border-radius:999px;font-size:13px;font-weight:500;border:1.5px solid var(--border2);background:var(--surface);color:var(--sec);cursor:pointer;transition:all .15s}
+.filter-btn:hover{border-color:var(--accent);color:var(--accent)}
+.filter-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+/* 検索 */
+.search-wrap{position:relative;margin-bottom:1.5rem}
+.search-input{width:100%;padding:11px 40px 11px 38px;font-family:'Noto Sans JP',sans-serif;font-size:14px;color:var(--text);background:var(--surface);border:.5px solid var(--border2);border-radius:12px;outline:none}
+.search-input:focus{border-color:var(--accent)}
+.search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:var(--muted);pointer-events:none}
+.search-clear{position:absolute;right:10px;top:50%;transform:translateY(-50%);width:20px;height:20px;border-radius:50%;background:var(--muted);color:#fff;border:none;cursor:pointer;display:none;align-items:center;justify-content:center;font-size:11px}
+.search-clear.visible{display:flex}
+
+/* 公演カード */
+.section-label{font-size:11px;font-weight:500;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px}
+.cards{display:flex;flex-direction:column;gap:12px;margin-bottom:2rem}
+.card{background:var(--surface);border-radius:16px;border:.5px solid var(--border);overflow:hidden}
+.card-header{padding:14px 16px 12px;border-bottom:.5px solid var(--border)}
+.card-date{font-size:15px;font-weight:700}
+.card-venue{font-size:12px;color:var(--sec);margin-top:2px}
+.card-summary{font-size:12px;color:var(--sec);margin-top:5px}
+.card-tags{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:8px}
+.tag{font-size:11px;font-weight:500;padding:3px 10px;border-radius:999px}
+.tag-mat{background:var(--blue-l);color:var(--blue)}
+.tag-eve{background:var(--accent-l);color:var(--accent)}
+.seats-badge{font-size:11px;font-weight:500;padding:3px 10px;border-radius:999px}
+.seats-ok{background:#EAF3DE;color:#3B6D11}
+.seats-mid{background:var(--amber-l);color:var(--amber)}
+.seats-few{background:#FAECE7;color:#993C1D}
+.seats-full{background:var(--red-l);color:var(--red)}
+.guest-list{padding:0 16px}
+.guest-item{display:grid;grid-template-columns:auto 1fr auto;align-items:start;gap:10px;padding:12px 0;border-bottom:.5px solid var(--border);transition:opacity .2s}
+.guest-item:last-child{border-bottom:none}
+.guest-item.hidden{display:none}
+.guest-item.cancelled{opacity:.45}
+.avatar{width:34px;height:34px;border-radius:50%;background:var(--green-l);color:var(--green);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.guest-name-block{min-width:0}
+.guest-name{font-size:14px;font-weight:500}
+.guest-kana{font-size:11px;color:var(--muted);margin-top:2px}
+.guest-cast{font-size:11px;color:var(--accent);margin-top:3px;font-weight:500}
+.guest-resno{font-size:11px;color:var(--muted);margin-top:2px;font-family:monospace}
+.guest-note{display:flex;align-items:flex-start;gap:4px;margin-top:4px;font-size:12px;color:var(--sec)}
+.guest-right{display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0}
+.seat-count{font-size:12px;color:var(--sec)}
+.seat-num{font-size:16px;font-weight:700}
+.status{font-size:11px;font-weight:500;padding:2px 9px;border-radius:999px;white-space:nowrap}
+.st-temp{background:var(--amber-l);color:var(--amber)}
+.st-book{background:var(--green-l);color:var(--green)}
+.st-recv{background:var(--blue-l);color:var(--blue)}
+.st-cancel{background:var(--gray-l);color:var(--gray)}
+.st-other{background:var(--accent-l);color:var(--accent)}
+.empty-guest{padding:16px;text-align:center;font-size:13px;color:var(--muted)}
+mark{background:#FFF176;color:inherit;border-radius:2px;padding:0 1px}
+.footer{text-align:center;font-size:12px;color:var(--muted);padding-top:1.5rem;border-top:.5px solid var(--border2)}
+.loading-screen{position:fixed;inset:0;background:#0f0e17;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;transition:opacity .5s ease}
+.loading-screen.hide{opacity:0;pointer-events:none}
+.loading-label{font-family:'Noto Sans JP',sans-serif;font-size:13px;font-weight:500;letter-spacing:.22em;color:#e8e4f0;text-transform:uppercase;margin-top:1.2rem;margin-bottom:.4rem}
+.loading-sub{font-family:'Noto Sans JP',sans-serif;font-size:12px;color:#4e4866;letter-spacing:.06em}
+.dots{display:flex;gap:6px;margin-top:1rem}
+.dot{width:5px;height:5px;border-radius:50%;background:#e8e4f0;animation:dp 1.2s ease-in-out infinite}
+.dot:nth-child(2){animation-delay:.2s}
+.dot:nth-child(3){animation-delay:.4s}
+@keyframes dp{0%,100%{opacity:.2;transform:scale(.8)}50%{opacity:1;transform:scale(1.3)}}
+#mainContent{opacity:0;transition:opacity .4s ease}
+.no-results{font-size:13px;color:var(--muted);text-align:center;padding:1.5rem 0}
+</style>
+</head>
+<body>
+
+<div class="loading-screen" id="loadingScreen">
+  <p class="loading-label">天狼</p>
+  <p class="loading-sub">予約リストを読み込んでいます</p>
+  <div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+</div>
+
+<div class="container" id="mainContent">
+
+  <div class="header">
+    <div class="header-label">Cast Reserved List</div>
+    <div class="header-title">予約リスト</div>
+    <div class="header-updated">最終更新：<?= now ?></div>
+    <div class="cast-chip">🐺 <?= castName || "全キャスト" ?></div>
+  </div>
+
+  <?
+    var isAdmin = !castName; // キャスト名未指定 = 全キャスト表示（運営）
+    var totalGuests = 0;
+    var totalSeats = 0;
+    var allGuests = []; // 検索用フラット配列
+    var castSet = {}; // キャスト一覧
+
+    for (var si=0; si<config.shows.length; si++) {
+      var showGuests = reservations[config.shows[si].dt] || [];
+      for (var gi=0; gi<showGuests.length; gi++) {
+        var g = showGuests[gi];
+        if (g.status !== "キャンセル") {
+          totalGuests++;
+          totalSeats += parseInt(g.seats) || 0;
+        }
+        // キャスト一覧収集
+        if (g.castLabel) {
+          var cn = g.castLabel.replace(/\s*【[^】]*】/, "").trim();
+          castSet[cn] = true;
+        }
+        // フラット配列に追加（検索用）
+        allGuests.push({
+          name: g.name || "",
+          kana: g.kana || "",
+          seats: g.seats || 0,
+          status: g.status || "仮予約済み",
+          note: g.note || "",
+          seatType: g.seatType || "",
+          resNo: g.resNo || "",
+          castLabel: g.castLabel || "",
+          showDt: config.shows[si].dt
+        });
+      }
+    }
+    var castList = Object.keys(castSet).sort();
+  ?>
+
+  <div class="stats">
+    <div class="stat"><div class="stat-label">予約者数</div><div class="stat-value"><?= totalGuests ?><span class="stat-unit">名</span></div></div>
+    <div class="stat"><div class="stat-label">合計席数</div><div class="stat-value"><?= totalSeats ?><span class="stat-unit">席</span></div></div>
+  </div>
+
+  <? if (isAdmin && castList.length > 0) { ?>
+  <!-- キャスト絞り込みフィルター -->
+  <div class="filter-bar" id="castFilter">
+    <button class="filter-btn active" data-cast="all" onclick="filterCast('all', this)">全員</button>
+    <? for (var ci=0; ci<castList.length; ci++) { ?>
+    <button class="filter-btn" data-cast="<?= castList[ci] ?>" onclick="filterCast('<?= castList[ci] ?>', this)"><?= castList[ci] ?></button>
+    <? } ?>
+  </div>
+  <? } ?>
+
+  <!-- 検索バー -->
+  <div class="search-wrap">
+    <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <input class="search-input" id="searchInput" type="text" placeholder="お名前・予約番号で検索">
+    <button class="search-clear" id="searchClear" aria-label="クリア">✕</button>
+  </div>
+
+  <!-- 公演一覧 -->
+  <div id="mainList">
+    <p class="section-label">公演スケジュール</p>
+    <div class="cards">
+
+    <? for (var si=0; si<config.shows.length; si++) {
+      var show = config.shows[si];
+      var guests = reservations[show.dt] || [];
+      var remain = remainLabels[show.dt] || "";
+      var isEve = show.dt.indexOf("18:")!==-1 || show.dt.indexOf("19:")!==-1 || show.dt.indexOf("16:")!==-1;
+      var timeTag = isEve ? "ソワレ" : "マチネ";
+      var timeClass = isEve ? "tag-eve" : "tag-mat";
+      var remainClass = remain.indexOf("◎")!==-1 ? "seats-ok" : remain.indexOf("○")!==-1 ? "seats-mid" : remain.indexOf("△")!==-1 ? "seats-few" : "seats-full";
+      var validG = 0; var showSeats = 0; var cancelG = 0;
+      for (var gi=0; gi<guests.length; gi++) {
+        if (guests[gi].status === "キャンセル") { cancelG++; }
+        else { validG++; showSeats += parseInt(guests[gi].seats)||0; }
+      }
+    ?>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-date"><?= show.dt ?></div>
+          <div class="card-venue"><?= config.title ?> ／ <?= config.venue ?></div>
+          <div class="card-summary">予約 <strong><?= validG ?></strong> 名 ／ 合計 <strong><?= showSeats ?></strong> 席<?= cancelG > 0 ? "（うちキャンセル "+cancelG+" 件）" : "" ?></div>
+          <div class="card-tags">
+            <span class="tag <?= timeClass ?>"><?= timeTag ?></span>
+            <span class="seats-badge <?= remainClass ?>">残席 <?= remain || "—" ?></span>
+          </div>
+        </div>
+        <div class="guest-list">
+
+        <? if (guests.length === 0) { ?>
+          <div class="empty-guest">この回のご予約はありません</div>
+        <? } else { for (var gi=0; gi<guests.length; gi++) {
+          var g = guests[gi];
+          var initials = g.name ? g.name.replace(/\s/g,"").slice(0,2) : "??";
+          var stClass = g.status === "受付済み" ? "st-recv"
+                      : g.status === "本予約済み" ? "st-book"
+                      : g.status === "仮予約済み" ? "st-temp"
+                      : g.status === "キャンセル" ? "st-cancel"
+                      : g.status === "キャンセル申請" ? "st-cancel"
+                      : "st-other";
+          var castName_ = (g.castLabel||"").replace(/\s*【[^】]*】/,"").trim();
+        ?>
+          <div class="guest-item <?= g.status==='キャンセル'?'cancelled':'' ?>"
+            data-name="<?= g.name ?>"
+            data-kana="<?= g.kana ?>"
+            data-resno="<?= g.resNo ?>"
+            data-cast="<?= castName_ ?>"
+            data-seats="<?= g.seats ?>"
+            data-status="<?= g.status ?>"
+            data-note="<?= g.note ?>"
+            data-show="<?= show.dt ?>">
+            <div class="avatar"><?= initials ?></div>
+            <div class="guest-name-block">
+              <div class="guest-name"><?= g.name ?></div>
+              <div class="guest-kana"><?= g.kana ?></div>
+              <? if (isAdmin && g.castLabel) { ?>
+              <div class="guest-cast">🎭 <?= (g.castLabel||"").replace(/\s*【[^】]*】/,"") ?></div>
+              <? } ?>
+              <? if (g.resNo) { ?><div class="guest-resno"><?= g.resNo ?></div><? } ?>
+              <? if (g.note) { ?><div class="guest-note">💬 <?= g.note ?></div><? } ?>
+            </div>
+            <div class="guest-right">
+              <span class="seat-count"><span class="seat-num"><?= g.seats ?></span> 席</span>
+              <span class="status <?= stClass ?>"><?= g.status || "仮予約済み" ?></span>
+              <? if (g.seatType) { ?><span style="font-size:10px;color:var(--muted)"><?= g.seatType ?></span><? } ?>
+            </div>
+          </div>
+        <? } } ?>
+
+        </div>
+      </div>
+
+    <? } ?>
+
+    </div>
+  </div>
+
+  <div class="footer"><?= isAdmin ? "運営専用ページです" : "このページはキャスト専用です。URLの共有はご遠慮ください。" ?></div>
+</div>
+
+<script>
+(function(){
+  window.addEventListener('load', function(){
+    setTimeout(function(){
+      document.getElementById('loadingScreen').classList.add('hide');
+      document.getElementById('mainContent').style.opacity = '1';
+    }, 800);
+  });
+
+  var input    = document.getElementById('searchInput');
+  var clearBtn = document.getElementById('searchClear');
+  var allItems = null;
+
+  function getItems(){
+    if (!allItems) allItems = document.querySelectorAll('.guest-item');
+    return allItems;
+  }
+
+  function esc(s){
+    return String(s).replace(/[&<>"']/g,function(c){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+    });
+  }
+
+  // キャストフィルター
+  window.filterCast = function(castName, btn) {
+    document.querySelectorAll('.filter-btn').forEach(function(b){ b.classList.remove('active'); });
+    btn.classList.add('active');
+
+    var items = getItems();
+    for (var i=0; i<items.length; i++) {
+      var itemCast = items[i].dataset.cast || '';
+      if (castName === 'all' || itemCast === castName) {
+        items[i].classList.remove('hidden');
+      } else {
+        items[i].classList.add('hidden');
+      }
+    }
+    // 公演カードの空表示を更新
+    updateEmptyCards();
+    // 検索もリセット
+    if (input.value) input.dispatchEvent(new Event('input'));
+  };
+
+  function updateEmptyCards() {
+    document.querySelectorAll('.card').forEach(function(card){
+      var visibleItems = card.querySelectorAll('.guest-item:not(.hidden)');
+      var emptyDiv = card.querySelector('.empty-guest');
+      if (visibleItems.length === 0) {
+        if (!emptyDiv) {
+          var div = document.createElement('div');
+          div.className = 'empty-guest js-empty';
+          div.textContent = '該当する予約はありません';
+          card.querySelector('.guest-list').appendChild(div);
+        }
+      } else {
+        var jsEmpty = card.querySelector('.js-empty');
+        if (jsEmpty) jsEmpty.remove();
+      }
+    });
+  }
+
+  // 検索
+  input.addEventListener('input', function(){
+    var q = this.value.trim();
+    clearBtn.classList.toggle('visible', q.length > 0);
+
+    var items = getItems();
+    var activeCast = document.querySelector('.filter-btn.active');
+    var castFilter = activeCast ? activeCast.dataset.cast : 'all';
+
+    for (var i=0; i<items.length; i++) {
+      var item     = items[i];
+      var name     = item.dataset.name  || '';
+      var kana     = item.dataset.kana  || '';
+      var resNo    = item.dataset.resno || '';
+      var itemCast = item.dataset.cast  || '';
+
+      var castOk = (castFilter === 'all' || itemCast === castFilter);
+      var searchOk = !q || name.indexOf(q) !== -1 || kana.indexOf(q) !== -1 || resNo.indexOf(q) !== -1;
+
+      if (castOk && searchOk) {
+        item.classList.remove('hidden');
+      } else {
+        item.classList.add('hidden');
+      }
+    }
+    updateEmptyCards();
+  });
+
+  clearBtn.addEventListener('click', function(){
+    input.value = '';
+    input.dispatchEvent(new Event('input'));
+    input.focus();
+  });
+})();
+</script>
+</body>
+</html>

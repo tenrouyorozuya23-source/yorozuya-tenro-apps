@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>受付アプリ</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#F0F7FC;--surface:#fff;--text:#1a2a3a;--muted:#6b8fa8;
+  --border:#C5DFF0;--accent:#2980B9;--accent-l:#EBF5FB;
+  --green:#0F6E56;--green-l:#E8F5E9;
+  --red:#c0392b;--red-l:#FCEBEB;
+  --amber:#854F0B;--amber-l:#FFF8E1;
+  --gray:#5F5E5A;--gray-l:#F1EFE8;
+  --radius:12px;
+}
+body{font-family:'Helvetica Neue',Arial,'Hiragino Kaku Gothic ProN',sans-serif;
+  background:var(--bg);color:var(--text);min-height:100vh;
+  -webkit-font-smoothing:antialiased}
+
+/* ヘッダー */
+.header{background:var(--accent);padding:14px 16px;
+  display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.header-title{color:#fff;font-size:16px;font-weight:700}
+.header-sub{color:rgba(255,255,255,0.8);font-size:12px;margin-top:2px}
+.header-right{display:flex;gap:8px;align-items:center}
+
+/* 公演選択画面 */
+.show-select-screen{padding:20px 16px}
+.screen-title{font-size:18px;font-weight:700;margin-bottom:4px}
+.screen-sub{font-size:13px;color:var(--muted);margin-bottom:20px}
+.show-card{background:var(--surface);border-radius:var(--radius);
+  border:1.5px solid var(--border);padding:16px 20px;margin-bottom:12px;
+  cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:space-between}
+.show-card:hover{border-color:var(--accent);background:var(--accent-l)}
+.show-card:active{transform:scale(.98)}
+.show-dt{font-size:16px;font-weight:700}
+.show-meta{font-size:12px;color:var(--muted);margin-top:4px}
+.show-arrow{font-size:20px;color:var(--muted)}
+
+/* 受付メイン画面 */
+.checkin-screen{display:none;flex-direction:column;height:100vh}
+.checkin-screen.active{display:flex}
+
+/* 統計バー */
+.stats-bar{background:var(--surface);padding:12px 16px;
+  display:grid;grid-template-columns:repeat(4,1fr);gap:8px;
+  border-bottom:1px solid var(--border)}
+.stat-item{text-align:center}
+.stat-num{font-size:20px;font-weight:700;line-height:1}
+.stat-num.green{color:var(--green)}
+.stat-num.red{color:var(--red)}
+.stat-num.blue{color:var(--accent)}
+.stat-num.gray{color:var(--gray)}
+.stat-label{font-size:10px;color:var(--muted);margin-top:2px}
+
+/* 検索バー */
+.search-area{padding:12px 16px;background:var(--surface);
+  border-bottom:1px solid var(--border)}
+.search-row{display:flex;gap:8px}
+.search-input{flex:1;padding:10px 14px;border:1.5px solid var(--border);
+  border-radius:var(--radius);font-size:15px;color:var(--text);
+  background:var(--bg);outline:none}
+.search-input:focus{border-color:var(--accent)}
+.search-clear-btn{padding:10px 14px;border:1.5px solid var(--border);
+  border-radius:var(--radius);background:#fff;color:var(--muted);
+  font-size:13px;cursor:pointer;white-space:nowrap}
+
+/* ソートボタン */
+.sort-row{display:flex;gap:6px;margin-top:8px}
+.sort-btn{flex:1;padding:7px;border-radius:8px;border:1.5px solid var(--border);
+  background:#fff;color:var(--muted);font-size:12px;font-weight:500;cursor:pointer}
+.sort-btn.active{border-color:var(--accent);background:var(--accent-l);color:var(--accent)}
+
+/* 予約リスト */
+.reservation-list{flex:1;overflow-y:auto;padding:8px 0}
+
+.res-item{background:var(--surface);margin:0 12px 8px;border-radius:var(--radius);
+  border:1.5px solid var(--border);overflow:hidden;transition:all .15s}
+.res-item.checked-in{border-color:var(--green);background:var(--green-l)}
+.res-item.cancelled{opacity:.5;border-style:dashed}
+.res-item.hidden{display:none}
+
+.res-header{padding:12px 14px;display:flex;align-items:center;justify-content:space-between;
+  cursor:pointer;gap:10px}
+.res-no{font-size:11px;font-weight:600;color:var(--accent);background:var(--accent-l);
+  padding:3px 8px;border-radius:999px;white-space:nowrap}
+.res-name{font-size:15px;font-weight:600;flex:1}
+.res-kana{font-size:11px;color:var(--muted)}
+.res-seats{font-size:13px;font-weight:600;color:var(--text);white-space:nowrap}
+.res-status{font-size:11px;font-weight:500;padding:3px 9px;border-radius:999px;white-space:nowrap}
+.st-temp{background:var(--amber-l);color:var(--amber)}
+.st-book{background:var(--accent-l);color:var(--accent)}
+.st-recv{background:var(--green-l);color:var(--green)}
+.st-cancel{background:var(--gray-l);color:var(--gray)}
+
+/* 受付パネル（展開） */
+.res-panel{display:none;padding:0 14px 14px;border-top:1px solid var(--border)}
+.res-panel.open{display:block}
+.res-detail{font-size:12px;color:var(--muted);margin-bottom:12px;
+  display:flex;gap:12px;flex-wrap:wrap;padding-top:10px}
+.res-detail span{display:flex;align-items:center;gap:4px}
+.res-note{background:var(--amber-l);border-radius:8px;padding:8px 10px;
+  font-size:12px;color:var(--amber);margin-bottom:12px}
+.payment-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pay-btn{padding:14px;border-radius:var(--radius);border:2px solid var(--border);
+  background:#fff;font-size:14px;font-weight:600;cursor:pointer;
+  text-align:center;transition:all .15s;color:var(--text)}
+.pay-btn.active-cash{border-color:var(--green);background:var(--green-l);color:var(--green)}
+.pay-btn.active-credit{border-color:var(--accent);background:var(--accent-l);color:var(--accent)}
+.pay-btn:hover{opacity:.85}
+.undo-btn{width:100%;margin-top:8px;padding:10px;border-radius:var(--radius);
+  border:1px solid var(--border);background:#fff;color:var(--muted);
+  font-size:13px;cursor:pointer}
+
+/* 空の状態 */
+.empty-state{text-align:center;padding:60px 20px;color:var(--muted)}
+.empty-icon{font-size:48px;margin-bottom:12px}
+
+/* ローディング */
+.loading-overlay{position:fixed;inset:0;background:rgba(240,247,252,.9);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999}
+.spinner{width:36px;height:36px;border:3px solid var(--border);
+  border-top-color:var(--accent);border-radius:50%;
+  animation:spin .8s linear infinite;margin-bottom:12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-text{font-size:13px;color:var(--muted)}
+
+/* トースト */
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
+  background:var(--accent);color:#fff;padding:10px 24px;
+  border-radius:999px;font-size:13px;font-weight:600;
+  opacity:0;transition:opacity .3s;pointer-events:none;z-index:998;white-space:nowrap;
+  box-shadow:0 4px 16px rgba(0,0,0,.2)}
+.toast.show{opacity:1}
+.toast.success{background:var(--green)}
+.toast.error{background:var(--red)}
+
+/* 戻るボタン */
+.back-btn{background:rgba(255,255,255,.2);color:#fff;border:none;
+  padding:6px 12px;border-radius:8px;font-size:13px;cursor:pointer}
+.back-btn:hover{background:rgba(255,255,255,.3)}
+
+/* 検索ハイライト */
+mark{background:#FFF176;color:inherit;border-radius:2px;padding:0 1px}
+</style>
+</head>
+<body>
+
+<!-- ローディング -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner"></div>
+  <div class="loading-text" id="loadingText">読み込み中...</div>
+</div>
+
+<!-- トースト -->
+<div class="toast" id="toast"></div>
+
+<!-- ヘッダー -->
+<div class="header" id="mainHeader">
+  <div>
+    <div class="header-title" id="headerTitle">🐺 受付アプリ</div>
+    <div class="header-sub" id="headerSub">公演を選択してください</div>
+  </div>
+  <div class="header-right">
+    <button class="back-btn" id="backBtn" style="display:none" onclick="goBack()">← 公演選択</button>
+  </div>
+</div>
+
+<!-- 公演選択画面 -->
+<div id="showSelectScreen" class="show-select-screen">
+  <div class="screen-title">公演を選択</div>
+  <div class="screen-sub">受付する公演を選んでください</div>
+  <div id="showList"></div>
+</div>
+
+<!-- 受付メイン画面 -->
+<div id="checkinScreen" class="checkin-screen">
+  <!-- 統計バー -->
+  <div class="stats-bar" id="statsBar">
+    <div class="stat-item">
+      <div class="stat-num blue" id="statTotal">0</div>
+      <div class="stat-label">総予約</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num green" id="statCheckedIn">0</div>
+      <div class="stat-label">来場済</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num red" id="statPending">0</div>
+      <div class="stat-label">未着</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num gray" id="statSeats">0</div>
+      <div class="stat-label">来場席数</div>
+    </div>
+  </div>
+
+  <!-- 検索バー -->
+  <div class="search-area">
+    <div class="search-row">
+      <input class="search-input" id="searchInput" type="text"
+        placeholder="名前・予約番号で検索" oninput="onSearch(this.value)">
+      <button class="search-clear-btn" onclick="clearSearch()">クリア</button>
+    </div>
+    <div class="sort-row">
+      <button class="sort-btn active" id="sortResNo" onclick="sortBy('resno')">予約番号順</button>
+      <button class="sort-btn" id="sortKana" onclick="sortBy('kana')">ふりがな順</button>
+      <button class="sort-btn" id="sortStatus" onclick="sortBy('status')">未着を上に</button>
+    </div>
+  </div>
+
+  <!-- 予約リスト -->
+  <div class="reservation-list" id="reservationList"></div>
+</div>
+
+<script>
+// ============================================================
+// 状態
+// ============================================================
+var state = {
+  shows:      [],
+  currentShow: null,
+  reservations: [],  // [{resNo, name, kana, cast, seats, seatType, status, note, payMethod}]
+  sortMode:   "resno",
+  searchQuery: ""
+};
+
+// ============================================================
+// 初期化
+// ============================================================
+window.onload = function() {
+  loadShows();
+};
+
+function loadShows() {
+  showLoading("公演情報を読み込み中...");
+  google.script.run
+    .withSuccessHandler(function(data) {
+      hideLoading();
+      state.shows = data.shows || [];
+      renderShowList();
+    })
+    .withFailureHandler(function(e) {
+      hideLoading();
+      showToast("読み込みエラー: " + e.message, "error");
+    })
+    .getCheckinData();
+}
+
+// ============================================================
+// 公演選択画面
+// ============================================================
+function renderShowList() {
+  var list = document.getElementById("showList");
+  if (state.shows.length === 0) {
+    list.innerHTML = '<div class="empty-state"><div class="empty-icon">📅</div><p>公演情報が見つかりません</p></div>';
+    return;
+  }
+  var html = "";
+  state.shows.forEach(function(show) {
+    html += '<div class="show-card" onclick="selectShow(' + JSON.stringify(show).replace(/"/g,'&quot;') + ')">' +
+      '<div>' +
+        '<div class="show-dt">' + esc(show.dt) + '</div>' +
+        '<div class="show-meta">定員 ' + show.cap + ' 名 ／ 予約 ' + (show.reserved || 0) + ' 名</div>' +
+      '</div>' +
+      '<div class="show-arrow">›</div>' +
+    '</div>';
+  });
+  list.innerHTML = html;
+}
+
+function selectShow(show) {
+  state.currentShow = show;
+  document.getElementById("headerTitle").textContent = "🐺 受付アプリ";
+  document.getElementById("headerSub").textContent = show.dt;
+  document.getElementById("backBtn").style.display = "";
+  document.getElementById("showSelectScreen").style.display = "none";
+  document.getElementById("checkinScreen").classList.add("active");
+  loadReservations(show.dt);
+}
+
+function goBack() {
+  state.currentShow = null;
+  document.getElementById("backBtn").style.display = "none";
+  document.getElementById("headerSub").textContent = "公演を選択してください";
+  document.getElementById("showSelectScreen").style.display = "";
+  document.getElementById("checkinScreen").classList.remove("active");
+  loadShows(); // 最新情報で更新
+}
+
+// ============================================================
+// 予約一覧の読み込み
+// ============================================================
+function loadReservations(showDt) {
+  showLoading("予約情報を読み込み中...");
+  google.script.run
+    .withSuccessHandler(function(data) {
+      hideLoading();
+      state.reservations = data.reservations || [];
+      sortAndRender();
+      updateStats();
+    })
+    .withFailureHandler(function(e) {
+      hideLoading();
+      showToast("読み込みエラー: " + e.message, "error");
+    })
+    .getReservationsForCheckin(showDt);
+}
+
+// ============================================================
+// ソート・フィルター
+// ============================================================
+function sortBy(mode) {
+  state.sortMode = mode;
+  document.getElementById("sortResNo").classList.toggle("active", mode === "resno");
+  document.getElementById("sortKana").classList.toggle("active", mode === "kana");
+  document.getElementById("sortStatus").classList.toggle("active", mode === "status");
+  sortAndRender();
+}
+
+function sortAndRender() {
+  var list = state.reservations.slice();
+
+  if (state.sortMode === "resno") {
+    list.sort(function(a,b){ return String(a.resNo).localeCompare(String(b.resNo), "ja"); });
+  } else if (state.sortMode === "kana") {
+    list.sort(function(a,b){ return String(a.kana).localeCompare(String(b.kana), "ja"); });
+  } else if (state.sortMode === "status") {
+    // 未着(仮予約済み・本予約済み)を上に
+    var order = {"仮予約済み":0,"本予約済み":1,"受付済み":2,"キャンセル":3};
+    list.sort(function(a,b){
+      var oa = order[a.status] !== undefined ? order[a.status] : 9;
+      var ob = order[b.status] !== undefined ? order[b.status] : 9;
+      return oa - ob;
+    });
+  }
+  renderReservations(list, state.searchQuery);
+}
+
+// ============================================================
+// 予約リストの描画
+// ============================================================
+function renderReservations(list, query) {
+  var el = document.getElementById("reservationList");
+  if (list.length === 0) {
+    el.innerHTML = '<div class="empty-state"><div class="empty-icon">🎫</div><p>予約が見つかりません</p></div>';
+    return;
+  }
+
+  var q = (query || "").trim();
+
+  var html = "";
+  list.forEach(function(r, idx) {
+    var isCheckedIn = r.status === "受付済み";
+    var isCancelled = r.status === "キャンセル";
+    var hidden = q && !matches(r, q) ? " hidden" : "";
+    var checkedClass = isCheckedIn ? " checked-in" : isCancelled ? " cancelled" : "";
+
+    var stClass = r.status === "受付済み"  ? "st-recv"
+                : r.status === "本予約済み" ? "st-book"
+                : r.status === "キャンセル" ? "st-cancel"
+                : "st-temp";
+
+    var nameHtml  = q ? highlight(esc(r.name),  q) : esc(r.name);
+    var resNoHtml = q ? highlight(esc(r.resNo), q) : esc(r.resNo);
+
+    html += '<div class="res-item' + checkedClass + hidden + '" id="item-' + esc(r.resNo) + '">' +
+      '<div class="res-header" onclick="togglePanel(\'' + esc(r.resNo) + '\')">' +
+        '<span class="res-no">' + resNoHtml + '</span>' +
+        '<div style="flex:1;min-width:0">' +
+          '<div class="res-name">' + nameHtml + '</div>' +
+          '<div class="res-kana">' + esc(r.kana) + '</div>' +
+        '</div>' +
+        '<div style="text-align:right;flex-shrink:0">' +
+          '<div class="res-seats">' + r.seats + '席</div>' +
+          '<span class="res-status ' + stClass + '">' + esc(r.status) + '</span>' +
+        '</div>' +
+      '</div>' +
+      '<div class="res-panel" id="panel-' + esc(r.resNo) + '">' +
+        '<div class="res-detail">' +
+          '<span>🎭 ' + esc(r.cast || "") + '</span>' +
+          '<span>🎫 ' + esc(r.seatType || "") + '</span>' +
+        '</div>' +
+        (r.note ? '<div class="res-note">💬 ' + esc(r.note) + '</div>' : '') +
+        (isCancelled ? '<p style="color:var(--gray);font-size:13px;text-align:center;padding:4px 0">キャンセル済みです</p>' :
+        '<div class="payment-btns">' +
+          '<button class="pay-btn' + (isCheckedIn && r.payMethod==="cash" ? " active-cash" : "") + '" onclick="checkIn(\'' + esc(r.resNo) + '\',\'cash\')">💴 現金で受付</button>' +
+          '<button class="pay-btn' + (isCheckedIn && r.payMethod==="credit" ? " active-credit" : "") + '" onclick="checkIn(\'' + esc(r.resNo) + '\',\'credit\')">💳 クレカで受付</button>' +
+        '</div>' +
+        (isCheckedIn ? '<button class="undo-btn" onclick="undoCheckIn(\'' + esc(r.resNo) + '\')">↩ 受付を取り消す</button>' : '')) +
+      '</div>' +
+    '</div>';
+  });
+  el.innerHTML = html;
+  updateStats();
+}
+
+// ============================================================
+// パネルの開閉
+// ============================================================
+function togglePanel(resNo) {
+  var panel = document.getElementById("panel-" + resNo);
+  if (!panel) return;
+  panel.classList.toggle("open");
+}
+
+// ============================================================
+// 受付処理（現金 or クレカ）
+// ============================================================
+function checkIn(resNo, payMethod) {
+  var r = state.reservations.find(function(x){ return x.resNo === resNo; });
+  if (!r || r.status === "キャンセル") return;
+
+  showLoading("受付処理中...");
+  google.script.run
+    .withSuccessHandler(function(result) {
+      hideLoading();
+      if (result.success) {
+        // ローカル状態を更新
+        r.status = "受付済み";
+        r.payMethod = payMethod;
+        sortAndRender();
+        // パネルを閉じる
+        var panel = document.getElementById("panel-" + resNo);
+        if (panel) panel.classList.remove("open");
+        showToast("✅ " + r.name + " さん受付完了！", "success");
+      } else {
+        showToast("エラー: " + result.error, "error");
+      }
+    })
+    .withFailureHandler(function(e) {
+      hideLoading();
+      showToast("通信エラー: " + e.message, "error");
+    })
+    .processCheckin(resNo, payMethod, state.currentShow ? state.currentShow.dt : "");
+}
+
+// 受付取り消し
+function undoCheckIn(resNo) {
+  var r = state.reservations.find(function(x){ return x.resNo === resNo; });
+  if (!r) return;
+
+  showLoading("取り消し処理中...");
+  google.script.run
+    .withSuccessHandler(function(result) {
+      hideLoading();
+      if (result.success) {
+        r.status = "本予約済み";
+        r.payMethod = null;
+        sortAndRender();
+        showToast("↩ " + r.name + " さんの受付を取り消しました");
+      } else {
+        showToast("エラー: " + result.error, "error");
+      }
+    })
+    .withFailureHandler(function(e) {
+      hideLoading();
+      showToast("通信エラー: " + e.message, "error");
+    })
+    .undoCheckin(resNo, state.currentShow ? state.currentShow.dt : "");
+}
+
+// ============================================================
+// 検索
+// ============================================================
+function onSearch(q) {
+  state.searchQuery = q;
+  var items = document.querySelectorAll(".res-item");
+  var query = q.trim();
+  items.forEach(function(item) {
+    var panel = item.querySelector(".res-panel");
+    if (panel) panel.classList.remove("open");
+  });
+  sortAndRender();
+}
+
+function clearSearch() {
+  document.getElementById("searchInput").value = "";
+  state.searchQuery = "";
+  sortAndRender();
+}
+
+function matches(r, q) {
+  var ql = q.toLowerCase();
+  return String(r.resNo  || "").toLowerCase().indexOf(ql) !== -1 ||
+         String(r.name   || "").toLowerCase().indexOf(ql) !== -1 ||
+         String(r.kana   || "").toLowerCase().indexOf(ql) !== -1;
+}
+
+// ============================================================
+// 統計更新
+// ============================================================
+function updateStats() {
+  var total = 0, checkedIn = 0, checkedSeats = 0;
+  state.reservations.forEach(function(r) {
+    if (r.status === "キャンセル") return;
+    total++;
+    if (r.status === "受付済み") {
+      checkedIn++;
+      checkedSeats += parseInt(r.seats) || 0;
+    }
+  });
+  var pending = total - checkedIn;
+  document.getElementById("statTotal").textContent     = total;
+  document.getElementById("statCheckedIn").textContent = checkedIn;
+  document.getElementById("statPending").textContent   = pending;
+  document.getElementById("statSeats").textContent     = checkedSeats;
+}
+
+// ============================================================
+// UI helpers
+// ============================================================
+function showLoading(msg) {
+  document.getElementById("loadingText").textContent = msg || "処理中...";
+  document.getElementById("loadingOverlay").style.display = "flex";
+}
+function hideLoading() {
+  document.getElementById("loadingOverlay").style.display = "none";
+}
+function showToast(msg, type) {
+  var el = document.getElementById("toast");
+  el.textContent = msg;
+  el.className = "toast show" + (type ? " " + type : "");
+  setTimeout(function(){ el.className = "toast"; }, 3000);
+}
+function esc(s) {
+  return String(s || "").replace(/[&<>"']/g, function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+  });
+}
+function highlight(text, q) {
+  if (!q) return text;
+  var re = new RegExp('(' + q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + ')', 'gi');
+  return text.replace(re, '<mark>$1</mark>');
+}
+</script>
+</body>
+</html>
