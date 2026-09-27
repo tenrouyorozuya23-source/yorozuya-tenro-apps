@@ -75,6 +75,17 @@ var CONFIG = {
     lineChannelId: "2011762472"
   },
 
+  // メール送信設定
+  //   from はスクリプトを動かすアカウント（tenrou.yorozuya.23@gmail.com）の Gmail で
+  //   「他のメールアドレスを追加（Send mail as）」に登録済みである必要がある（README 参照）
+  mail: {
+    from:        "info.tenrou.event@gmail.com",
+    senderName:  "BSD presents「家族の絆」",
+    reservation: true,  // 予約受付時にお客様へ受付確認メールを自動送信
+    cancel:      true,  // キャンセル確定時にお客様へキャンセル受付メールを自動送信
+    cast:        true   // LINE未登録のキャストへ予約・キャンセル通知をメールで送信
+  },
+
   // レジの領収書PDFを保存するGoogleドライブのフォルダID
   receiptFolderId: "1tsDjfrVTEoIwNoC1PMZI3FBFFDEkJZmh",
 
@@ -869,7 +880,10 @@ function createForm(ss) {
   // 質問2〜4
   form.addTextItem().setTitle("お名前").setHelpText("例：山田 太郎").setRequired(true);
   form.addTextItem().setTitle("ふりがな").setHelpText("例：やまだ たろう").setRequired(true);
-  form.addTextItem().setTitle("メールアドレス").setRequired(true);
+  form.addTextItem().setTitle("メールアドレス")
+    .setHelpText("予約受付の確認メールを " + CONFIG.mail.from + " からお送りします")
+    .setValidation(FormApp.createTextValidation().requireTextIsEmail().build())
+    .setRequired(true);
 
   // 質問5：公演日時
   var showChoices = CONFIG.shows.map(function(s){ return s.dt; });
@@ -940,12 +954,14 @@ function setTriggers(form) {
 
   // スプシ編集時：操作パネルのチェックボックスで関数を実行
   var ss = SpreadsheetApp.getActiveSpreadsheet();
-  ScriptApp.newTrigger("onEdit")
+  // ※ 関数名を onEdit にするとシンプルトリガーとしても二重に動き、
+  //   そちらではメール・LINE送信が権限エラーになるため handleEdit にしている
+  ScriptApp.newTrigger("handleEdit")
     .forSpreadsheet(ss)
     .onEdit()
     .create();
 
-  Logger.log("✅ トリガーを設定しました（フォーム送信・毎日22時・毎日0時・onEdit）");
+  Logger.log("✅ トリガーを設定しました（フォーム送信・毎日22時・毎日0時・編集時）");
 }
 
 // ============================================================
@@ -1036,6 +1052,9 @@ function onFormSubmit(e) {
   try { updateRemainingSeats(); } catch(err) {}
 
   addToDailyStack(e.response);
+
+  // お客様へ予約受付メール
+  try { sendReservationReceivedMail(e.response, reservationNo); } catch(err) { Logger.log("予約受付メール送信エラー: " + err.message); }
 }
 
 
@@ -1282,13 +1301,18 @@ function sendDailyLineNotification() {
   for (var castLabel in byCast) {
     var entries = byCast[castLabel];
     var castName = castLabel.replace(/\s*【.+】/, "");
-    var lineUserId = "";
+    var lineUserId = "", castMail = "";
     for (var r=1; r<castData.length; r++) {
       var fullLabel = castData[r][0] + " 【" + castData[r][1] + "】";
-      if (fullLabel === castLabel) { lineUserId = castData[r][3]; break; }
+      if (fullLabel === castLabel) { lineUserId = castData[r][3]; castMail = castData[r][2]; break; }
     }
-    if (!lineUserId) continue;
-    sendLineMessage(lineUserId, buildNotificationMessage(castName, entries));
+    var msg = buildNotificationMessage(castName, entries);
+    if (lineUserId) {
+      sendLineMessage(lineUserId, msg);
+    } else if (castMail && CONFIG.mail.cast) {
+      // LINE未登録のキャストにはメールで通知
+      sendMail(castMail, "【" + CONFIG.title + "】本日の予約通知（" + castName + "さん）", msg);
+    }
   }
   props.deleteProperty(key);
 }
@@ -2404,7 +2428,7 @@ function buildControlPanel() {
 }
 
 // チェックボックスのONで対応する関数を実行するトリガー
-function onEdit(e) {
+function handleEdit(e) {
   var sheet = e.source.getActiveSheet();
   var row = e.range.getRow();
   var col = e.range.getColumn();
@@ -2419,8 +2443,14 @@ function onEdit(e) {
     var resNoCol  = -1;
     var nameCol   = -1;
     var showCol   = -1;
+    var mailCol   = -1;
+    var seatCol   = -1;
+    var countCol  = -1;
     for (var i = 0; i < headers.length; i++) {
       var h = String(headers[i]);
+      if (h === "メールアドレス")          mailCol   = i + 1;
+      if (h === "席種")                    seatCol   = i + 1;
+      if (h === "枚数")                    countCol  = i + 1;
       if (h === "キャンセル")              cancelCol = i + 1;
       if (h === "ステータス")              statusCol = i + 1;
       if (h.indexOf("キャスト") !== -1)    castCol   = i + 1;
@@ -2453,8 +2483,16 @@ function onEdit(e) {
           var guestName = nameCol  > 0 ? sheet.getRange(row, nameCol).getValue()  : "";
           var resNo     = resNoCol > 0 ? sheet.getRange(row, resNoCol).getValue() : "";
           if (castLabel) {
-            notifyCancelTocast(castLabel, guestName, resNo, showDt);
+            try { notifyCancelTocast(castLabel, guestName, resNo, showDt); } catch(err) { Logger.log("キャスト通知エラー: " + err.message); }
           }
+
+          // お客様へキャンセル受付メール
+          var guestMail = mailCol > 0 ? sheet.getRange(row, mailCol).getValue() : "";
+          try {
+            sendCancelMail(guestMail, guestName, resNo, showDt,
+              seatCol  > 0 ? sheet.getRange(row, seatCol).getValue()  : "",
+              countCol > 0 ? sheet.getRange(row, countCol).getValue() : "");
+          } catch(err) { Logger.log("キャンセルメール送信エラー: " + err.message); }
         }
       }
     } else if (col === cancelCol && row >= 2 && e.value === "FALSE") {
@@ -2647,16 +2685,17 @@ function notifyCancelTocast(castLabel, guestName, resNo, showDt) {
   var castName = String(castLabel || "").replace(/\s*\u3010[^\u3011]*\u3011/, "").trim();
   Logger.log("notifyCancelTocast: castLabel=" + castLabel + " castName=" + castName);
 
-  var userId = "";
+  var userId = "", castMail = "";
   for (var i = 1; i < castData.length; i++) {
     if (String(castData[i][0]).trim() === castName) {
-      userId = String(castData[i][3] || "").trim();
+      userId   = String(castData[i][3] || "").trim();
+      castMail = String(castData[i][2] || "").trim();
       break;
     }
   }
   Logger.log("notifyCancelTocast: userId=" + userId);
-  if (!userId) {
-    Logger.log("\u30ad\u30e3\u30b9\u30c8\u306eUserID\u304c\u898b\u3064\u304b\u308a\u307e\u305b\u3093: " + castName);
+  if (!userId && !(castMail && CONFIG.mail.cast)) {
+    Logger.log("キャストのLINE UserID・メールアドレスが見つかりません: " + castName);
     return;
   }
 
@@ -2668,7 +2707,11 @@ function notifyCancelTocast(castLabel, guestName, resNo, showDt) {
     "\u516c\u6f14\u65e5\u6642\uff1a" + showDt + "\n\n" +
     "\u3054\u78ba\u8a8d\u304f\u3060\u3055\u3044\u3002";
 
-  sendLineMessage(userId, msg);
+  if (userId) {
+    sendLineMessage(userId, msg);
+  } else {
+    sendMail(castMail, "【" + CONFIG.title + "】キャンセルのお知らせ（" + castName + "さん）", msg);
+  }
 }
 
 
@@ -2837,7 +2880,7 @@ function sendBookingEmails() {
       CONFIG.organizer;
     try {
       // 下書きとして保存（送信はしない）
-      GmailApp.createDraft(mail, subject, body);
+      GmailApp.createDraft(mail, subject, body, mailOptions());
       sheet.getRange(i+1, col.status+1).setValue("本予約済み");
       sent++;
     } catch(err) {
@@ -2937,6 +2980,113 @@ function setup_3_reservationSheet() {
 // 固定予約番号を生成（通し連番、行移動・削除しても変わらない）
 // 例）R-001, R-002 / T-001, T-002
 // ============================================================
+// ============================================================
+// メール送信（送信元：CONFIG.mail.from）
+// ============================================================
+
+// GmailApp の送信オプション。from が「Send mail as」に登録されていなければ
+// スクリプト実行アカウントから送り、返信先だけ from にする
+function mailOptions() {
+  var opts = { name: CONFIG.mail.senderName, replyTo: CONFIG.mail.from };
+  var aliases = GmailApp.getAliases();
+  if (aliases.indexOf(CONFIG.mail.from) !== -1) {
+    opts.from = CONFIG.mail.from;
+  } else {
+    Logger.log("⚠️ " + CONFIG.mail.from + " が Gmail の送信元（Send mail as）に未登録のため、" +
+      Session.getEffectiveUser().getEmail() + " から送信します（返信先は " + CONFIG.mail.from + "）");
+  }
+  return opts;
+}
+
+function sendMail(to, subject, body) {
+  to = String(to || "").trim();
+  if (!to || to.indexOf("@") === -1) return false;
+  GmailApp.sendEmail(to, subject, body, mailOptions());
+  return true;
+}
+
+// 公演マスタの単価（スプシで変更されていればそちらを優先）
+function getSeatPrice(seatType) {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("公演マスタ");
+  if (sheet) {
+    var rows = sheet.getRange(7, 1, CONFIG.seatTypes.length, 2).getValues();
+    for (var i = 0; i < rows.length; i++) {
+      if (String(rows[i][0]) === String(seatType) && typeof rows[i][1] === "number") return rows[i][1];
+    }
+  }
+  for (var i = 0; i < CONFIG.seatTypes.length; i++) {
+    if (CONFIG.seatTypes[i].name === seatType) return CONFIG.seatTypes[i].price;
+  }
+  return 0;
+}
+
+function yenText(n) {
+  return "¥" + String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
+function mailFooter() {
+  return "\n━━━━━━━━━━━━━━━━━━━━\n" +
+    CONFIG.organizer + "「" + CONFIG.title + "」\n" +
+    "会場：" + CONFIG.venue + "\n" +
+    "お問い合わせ：" + CONFIG.mail.from + "\n" +
+    "━━━━━━━━━━━━━━━━━━━━\n" +
+    "※このメールは予約システムから自動送信しています。";
+}
+
+// 予約受付（仮予約）メール：フォーム送信時
+function sendReservationReceivedMail(response, reservationNo) {
+  if (!CONFIG.mail.reservation) return;
+  var a = {};
+  var answers = response.getItemResponses();
+  for (var i = 0; i < answers.length; i++) {
+    a[answers[i].getItem().getTitle()] = answers[i].getResponse();
+  }
+  var mail  = a["メールアドレス"];
+  var name  = a["お名前"] || "";
+  var show  = a["ご希望の公演日時"] || "";
+  var seat  = a["席種"] || "";
+  var count = toSeatCount(a["枚数"]);
+  var cast  = String(a["取り扱いキャスト"] || "").replace(/\s*【.+】/, "");
+  var price = getSeatPrice(seat);
+
+  var body =
+    name + " 様\n\n" +
+    "この度は「" + CONFIG.title + "」にご予約いただき、誠にありがとうございます。\n" +
+    "以下の内容でご予約を受け付けました（仮予約）。\n" +
+    "取り扱いキャストより確認のご連絡をいたしますので、今しばらくお待ちください。\n\n" +
+    "━━━━━━━━━━━━━━━━━━━━\n" +
+    "予約番号　：" + reservationNo + "\n" +
+    "公演日時　：" + show + "（開場 " + doorsOpenTime(show) + "）\n" +
+    "席種　　　：" + seat + "\n" +
+    "枚数　　　：" + count + "枚\n" +
+    (price ? "チケット代：" + yenText(price * count) + "（" + yenText(price) + " × " + count + "枚）\n" : "") +
+    "取り扱い　：" + cast + "\n" +
+    "━━━━━━━━━━━━━━━━━━━━\n\n" +
+    "当日は受付で「予約番号」または「お名前」をお伝えください。\n" +
+    "開場は開演の" + CONFIG.doorsOpenMinutes + "分前です。\n\n" +
+    "ご予約内容の変更・キャンセルは、このメールへの返信または取り扱いキャストまでご連絡ください。\n" +
+    mailFooter();
+
+  sendMail(mail, "【" + CONFIG.title + "】ご予約受付のお知らせ（予約番号 " + reservationNo + "）", body);
+}
+
+// キャンセル受付メール：予約一覧でキャンセルを確定したとき
+function sendCancelMail(mail, name, resNo, showDt, seat, count) {
+  if (!CONFIG.mail.cancel) return;
+  var body =
+    name + " 様\n\n" +
+    "「" + CONFIG.title + "」の以下のご予約のキャンセルを承りました。\n\n" +
+    "━━━━━━━━━━━━━━━━━━━━\n" +
+    "予約番号：" + resNo + "\n" +
+    "公演日時：" + showDt + "\n" +
+    (seat  ? "席種　　：" + seat + "\n" : "") +
+    (count ? "枚数　　：" + toSeatCount(count) + "枚\n" : "") +
+    "━━━━━━━━━━━━━━━━━━━━\n\n" +
+    "またのご来場を心よりお待ちしております。\n" +
+    mailFooter();
+  sendMail(mail, "【" + CONFIG.title + "】ご予約キャンセルのお知らせ（予約番号 " + resNo + "）", body);
+}
+
 function generateReservationNo(prefix) {
   var props   = PropertiesService.getScriptProperties();
   var key     = "resNo_" + prefix;

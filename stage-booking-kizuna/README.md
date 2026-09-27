@@ -21,15 +21,34 @@
 
 レジ画面はキャスト選択と検索で商品を絞り込める。物販マスタの備考欄に「事前予約商品」を表示する。
 
+## メール
+
+送信元は `info.tenrou.event@gmail.com`（表示名「BSD presents「家族の絆」」）。
+
+| メール | 宛先 | タイミング |
+|---|---|---|
+| 予約受付（仮予約）確認 | お客様 | フォーム送信時に自動（予約番号・公演日時と開場時刻・席種・枚数・チケット代） |
+| キャンセル受付 | お客様 | 予約一覧の「キャンセル」にチェックを入れたとき |
+| 予約・キャンセル通知 | LINE未登録のキャスト | 毎日22時の予約通知／キャンセル確定時（キャスト設定シートC列のメールアドレス宛） |
+| 本予約確認（下書き） | お客様 | 操作パネル「本予約メールを下書き作成」（従来どおり下書きのみ） |
+
+個別に止めたいときは `CONFIG.mail` の `reservation` / `cancel` / `cast` を `false` にする。
+
 ## セットアップ手順
 
-1. 新しいスプレッドシートを作り、拡張機能 → Apps Script に `Code.gs`・`index.html`・`checkin.html`・`register.html` を貼り付ける
-2. Apps Script の「プロジェクトの設定」→「スクリプト プロパティ」に次を追加する（**コードやリポジトリには書かない**）
+スプレッドシート：[家族の絆 予約管理](https://docs.google.com/spreadsheets/d/1x61SWb3exqiwfFYxnyZVrfzSYBuPW51PLJb9AuKxBwg/edit)（オーナー tenrou.yorozuya.23@gmail.com）
+
+1. **送信元アドレスの登録**（tenrou.yorozuya.23@gmail.com の Gmail で1回だけ）
+   Gmail の設定 →「アカウントとインポート」→「他のメールアドレスを追加」→ `info.tenrou.event@gmail.com` を追加し、info 側に届く確認メールで承認する。
+   未登録のままだと tenrou.yorozuya.23@gmail.com から送信され、返信先だけ info になる（実行ログに警告が出る）
+2. 上のスプレッドシートを tenrou.yorozuya.23@gmail.com で開き、拡張機能 → Apps Script に `Code.gs`・`index.html`・`checkin.html`・`register.html` を貼り付ける
+3. Apps Script の「プロジェクトの設定」→「スクリプト プロパティ」に次を追加する（**コードやリポジトリには書かない**）
    - `LINE_CHANNEL_SECRET`：LINE公式アカウント（チャネルID 2011762472）のチャネルシークレット
    - 長期のチャネルアクセストークンを使う場合は `LINE_CHANNEL_ACCESS_TOKEN` を追加（あればこちらが優先。なければチャネルID＋シークレットから30日有効のトークンを自動発行・更新する）
-3. `setup_1_sheets()` → `setup_2_form()` → `setup_3_reservationSheet()` → `setup_4_triggers()` の順に実行
-4. ウェブアプリとしてデプロイし、LINE Developers の Webhook URL に設定する
-5. 物販の初期在庫を「在庫ログ」シートに入力する
+4. `setup_1_sheets()` → `setup_2_form()` → `setup_3_reservationSheet()` → `setup_4_triggers()` の順に実行（初回に Gmail・ドライブ・外部接続の権限承認を求められる）
+5. ウェブアプリとしてデプロイし、LINE Developers の Webhook URL に設定する
+6. 物販の初期在庫を「在庫ログ」シートに、LINEを使わないキャストのメールアドレスを「キャスト設定」シートC列に入力する
+7. 自分宛てにテスト予約を1件入れ、受付メールが info.tenrou.event@gmail.com から届くか確認する
 
 ## ベース版からの主な変更
 
@@ -40,3 +59,5 @@
 - レジ画面にキャスト絞り込みと検索を追加
 - フォームの説明に公演日時（開場／開演）と席種の内容を表示
 - LINE のアクセストークンをスクリプト プロパティから取得（チャネルシークレットから自動発行にも対応）
+- お客様への予約受付・キャンセル受付メールと、LINE未登録キャストへのメール通知を追加（送信元 `CONFIG.mail.from`）
+- 編集トリガーの関数名を `onEdit` → `handleEdit` に変更（シンプルトリガーとして二重実行され、キャンセル通知が送れないことがあったため）
