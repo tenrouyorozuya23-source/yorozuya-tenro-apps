@@ -1434,6 +1434,42 @@ function sendLineMessage(userId, message) {
   var code = response.getResponseCode();
   var body = response.getContentText();
   Logger.log("LINE API response: " + code + " / " + body);
+  if (code !== 200) lineLog("送信エラー", code + " / " + body, userId);
+}
+
+// LINEの受信・エラーを「LINEログ」シートに記録（動作確認・トラブル調査用）
+function lineLog(kind, detail, userId) {
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheet = ss.getSheetByName("LINEログ");
+    if (!sheet) {
+      sheet = ss.insertSheet("LINEログ");
+      sheet.getRange(1,1,1,4).setValues([["日時","種類","内容","LINE UserID"]]);
+      styleHeader(sheet.getRange(1,1,1,4));
+      sheet.setFrozenRows(1);
+    }
+    sheet.appendRow([Utilities.formatDate(new Date(),"Asia/Tokyo","yyyy/MM/dd HH:mm:ss"), kind, detail, userId || ""]);
+  } catch(e) {
+    Logger.log("lineLog error: " + e.message);
+  }
+}
+
+// LINE接続テスト：トークンが有効か確認する（Apps Scriptエディタから実行）
+function test_line() {
+  var props = PropertiesService.getScriptProperties();
+  Logger.log("登録済みのスクリプト プロパティ: " + props.getKeys().filter(function(k){ return k.indexOf("processed_") !== 0; }).join(", "));
+  var token = getLineToken();
+  var res = UrlFetchApp.fetch("https://api.line.me/v2/bot/info", {
+    headers: { "Authorization": "Bearer " + token },
+    muteHttpExceptions: true
+  });
+  if (res.getResponseCode() === 200) {
+    var info = JSON.parse(res.getContentText());
+    Logger.log("✅ LINE接続OK：公式アカウント「" + info.displayName + "」（" + info.basicId + "）");
+  } else {
+    Logger.log("❌ LINE接続エラー：" + res.getResponseCode() + " / " + res.getContentText());
+  }
+  Logger.log("ウェブアプリURL（LINEのWebhook URLと一致しているか確認）: " + ScriptApp.getService().getUrl());
 }
 
 // ============================================================
@@ -1480,6 +1516,7 @@ function doPost(e) {
         }
       }
 
+      lineLog("受信", event.type + (event.message && event.message.text ? "：" + event.message.text : ""), event.source.userId);
       if (event.type === "follow") {
         handleFollow(event.source.userId);
       } else if (event.type === "message" && event.message.type === "text") {
@@ -1488,6 +1525,7 @@ function doPost(e) {
     }
   } catch(err) {
     Logger.log("doPost error: " + err.message);
+    lineLog("エラー", err.message);
   }
 
   return ContentService.createTextOutput(JSON.stringify({status:"ok"}))
