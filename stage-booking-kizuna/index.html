@@ -116,7 +116,7 @@ mark{background:#FFF176;color:inherit;border-radius:2px;padding:0 1px}
     <div class="header-label">Cast Reserved List</div>
     <div class="header-title">予約リスト</div>
     <div class="header-updated">最終更新：<?= now ?></div>
-    <div class="cast-chip">🐺 <?= castName || "全キャスト" ?></div>
+    <div class="cast-chip" id="castChip">🐺 <?= castName || "全キャスト" ?></div>
   </div>
 
   <?
@@ -157,8 +157,8 @@ mark{background:#FFF176;color:inherit;border-radius:2px;padding:0 1px}
   ?>
 
   <div class="stats">
-    <div class="stat"><div class="stat-label">予約者数</div><div class="stat-value"><?= totalGuests ?><span class="stat-unit">名</span></div></div>
-    <div class="stat"><div class="stat-label">合計席数</div><div class="stat-value"><?= totalSeats ?><span class="stat-unit">席</span></div></div>
+    <div class="stat"><div class="stat-label">予約者数</div><div class="stat-value"><span id="statGuests"><?= totalGuests ?></span><span class="stat-unit">名</span></div></div>
+    <div class="stat"><div class="stat-label">合計席数</div><div class="stat-value"><span id="statSeats"><?= totalSeats ?></span><span class="stat-unit">席</span></div></div>
   </div>
 
   <? if (isAdmin && castList.length > 0) { ?>
@@ -299,11 +299,34 @@ mark{background:#FFF176;color:inherit;border-radius:2px;padding:0 1px}
         items[i].classList.add('hidden');
       }
     }
+    // 予約者数・合計席数と公演ごとの集計を、選んだキャストの分に切り替える
+    updateStats(castName);
     // 公演カードの空表示を更新
     updateEmptyCards();
     // 検索もリセット
     if (input.value) input.dispatchEvent(new Event('input'));
   };
+
+  // キャンセルを除いた予約者数・席数を、選択中のキャスト（'all' は全員）で数え直す
+  function updateStats(castName) {
+    var match = function(el){ return castName === 'all' || (el.dataset.cast || '') === castName; };
+    var guests = 0, seats = 0;
+    document.querySelectorAll('.card').forEach(function(card){
+      var g = 0, st = 0, c = 0;
+      card.querySelectorAll('.guest-item').forEach(function(el){
+        if (!match(el)) return;
+        if (el.classList.contains('cancelled')) { c++; return; }
+        g++; st += parseInt(el.dataset.seats, 10) || 0;
+      });
+      guests += g; seats += st;
+      var sum = card.querySelector('.card-summary');
+      if (sum) sum.innerHTML = '予約 <strong>' + g + '</strong> 名 ／ 合計 <strong>' + st + '</strong> 席' + (c > 0 ? '（うちキャンセル ' + c + ' 件）' : '');
+    });
+    document.getElementById('statGuests').textContent = guests;
+    document.getElementById('statSeats').textContent = seats;
+    var chip = document.getElementById('castChip');
+    if (chip) chip.textContent = '🐺 ' + (castName === 'all' ? '全キャスト' : castName);
+  }
 
   function updateEmptyCards() {
     document.querySelectorAll('.card').forEach(function(card){
