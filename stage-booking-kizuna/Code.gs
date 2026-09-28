@@ -924,6 +924,31 @@ function setupSalesManagementSheet(ss) {
   for (var c=2; c<=lastCol; c++) sheet.setColumnWidth(c, 120);
 }
 
+// フォームの説明文・送信後メッセージ
+var FORM_CONFIRMATION = "ご予約ありがとうございます！\nご入力のメールアドレスに予約受付メールをお送りしました。運営事務局より本予約完了のメールをお待ちください。";
+
+function formSeatText() {
+  return CONFIG.seatTypes.map(function(st){
+    return "・" + st.name + "　¥" + String(st.price).replace(/\B(?=(\d{3})+(?!\d))/g, ",") + (st.note ? "　" + st.note : "");
+  }).join("\n");
+}
+
+function formDescriptionText() {
+  return CONFIG.organizer + "\n" + CONFIG.venue + "\n\n" +
+    "【公演日時】（開場は開演の" + CONFIG.doorsOpenMinutes + "分前）\n" + scheduleText() + "\n\n" +
+    "【チケット】\n" + formSeatText() + "\n\n" +
+    "ご予約後、運営事務局より本予約完了のメールをお待ちください。";
+}
+
+// 修正用：作成済みフォームの説明文・送信後メッセージを最新の文言に更新（1回だけ実行）
+function fix_formText() {
+  var formId = PropertiesService.getScriptProperties().getProperty("FORM_ID");
+  var form = FormApp.openById(formId);
+  form.setDescription(formDescriptionText());
+  form.setConfirmationMessage(FORM_CONFIRMATION);
+  Logger.log("✅ フォームの説明文と送信後メッセージを更新しました: " + form.getPublishedUrl());
+}
+
 // ============================================================
 // STEP 2: Googleフォーム作成
 // ============================================================
@@ -933,17 +958,10 @@ function createForm(ss) {
   var seatChoices = getSeatChoicesFromMaster(masterSheet);
 
   var form = FormApp.create(CONFIG.title + " 予約フォーム");
-  var seatText = CONFIG.seatTypes.map(function(st){
-    return "・" + st.name + "　¥" + String(st.price).replace(/\B(?=(\d{3})+(?!\d))/g, ",") + (st.note ? "　" + st.note : "");
-  }).join("\n");
-  form.setDescription(
-    CONFIG.organizer + "\n" + CONFIG.venue + "\n\n" +
-    "【公演日時】（開場は開演の" + CONFIG.doorsOpenMinutes + "分前）\n" + scheduleText() + "\n\n" +
-    "【チケット】\n" + seatText + "\n\n" +
-    "ご予約後、取り扱いキャストより確認の連絡をお待ちください。"
-  );
+  var seatText = formSeatText();
+  form.setDescription(formDescriptionText());
   form.setCollectEmail(false);
-  form.setConfirmationMessage("ご予約ありがとうございます！取り扱いキャストよりご連絡をお待ちください。");
+  form.setConfirmationMessage(FORM_CONFIRMATION);
 
   // 質問1：取り扱いキャスト
   var castChoices = [];
@@ -3391,7 +3409,7 @@ function sendReservationReceivedMail(response, reservationNo) {
     name + " 様\n\n" +
     "この度は「" + CONFIG.title + "」にご予約いただき、誠にありがとうございます。\n" +
     "以下の内容でご予約を受け付けました（仮予約）。\n" +
-    "取り扱いキャストより確認のご連絡をいたしますので、今しばらくお待ちください。\n\n" +
+    "運営事務局より本予約完了のメールをお送りしますので、今しばらくお待ちください。\n\n" +
     "━━━━━━━━━━━━━━━━━━━━\n" +
     "予約番号　：" + reservationNo + "\n" +
     "公演日時　：" + show + "（開場 " + doorsOpenTime(show) + "）\n" +
