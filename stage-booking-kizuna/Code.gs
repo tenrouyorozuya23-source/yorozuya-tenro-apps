@@ -1522,6 +1522,11 @@ function getLineToken() {
   return json.access_token;
 }
 
+// 文字列はテキストメッセージに、オブジェクト（Flex など）はそのまま送る
+function toLineMessage(m) {
+  return typeof m === "string" ? { type: "text", text: m } : m;
+}
+
 // doPost 処理中の返信バッファ（replyToken で返せる相手への送信はここに溜める）
 var LINE_OUTBOX = null;
 
@@ -1537,7 +1542,7 @@ function flushLineOutbox() {
       method: "post",
       contentType: "application/json",
       headers: { "Authorization": "Bearer " + getLineToken() },
-      payload: JSON.stringify({ replyToken: box.replyToken, messages: first.map(function(t){ return { type: "text", text: t }; }) }),
+      payload: JSON.stringify({ replyToken: box.replyToken, messages: first.map(toLineMessage) }),
       muteHttpExceptions: true
     });
     ok = res.getResponseCode() === 200;
@@ -1565,7 +1570,7 @@ function pushLineMessage(userId, message) {
       "Content-Type": "application/json",
       "Authorization": "Bearer " + token
     },
-    payload: JSON.stringify({ to: userId, messages: [{ type: "text", text: message }] }),
+    payload: JSON.stringify({ to: userId, messages: [toLineMessage(message)] }),
     muteHttpExceptions: true
   });
 
@@ -1826,25 +1831,57 @@ function personalUrlText(castName, castLabel) {
 }
 
 function handleFollow(userId) {
-  var names = [];
-  for (var gi=0; gi<CONFIG.groups.length; gi++) {
-    for (var ci=0; ci<CONFIG.groups[gi].casts.length; ci++) names.push(CONFIG.groups[gi].casts[ci].name);
-  }
-  var staffNames = (CONFIG.staff || []).map(function(c){ return c.name; });
   sendLineMessage(userId,
     CONFIG.organizer + "「" + CONFIG.title + "」予約管理LINEへようこそ！\n\n" +
     "【キャスト・スタッフの方へ】\n" +
-    "ご自身のお名前（スタッフは「スタッフ１」などの登録名）をこのトークにそのまま送ってください。キャスト登録が完了し、下のメニューから\n" +
+    "下のボタンからご自身のお名前をタップすると登録が完了します。登録後はメニューから\n" +
     "・予約確認（残席・予約リスト）\n" +
     "・取り置き／キャンセル\n" +
     "・公式サイト\n" +
     "・個別URL（お客様用の予約リンク）\n" +
-    "が使えるようになります。\n\n" +
-    "例：" + names[0] + "\n\n" +
-    "※登録はお一人1回です。名前は下の一覧と同じ表記で送ってください。"
+    "が使えます。\n\n" +
+    "※間違えて登録した場合は「登録解除」と送ってください。"
   );
-  sendLineMessage(userId, "登録できるキャスト名\n\n" + names.join("\n") +
-    (staffNames.length ? "\n\n登録できるスタッフ名\n\n" + staffNames.join("\n") : ""));
+  sendLineMessage(userId, memberButtonsMessage());
+}
+
+// 未登録のキャスト・スタッフの名前ボタン（タップでその名前がトークに送られ、登録される）
+//   キャスト設定シートの LINE UserID が空の人だけを並べる
+function memberButtonsMessage() {
+  var data = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("キャスト設定").getDataRange().getValues();
+  var casts = [], staff = [];
+  for (var i = 1; i < data.length; i++) {
+    var name = String(data[i][0] || "").trim();
+    if (!name || String(data[i][3] || "").trim()) continue;
+    (isStaffName(name) ? staff : casts).push(name);
+  }
+  if (casts.length + staff.length === 0) {
+    return "登録できる名前がありません。運営事務局にお問い合わせください。";
+  }
+  var MAX = 8;  // 1枚のカードに並べるボタンの上限（枚数が均等になるよう割り振る）
+  var bubbles = [];
+  function addCards(names, title) {
+    if (!names.length) return;
+    var PER = Math.ceil(names.length / Math.ceil(names.length / MAX));
+    for (var k = 0; k < names.length; k += PER) {
+      var chunk = names.slice(k, k + PER);
+      var contents = [{ type: "text", text: title + (names.length > PER ? "（" + (k / PER + 1) + "/" + Math.ceil(names.length / PER) + "）" : ""),
+                        weight: "bold", size: "sm", color: "#8a7a5c" }];
+      chunk.forEach(function(n){
+        contents.push({ type: "button", style: "secondary", height: "sm",
+                        action: { type: "message", label: n, text: n } });
+      });
+      bubbles.push({ type: "bubble", size: "kilo",
+                     body: { type: "box", layout: "vertical", spacing: "sm", contents: contents } });
+    }
+  }
+  addCards(casts, "キャスト");
+  addCards(staff, "スタッフ");
+  return {
+    type: "flex",
+    altText: "お名前をタップして登録してください",
+    contents: bubbles.length === 1 ? bubbles[0] : { type: "carousel", contents: bubbles.slice(0, 12) }
+  };
 }
 
 function handleMessage(userId, text) {
@@ -1860,7 +1897,12 @@ function handleMessage(userId, text) {
   if (!isRegistered) {
     var matched = false;
     for (var i=1; i<castData.length; i++) {
-      if (castData[i][0] === text.trim()) {
+      if (String(castData[i][0]).trim() === text.trim()) {
+        if (String(castData[i][3] || "").trim()) {
+          // 別のLINEアカウントで登録済みの名前は上書きしない
+          sendLineMessage(userId, "「" + castData[i][0] + "」はすでに別のLINEアカウントで登録されています。\nお心当たりがない場合は運営事務局にお問い合わせください。");
+          matched = true; break;
+        }
         castSheet.getRange(i+1,4).setValue(userId);
         castSheet.getRange(i+1,5).setValue("LINE");
         var nr = lineSheet.getLastRow()+1;
@@ -1868,7 +1910,7 @@ function handleMessage(userId, text) {
           userId, castData[i][0], castData[i][1],
           Utilities.formatDate(new Date(),"Asia/Tokyo","yyyy/MM/dd HH:mm")
         ]]);
-        sendLineMessage(userId, "✅ " + castData[i][0] + "さんとして登録しました！\n\n下のメニューから「予約確認」「取り置き/キャンセル」「公式サイト」「個別URL」が使えます。\nまずは「個別URL」で、お客様にお送りする予約リンクを受け取ってください。");
+        sendLineMessage(userId, "✅ " + castData[i][0] + "さんとして登録しました！\n\n下のメニューから「予約確認」「取り置き/キャンセル」「公式サイト」「個別URL」が使えます。\nまずは「個別URL」で、お客様にお送りする予約リンクを受け取ってください。\n\n※名前を間違えた場合は「登録解除」と送ってください。");
         matched = true; break;
       }
     }
@@ -1876,7 +1918,8 @@ function handleMessage(userId, text) {
       if (text.trim() === "公式サイト") {
         sendLineMessage(userId, officialLinksText());
       } else {
-        sendLineMessage(userId, "キャスト登録がまだ完了していません。\nご自身のお名前をそのまま送ってください。\n例：" + CONFIG.groups[0].casts[0].name);
+        sendLineMessage(userId, "キャスト登録がまだ完了していません。\n下のボタンからご自身のお名前をタップしてください。");
+        sendLineMessage(userId, memberButtonsMessage());
       }
     }
   } else {
@@ -1885,7 +1928,13 @@ function handleMessage(userId, text) {
     var webUrl    = getWebAppUrl() + "?cast=" + encodeURIComponent(castName);
 
     var cmd = text.trim();
-    if (cmd === "予約確認") {
+    if (cmd === "登録解除") {
+      for (var ri = 1; ri < castData.length; ri++) {
+        if (castData[ri][3] === userId) castSheet.getRange(ri+1, 4).setValue("");
+      }
+      sendLineMessage(userId, "登録を解除しました（" + castName + "）。\n下のボタンから正しいお名前をタップしてください。");
+      sendLineMessage(userId, memberButtonsMessage());
+    } else if (cmd === "予約確認") {
       sendLineMessage(userId, reservationStatusText(castName, webUrl));
     } else if (cmd === "取り置き/キャンセル" || cmd === "取り置き・キャンセル") {
       sendLineMessage(userId, toriokiGuideText());
