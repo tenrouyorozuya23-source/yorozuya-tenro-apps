@@ -314,6 +314,40 @@ function fix_20260928() {
 }
 
 // ============================================================
+// 修正用：予約の記録を「予約一覧」に一本化する（1回だけ実行）
+//   フォームとスプレッドシートの連携（回答シート）を解除し、空の回答シート（予約管理など）を削除する
+//   予約はフォーム送信トリガーで予約一覧に追加され続ける。回答はフォーム側にも保存されている
+//   回答シートにデータが残っている場合は削除せず、非表示にするだけ
+// ============================================================
+function fix_mergeReservationSheets() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var linked = ss.getSheets().filter(function(sh){ return sh.getFormUrl() && sh.getName() !== "予約一覧"; });
+
+  var formId = PropertiesService.getScriptProperties().getProperty("FORM_ID");
+  if (formId) {
+    FormApp.openById(formId).removeDestination();
+    Logger.log("✅ フォームとスプレッドシートの連携（回答シート）を解除しました");
+  }
+
+  linked.forEach(function(sh){
+    var name = sh.getName();
+    if (sh.getLastRow() <= 1) {
+      ss.deleteSheet(sh);
+      Logger.log("🗑 空の回答シート「" + name + "」を削除しました");
+    } else {
+      sh.setName("旧フォーム回答（参照用）");
+      sh.hideSheet();
+      Logger.log("⚠️ 「" + name + "」にデータがあるため削除せず、「旧フォーム回答（参照用）」として非表示にしました");
+    }
+  });
+
+  var main = ss.getSheetByName("予約一覧");
+  ss.setActiveSheet(main);
+  ss.moveActiveSheet(1);
+  Logger.log("✅ 予約の記録を「予約一覧」に一本化しました");
+}
+
+// ============================================================
 // 修正用：フォームの回答シートを「予約一覧」と重複しないよう整理（1回だけ実行）
 //   予約の管理は「予約一覧」で行う。フォームの回答シートは自動記録用として
 //   名前を「フォーム回答（自動記録）」に変えて非表示にする（削除するとフォーム連携が切れるため残す）
@@ -1195,7 +1229,7 @@ function createForm(ss) {
   // 質問8：備考
   form.addParagraphTextItem().setTitle("備考・ご要望").setRequired(false);
 
-  form.setDestination(FormApp.DestinationType.SPREADSHEET, ss.getId());
+  // 回答シートは作らない（フォーム送信トリガーで予約一覧に直接書き込むため、二重にならないようにする）
 
   // キャスト別URL記録
   var castSheet = ss.getSheetByName("キャスト設定");
