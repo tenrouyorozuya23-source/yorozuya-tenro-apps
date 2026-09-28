@@ -108,7 +108,7 @@ var CONFIG = {
   //   予約フォームは空欄なら自動で本システムのフォームURLを使う
   links: {
     site:      "",  // 予約サイト（公式サイト）
-    form:      "",  // 予約フォーム
+    form:      "",  // 予約フォーム（Googleフォームの「送信」→リンク→「URLを短縮」で作った forms.gle のURLを入れる）
     streaming: ""   // 配信購入ページ
   },
 
@@ -1085,7 +1085,7 @@ function update_formTextAndCastUrls() {
   fix_formText();
   updateCastUrls();
   buildControlPanel();
-  Logger.log("✅ フォームの説明文と個別URL（短縮URL）、操作パネルのリンクを更新しました");
+  Logger.log("✅ フォームの説明文と個別URL、操作パネルのリンクを更新しました");
 }
 
 // 更新用（2026/09/28 鍵の修正）：個別URLの鍵を作り直し、操作パネルにテスト予約ボタンを追加し、テスト予約を入れる
@@ -1189,7 +1189,7 @@ function fix_formText() {
   var form = FormApp.openById(formId);
   form.setDescription(formDescriptionText());
   form.setConfirmationMessage(FORM_CONFIRMATION);
-  Logger.log("✅ フォームの説明文と送信後メッセージを更新しました: " + shortUrl(form.getPublishedUrl()));
+  Logger.log("✅ フォームの説明文と送信後メッセージを更新しました: " + form.getPublishedUrl());
 }
 
 // ============================================================
@@ -1986,7 +1986,7 @@ function toriokiTemplate() {
 function getFormPublishedUrl() {
   if (CONFIG.links.form) return CONFIG.links.form;
   var formId = PropertiesService.getScriptProperties().getProperty("FORM_ID");
-  return formId ? shortUrl(formGatewayUrl("")) : "";
+  return formId ? formGatewayUrl("") : "";
 }
 
 function officialLinksText() {
@@ -2003,7 +2003,7 @@ function officialLinksText() {
 function getCastFormUrl(castLabel) {
   var name = String(castLabel).replace(/\s*【[^】]*】/, "").trim();
   var urls = getCastFormUrls();
-  return shortUrl(formGatewayUrl(urls.byLabel[castLabel] ? name : ""));
+  return urls.byLabel[castLabel] ? formGatewayUrl(name) : getFormPublishedUrl();
 }
 
 function personalUrlText(castName, castLabel) {
@@ -3278,7 +3278,7 @@ function updateCastUrls() {
     if (!castName) continue;
     var label = castName + " 【" + group + "】";
     // お客様用：入口ページ（ロゴの読み込み画面）経由。フォームに無い名前（スタッフ）は通常フォームへ
-    castSheet.getRange(i+1, 8).setValue(shortUrl(formGatewayUrl(formUrls.byLabel[label] ? castName : "")));
+    castSheet.getRange(i+1, 8).setValue(formUrls.byLabel[label] ? formGatewayUrl(castName) : getFormPublishedUrl());
     castSheet.getRange(i+1, 10).setValue(listUrlFor(castName));
     updated++;
   }
@@ -3291,8 +3291,17 @@ function updateCastUrls() {
 //   短縮URL → このページ（ロゴの読み込み画面）→ 予約フォーム（取り扱いキャスト選択済み）
 //   自動で移動できない端末向けに「予約フォームを開く」ボタンも出す
 // ============================================================
+// c はキャスト番号（CONFIG のキャスト順、1始まり）。URLを短くするため名前ではなく番号にする
 function formGatewayUrl(castName) {
-  return getWebAppUrl() + "?page=form" + (castName ? "&c=" + encodeURIComponent(castName) : "");
+  var no = castNumber(castName);
+  return getWebAppUrl() + "?page=form" + (no ? "&c=" + no : "");
+}
+
+function castNumber(castName) {
+  if (!castName) return 0;
+  var casts = allMembers().filter(function(m){ return !m.staff; });
+  for (var i = 0; i < casts.length; i++) if (casts[i].name === castName) return i + 1;
+  return 0;
 }
 
 // 読み込み画面用のロゴ（register.html に埋め込み済みの画像を流用）
@@ -3310,7 +3319,9 @@ function formGatewayPage(castName) {
   var target = "";
   try {
     var urls = getCastFormUrls();
-    var member = castName ? allMembers().filter(function(m){ return m.name === castName; })[0] : null;
+    var casts = allMembers().filter(function(m){ return !m.staff; });
+    var member = /^\d+$/.test(castName) ? casts[Number(castName) - 1]
+               : castName ? casts.filter(function(m){ return m.name === castName; })[0] : null;
     var label = member ? member.name + " 【" + member.group + "】" : "";
     target = urls.byLabel[label] || urls.general;
   } catch (err) { Logger.log("フォームURL取得エラー: " + err.message); }
@@ -3344,33 +3355,6 @@ function formGatewayPage(castName) {
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
 
-// URLを短縮する（TinyURL → だめなら is.gd → だめなら元のURL）。結果はスクリプト プロパティにキャッシュ
-function shortUrl(url) {
-  if (!url) return "";
-  var digest = Utilities.computeDigest(Utilities.DigestAlgorithm.MD5, url, Utilities.Charset.UTF_8)
-    .map(function(b){ return ("0" + (b & 0xff).toString(16)).slice(-2); }).join("");
-  var props = PropertiesService.getScriptProperties();
-  var key = "short_" + digest;
-  var cached = props.getProperty(key);
-  if (cached) return cached;
-  var services = [
-    "https://tinyurl.com/api-create.php?url=",
-    "https://is.gd/create.php?format=simple&url="
-  ];
-  for (var i = 0; i < services.length; i++) {
-    try {
-      var res = UrlFetchApp.fetch(services[i] + encodeURIComponent(url), { muteHttpExceptions: true });
-      var out = res.getContentText().trim();
-      if (res.getResponseCode() === 200 && /^https:\/\/\S+$/.test(out) && out.length < url.length) {
-        props.setProperty(key, out);
-        return out;
-      }
-    } catch (e) {
-      Logger.log("短縮URLエラー: " + e.message);
-    }
-  }
-  return url;
-}
 
 // 取り扱いキャストの選択肢ごとの「選択済み予約フォームURL」をまとめて作る
 function getCastFormUrls() {
