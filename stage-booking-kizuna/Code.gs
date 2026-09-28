@@ -66,6 +66,14 @@ var CONFIG = {
     }
   ],
 
+  // スタッフ：LINE登録・取り置き・予約確認はキャストと同じく使えるが、予約フォームの選択肢には出さない
+  staffGroup: "家族の絆",
+  staff: [
+    { name: "スタッフ１", mail: "" },
+    { name: "スタッフ２", mail: "" },
+    { name: "スタッフ３", mail: "" }
+  ],
+
   notify: {
     line: true,
     mail: false,
@@ -141,6 +149,22 @@ function buildCastGoods() {
     }
   }
   return goods;
+}
+
+// キャスト設定シートに載せる全メンバー（キャスト＋スタッフ）
+function allMembers() {
+  var list = [];
+  CONFIG.groups.forEach(function(g){
+    g.casts.forEach(function(c){ list.push({ name: c.name, group: g.name, mail: c.mail || "", staff: false }); });
+  });
+  (CONFIG.staff || []).forEach(function(c){
+    list.push({ name: c.name, group: CONFIG.staffGroup, mail: c.mail || "", staff: true });
+  });
+  return list;
+}
+
+function isStaffName(name) {
+  return (CONFIG.staff || []).some(function(c){ return c.name === name; });
 }
 
 // 開演時刻（"12/4(金) 18:30"）から開場時刻（"18:00"）を求める
@@ -413,31 +437,47 @@ function setupCastSheet(ss) {
   sheet.getRange(1,1,1,headers.length).setValues([headers]);
   styleHeader(sheet.getRange(1,1,1,headers.length));
   sheet.setFrozenRows(1);
-  var row = 2;
-  for (var gi=0; gi<CONFIG.groups.length; gi++) {
-    var group = CONFIG.groups[gi];
-    for (var ci=0; ci<group.casts.length; ci++) {
-      var cast = group.casts[ci];
-      var label = cast.name + " 【" + group.name + "】";
-      sheet.getRange(row,1).setValue(cast.name);
-      sheet.getRange(row,2).setValue(group.name);
-      sheet.getRange(row,3).setValue(cast.mail || "");
-      sheet.getRange(row,4).setValue("");
-      sheet.getRange(row,5).setValue("LINE");
-      sheet.getRange(row,5).setDataValidation(
-        SpreadsheetApp.newDataValidation()
-          .requireValueInList(["LINE","メール","両方","なし"])
-          .setAllowInvalid(false)
-          .build()
-      );
-      sheet.getRange(row,6).setFormula('=COUNTIF(予約一覧!B:B,"' + label + '")');
-      sheet.getRange(row,7).setFormula('=SUMIF(予約一覧!B:B,"' + label + '",予約一覧!H:H)');  // H列=枚数
-      sheet.getRange(row,8).setValue("");
-      row++;
-    }
-  }
+  allMembers().forEach(function(m, i){ writeMemberRow(sheet, 2 + i, m); });
   var colWidths = [130,130,200,160,90,70,80,300];
   for (var i=0; i<colWidths.length; i++) sheet.setColumnWidth(i+1, colWidths[i]);
+}
+
+// キャスト設定の1行を書く（LINE UserID・個別URLは既存値を残す）
+function writeMemberRow(sheet, row, m) {
+  var label = m.name + " 【" + m.group + "】";
+  sheet.getRange(row,1,1,3).setValues([[m.name, m.group, m.mail || ""]]);
+  if (!sheet.getRange(row,5).getValue()) sheet.getRange(row,5).setValue("LINE");
+  sheet.getRange(row,5).setDataValidation(
+    SpreadsheetApp.newDataValidation().requireValueInList(["LINE","メール","両方","なし"]).setAllowInvalid(false).build()
+  );
+  sheet.getRange(row,6,1,2).setFormulas([[
+    '=COUNTIF(予約一覧!B:B,"' + label + '")',
+    '=SUMIF(予約一覧!B:B,"' + label + '",予約一覧!H:H)'  // H列=枚数
+  ]]);
+}
+
+// キャスト設定シートに CONFIG のキャスト・スタッフで足りない行を追加し、集計式を整える
+//   既存行の LINE UserID・メールアドレス・個別URL は消さない
+function syncCastSheet() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName("キャスト設定");
+  var data = sheet.getDataRange().getValues();
+  var rowByName = {};
+  for (var i = 1; i < data.length; i++) if (data[i][0]) rowByName[String(data[i][0]).trim()] = i + 1;
+  var added = [];
+  allMembers().forEach(function(m){
+    var row = rowByName[m.name];
+    if (!row) {
+      row = sheet.getLastRow() + 1;
+      rowByName[m.name] = row;
+      added.push(m.name);
+    } else if (data[row-1][2]) {
+      m.mail = data[row-1][2]; // シートに入力済みのメールアドレスを優先
+    }
+    writeMemberRow(sheet, row, m);
+  });
+  updateCastUrls();
+  return added.length ? added.join("・") + " を追加しました" : "追加が必要なメンバーはいません（集計式と個別URLを更新）";
 }
 
 // --- 操作パネル ---
@@ -938,6 +978,13 @@ function formDescriptionText() {
     "【公演日時】（開場は開演の" + CONFIG.doorsOpenMinutes + "分前）\n" + scheduleText() + "\n\n" +
     "【チケット】\n" + formSeatText() + "\n\n" +
     "ご予約後、運営事務局より本予約完了のメールをお待ちください。";
+}
+
+// 更新用：操作パネルを最新版に作り直し、キャスト設定にスタッフなどの不足行を追加する（1回だけ実行）
+function update_panelAndMembers() {
+  buildControlPanel();
+  Logger.log("✅ 操作パネルを最新版にしました");
+  Logger.log("✅ " + syncCastSheet());
 }
 
 // 修正用：作成済みフォームの説明文・送信後メッセージを最新の文言に更新（1回だけ実行）
@@ -1608,13 +1655,16 @@ function test_line() {
     headers: { "Authorization": "Bearer " + token },
     muteHttpExceptions: true
   });
+  var msg;
   if (res.getResponseCode() === 200) {
     var info = JSON.parse(res.getContentText());
-    Logger.log("✅ LINE接続OK：公式アカウント「" + info.displayName + "」（" + info.basicId + "）");
+    msg = "✅ LINE接続OK：公式アカウント「" + info.displayName + "」（" + info.basicId + "）";
   } else {
-    Logger.log("❌ LINE接続エラー：" + res.getResponseCode() + " / " + res.getContentText());
+    msg = "❌ LINE接続エラー：" + res.getResponseCode() + " / " + res.getContentText();
   }
+  Logger.log(msg);
   Logger.log("ウェブアプリURL（LINEのWebhook URLと一致しているか確認）: " + getWebAppUrl());
+  return msg;
 }
 
 // ============================================================
@@ -1761,6 +1811,13 @@ function getCastFormUrl(castLabel) {
 }
 
 function personalUrlText(castName, castLabel) {
+  if (isStaffName(castName)) {
+    var formUrl = "";
+    try { formUrl = getFormPublishedUrl(); } catch(e) {}
+    return "🔗 予約フォームのURL\n" +
+      "スタッフは予約フォームの取り扱い先に表示されないため、通常の予約フォームをご案内ください（お客様がキャストを選んで予約します）。\n" +
+      "スタッフ扱いの予約は「取り置き」から登録してください。\n\n" + (formUrl || "準備中");
+  }
   var url = "";
   try { url = getCastFormUrl(castLabel); } catch(e) { Logger.log("個別URLエラー: " + e.message); }
   return "🔗 " + castName + "さん専用の予約URL\n" +
@@ -1773,10 +1830,11 @@ function handleFollow(userId) {
   for (var gi=0; gi<CONFIG.groups.length; gi++) {
     for (var ci=0; ci<CONFIG.groups[gi].casts.length; ci++) names.push(CONFIG.groups[gi].casts[ci].name);
   }
+  var staffNames = (CONFIG.staff || []).map(function(c){ return c.name; });
   sendLineMessage(userId,
     CONFIG.organizer + "「" + CONFIG.title + "」予約管理LINEへようこそ！\n\n" +
-    "【キャストの方へ】\n" +
-    "ご自身のお名前をこのトークにそのまま送ってください。キャスト登録が完了し、下のメニューから\n" +
+    "【キャスト・スタッフの方へ】\n" +
+    "ご自身のお名前（スタッフは「スタッフ１」などの登録名）をこのトークにそのまま送ってください。キャスト登録が完了し、下のメニューから\n" +
     "・予約確認（残席・予約リスト）\n" +
     "・取り置き／キャンセル\n" +
     "・公式サイト\n" +
@@ -1785,7 +1843,8 @@ function handleFollow(userId) {
     "例：" + names[0] + "\n\n" +
     "※登録はお一人1回です。名前は下の一覧と同じ表記で送ってください。"
   );
-  sendLineMessage(userId, "登録できるキャスト名\n\n" + names.join("\n"));
+  sendLineMessage(userId, "登録できるキャスト名\n\n" + names.join("\n") +
+    (staffNames.length ? "\n\n登録できるスタッフ名\n\n" + staffNames.join("\n") : ""));
 }
 
 function handleMessage(userId, text) {
@@ -2645,6 +2704,28 @@ function createCastSheets() {
 // ============================================================
 // 操作パネルを作り込む（1回だけ実行）
 // ============================================================
+// 操作パネルのボタン（上から順に並ぶ。handleEdit もこの一覧で実行する）
+var CONTROL_OPS = [
+  { func: "updateRemainingSeats",      name: "残席を更新する",             desc: "公演マスタの予約数・残席を最新化します",
+    run: function(){ return updateRemainingSeats(); } },
+  { func: "sendBookingEmails",         name: "本予約メールを下書き作成",   desc: "仮予約済みのお客様への本予約確認メールを " + CONFIG.mail.from + " の下書きに作成し、本予約済みにします",
+    run: function(){ return sendBookingEmails(); } },
+  { func: "updateAttendanceSheets",    name: "受付表を更新する",           desc: "各公演の受付表シートとキャスト別の集計を最新化します",
+    run: function(){ updateAttendanceSheets(); return "受付表を更新しました"; } },
+  { func: "sortAllAttendanceByResNo",  name: "受付表を予約番号順に並べる", desc: "全公演の受付表を予約番号（R-001）の昇順に並び替えます",
+    run: function(){ sortAllAttendanceByResNo(); return "受付表を予約番号順に並べました"; } },
+  { func: "sortAllAttendanceByKana",   name: "受付表をふりがな順に並べる", desc: "全公演の受付表をふりがなのあいうえお順に並び替えます",
+    run: function(){ sortAllAttendanceByKana(); return "受付表をふりがな順に並べました"; } },
+  { func: "sendDailyLineNotification", name: "LINE通知を今すぐ送信",       desc: "本日分の新規予約をキャスト・スタッフにLINE（未登録者はメール）で通知します",
+    run: function(){ sendDailyLineNotification(); return "通知を送信しました"; } },
+  { func: "syncCastSheet",             name: "キャスト・スタッフを同期",   desc: "コードのキャスト・スタッフ一覧でキャスト設定の不足行を追加し、集計式と個別URLを更新します",
+    run: function(){ return syncCastSheet(); } },
+  { func: "updateCastUrls",            name: "個別URLを更新",             desc: "キャスト設定の個別URL（予約リストのリンク）を公開URLで書き直します",
+    run: function(){ updateCastUrls(); return "個別URLを更新しました"; } },
+  { func: "test_line",                 name: "LINE接続テスト",             desc: "LINEのトークンが有効か確認します（結果はメッセージ欄）",
+    run: function(){ return test_line(); } }
+];
+
 function buildControlPanel() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sheet = ss.getSheetByName("操作パネル");
@@ -2666,48 +2747,7 @@ function buildControlPanel() {
     .setBackground("#2a2845").setFontColor("#ffffff").setFontWeight("bold");
 
   // ===== 操作一覧 =====
-  var ops = [
-    {
-      func: "updateRemainingSeats",
-      name: "残席を更新する",
-      desc: "公演マスタの予約数・残席を最新化します"
-    },
-    {
-      func: "sendBookingEmails",
-      name: "本予約メールを下書き作成",
-      desc: "仮予約済みのお客様に本予約確認メールの下書きを作成します"
-    },
-    {
-      func: "updateCastSheets",
-      name: "キャスト別シートを更新",
-      desc: "各キャストの予約リストを最新化します"
-    },
-    {
-      func: "sendDailyLineNotification",
-      name: "LINE通知を今すぐ送信",
-      desc: "当日の予約をLINEでキャストに通知します"
-    },
-    {
-      func: "updateAttendanceSheets",
-      name: "受付表を更新する",
-      desc: "各公演の受付表シートを最新化します"
-    },
-    {
-      func: "sortAllAttendanceByResNo",
-      name: "受付表を予約番号順に並べる",
-      desc: "全公演の受付表を予約番号（R-001）の昇順に並び替えます"
-    },
-    {
-      func: "sortAllAttendanceByKana",
-      name: "受付表をふりがな順に並べる",
-      desc: "全公演の受付表をふりがなのあいうえお順に並び替えます"
-    },
-    {
-      func: "createCastSheets",
-      name: "キャスト別シートを作成",
-      desc: "個別URLが未設定のキャストの予約表シートを自動作成します"
-    }
-  ];
+  var ops = CONTROL_OPS;
 
   for (var i = 0; i < ops.length; i++) {
     var row = headerRow + 1 + i;
@@ -2768,7 +2808,12 @@ function buildControlPanel() {
   sheet.getRange(linkRow+3, 2).setFontColor("#0F6E56");
   sheet.getRange(linkRow+3, 3).setValue(checkinUrl).setFontColor("#9B9B97");
 
-  sheet.getRange(linkRow+1, 1, 3, 6).setBackground("#F0F7FC");
+  var formUrl = "";
+  try { formUrl = getFormPublishedUrl(); } catch(e) {}
+  sheet.getRange(linkRow+4, 1).setValue("📝 予約フォーム").setFontWeight("bold");
+  if (formUrl) sheet.getRange(linkRow+4, 2).setFormula('=HYPERLINK("' + formUrl + '","予約フォームを開く →")').setFontColor("#185FA5");
+  sheet.getRange(linkRow+4, 3).setValue(formUrl || "未作成").setFontColor("#9B9B97");
+  sheet.getRange(linkRow+1, 1, 4, 6).setBackground("#F0F7FC");
 
   // ===== 列幅 =====
   sheet.setColumnWidth(1, 60);   // チェックボックス
@@ -2921,21 +2966,9 @@ function handleEdit(e) {
   if (col !== 1 || row < 4) return;
   if (e.value !== "TRUE") return;
 
-  var ops = [
-    "updateRemainingSeats",
-    "sendBookingEmails",
-    "updateCastSheets",
-    "sendDailyLineNotification",
-    "updateAttendanceSheets",
-    "sortAllAttendanceByResNo",
-    "sortAllAttendanceByKana",
-    "createCastSheets"
-  ];
-
   var opIndex = row - 4;
-  if (opIndex < 0 || opIndex >= ops.length) return;
-
-  var funcName = ops[opIndex];
+  if (opIndex < 0 || opIndex >= CONTROL_OPS.length) return;
+  var op = CONTROL_OPS[opIndex];
   var now = Utilities.formatDate(new Date(), "Asia/Tokyo", "yyyy/MM/dd HH:mm:ss");
 
   // ステータスを「実行中」に更新
@@ -2944,16 +2977,7 @@ function handleEdit(e) {
   sheet.getRange(row, 6).setValue("");
 
   try {
-    // 対応する関数を実行
-    var result = "";
-    if (funcName === "updateRemainingSeats")           { result = updateRemainingSeats(); }
-    else if (funcName === "sendBookingEmails")          { result = sendBookingEmails(); }
-    else if (funcName === "updateCastSheets")           { updateAttendanceSheets(); result = "キャスト別シートを更新しました"; }
-    else if (funcName === "sendDailyLineNotification")  { sendDailyLineNotification(); result = "LINE通知を送信しました"; }
-    else if (funcName === "updateAttendanceSheets")     { updateAttendanceSheets(); result = "受付表を更新しました"; }
-    else if (funcName === "sortAllAttendanceByResNo")   { sortAllAttendanceByResNo(); result = "受付表を予約番号順に並べました"; }
-    else if (funcName === "sortAllAttendanceByKana")    { sortAllAttendanceByKana(); result = "受付表をふりがな順に並べました"; }
-    else if (funcName === "createCastSheets")           { result = createCastSheets(); }
+    var result = op.run() || "完了しました";
 
     // 成功
     sheet.getRange(row, 5).setValue("✅ 完了").setFontColor("#0F6E56");
