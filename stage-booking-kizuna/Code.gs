@@ -173,6 +173,43 @@ function isStaffName(name) {
   return (CONFIG.staff || []).some(function(c){ return c.name === name; });
 }
 
+// ============================================================
+// 予約リストの公開範囲とURLの鍵
+//   キャスト設定の「予約の公開範囲」が「全員の予約」の人は全予約、それ以外は自分の予約だけ見られる
+//   予約リストURLには名前ごとの鍵（key）を付け、鍵が合わないURLでは表示しない
+// ============================================================
+var SCOPE_OWN = "自分の予約のみ";
+var SCOPE_ALL = "全員の予約";
+var ADMIN_VIEWER = "運営事務局";  // 操作パネルのリンク用（常に全員の予約）
+
+function listKey(name) {
+  var props = PropertiesService.getScriptProperties();
+  var secret = props.getProperty("LIST_URL_SECRET");
+  if (!secret) {
+    secret = Utilities.getUuid() + Utilities.getUuid();
+    props.setProperty("LIST_URL_SECRET", secret);
+  }
+  var sig = Utilities.computeHmacSha256Signature(String(name), secret);
+  return sig.slice(0, 8).map(function(b){ return ("0" + (b & 0xff).toString(16)).slice(-2); }).join("");
+}
+
+function listUrlFor(name) {
+  return getWebAppUrl() + "?cast=" + encodeURIComponent(name) + "&key=" + listKey(name);
+}
+
+// キャスト設定から、その人の公開範囲を返す（見つからなければ null）
+function getViewScope(name) {
+  if (name === ADMIN_VIEWER) return SCOPE_ALL;
+  var data = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("キャスト設定").getDataRange().getValues();
+  var scopeCol = data[0].map(String).indexOf("予約の公開範囲");
+  for (var i = 1; i < data.length; i++) {
+    if (String(data[i][0]).trim() === name) {
+      return scopeCol >= 0 && String(data[i][scopeCol]) === SCOPE_ALL ? SCOPE_ALL : SCOPE_OWN;
+    }
+  }
+  return null;
+}
+
 // 開演時刻（"12/4(金) 18:30"）から開場時刻（"18:00"）を求める
 function doorsOpenTime(dt) {
   var m = String(dt).match(/(\d{1,2}):(\d{2})\s*$/);
@@ -439,12 +476,12 @@ function setupMasterSheet(ss) {
 // --- キャスト設定 ---
 function setupCastSheet(ss) {
   var sheet = getOrCreateSheet(ss, "キャスト設定");
-  var headers = ["キャスト名","団体名","メールアドレス","LINE UserID","通知方法","予約数","合計席数","個別URL"];
+  var headers = ["キャスト名","団体名","メールアドレス","LINE UserID","通知方法","予約数","合計席数","個別URL","予約の公開範囲"];
   sheet.getRange(1,1,1,headers.length).setValues([headers]);
   styleHeader(sheet.getRange(1,1,1,headers.length));
   sheet.setFrozenRows(1);
   allMembers().forEach(function(m, i){ writeMemberRow(sheet, 2 + i, m); });
-  var colWidths = [130,130,200,160,90,70,80,300];
+  var colWidths = [130,130,200,160,90,70,80,300,130];
   for (var i=0; i<colWidths.length; i++) sheet.setColumnWidth(i+1, colWidths[i]);
 }
 
@@ -456,6 +493,12 @@ function writeMemberRow(sheet, row, m) {
   sheet.getRange(row,5).setDataValidation(
     SpreadsheetApp.newDataValidation().requireValueInList(["LINE","メール","両方","なし"]).setAllowInvalid(false).build()
   );
+  // 予約の公開範囲（プルダウン。未設定なら自分の予約のみ）
+  var scopeCell = sheet.getRange(row, 9);
+  scopeCell.setDataValidation(
+    SpreadsheetApp.newDataValidation().requireValueInList([SCOPE_OWN, SCOPE_ALL]).setAllowInvalid(false).build()
+  );
+  if (!scopeCell.getValue()) scopeCell.setValue(SCOPE_OWN);
   sheet.getRange(row,6,1,2).setFormulas([[
     '=COUNTIF(予約一覧!B:B,"' + label + '")',
     '=SUMIF(予約一覧!B:B,"' + label + '",予約一覧!H:H)'  // H列=枚数
@@ -467,6 +510,11 @@ function writeMemberRow(sheet, row, m) {
 function syncCastSheet() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sheet = ss.getSheetByName("キャスト設定");
+  if (String(sheet.getRange(1, 9).getValue()) !== "予約の公開範囲") {
+    sheet.getRange(1, 9).setValue("予約の公開範囲");
+    styleHeader(sheet.getRange(1, 9));
+    sheet.setColumnWidth(9, 130);
+  }
   var data = sheet.getDataRange().getValues();
   var rowByName = {};
   for (var i = 1; i < data.length; i++) if (data[i][0]) rowByName[String(data[i][0]).trim()] = i + 1;
@@ -482,6 +530,16 @@ function syncCastSheet() {
     }
     writeMemberRow(sheet, row, m);
   });
+  // コードにない人（代表者など手で追加した行）にも公開範囲のプルダウンを付ける
+  var known = {};
+  allMembers().forEach(function(m){ known[m.name] = true; });
+  for (var i = 1; i < data.length; i++) {
+    var name = String(data[i][0] || "").trim();
+    if (!name || known[name]) continue;
+    var cell = sheet.getRange(i + 1, 9);
+    cell.setDataValidation(SpreadsheetApp.newDataValidation().requireValueInList([SCOPE_OWN, SCOPE_ALL]).setAllowInvalid(false).build());
+    if (!cell.getValue()) cell.setValue(SCOPE_OWN);
+  }
   updateCastUrls();
   return added.length ? added.join("・") + " を追加しました" : "追加が必要なメンバーはいません（集計式と個別URLを更新）";
 }
@@ -985,6 +1043,13 @@ function formDescriptionText() {
     "【チケット】\n" + formSeatText() + "\n\n" +
     "【お支払い】\n" + CONFIG.payment.ticket + "\n" + CONFIG.payment.goods + "\n\n" +
     "ご予約後、運営事務局より本予約完了のメールをお待ちください。";
+}
+
+// 更新用：キャスト設定に「予約の公開範囲」列を追加し、鍵付きの個別URLと操作パネルを更新する（1回だけ実行）
+function update_viewScope() {
+  Logger.log("✅ " + syncCastSheet());
+  buildControlPanel();
+  Logger.log("✅ 予約の公開範囲の列を追加し、個別URLと操作パネルを更新しました");
 }
 
 // 更新用：操作パネルを最新版に作り直し、キャスト設定にスタッフなどの不足行を追加する（1回だけ実行）
@@ -1836,9 +1901,11 @@ function reservationStatusText(castName, webUrl) {
     var mark = remain <= 0 ? "×満席" : remain <= 10 ? "△残" + remain : "○残" + remain;
     lines.push(String(data[i][1]) + "　" + mark);
   }
+  var all = getViewScope(castName) === SCOPE_ALL;
   return "📋 残席状況（" + Utilities.formatDate(new Date(), "Asia/Tokyo", "M/d HH:mm") + "時点）\n\n" +
     lines.join("\n") + "\n\n" +
-    "📝 " + castName + "さんの予約リスト👇\n" + webUrl;
+    (all ? "📝 全員の予約リスト（" + castName + "さん用）👇\n" : "📝 " + castName + "さんの予約リスト👇\n") + webUrl +
+    "\n※このリンクはあなた専用です。他の人に送らないでください。";
 }
 
 function toriokiGuideText() {
@@ -2006,7 +2073,7 @@ function handleMessage(userId, text) {
   } else {
     var castName  = getCastNameByUserId(userId, castData);
     var castLabel = getCastLabelByUserId(userId, castData); // 「名前 【団体名】」形式
-    var webUrl    = getWebAppUrl() + "?cast=" + encodeURIComponent(castName);
+    var webUrl    = listUrlFor(castName);
 
     var cmd = text.trim();
     if (cmd === "登録解除") {
@@ -2191,8 +2258,19 @@ function doGet(e) {
       .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
   }
 
-  // 予約リスト（デフォルト）
-  var castName = e && e.parameter && e.parameter.cast ? e.parameter.cast : "";
+  // 予約リスト（デフォルト）：名前と鍵が正しいURLのみ表示
+  var viewer = e && e.parameter && e.parameter.cast ? String(e.parameter.cast).trim() : "";
+  var key    = e && e.parameter && e.parameter.key  ? String(e.parameter.key) : "";
+  var scope  = viewer ? getViewScope(viewer) : null;
+  if (!viewer || !scope || key !== listKey(viewer)) {
+    return HtmlService.createHtmlOutput(
+      '<meta name="viewport" content="width=device-width,initial-scale=1">' +
+      '<div style="font-family:sans-serif;max-width:420px;margin:15vh auto;padding:0 16px;text-align:center;line-height:1.8">' +
+      '<h2 style="font-size:18px">このURLでは予約リストを表示できません</h2>' +
+      '<p style="color:#666;font-size:14px">公式LINEのメニュー「予約確認」から届くリンクを開いてください。</p></div>'
+    ).setTitle(CONFIG.title + " 予約リスト");
+  }
+  var castName = scope === SCOPE_ALL ? "" : viewer;  // 全員の予約 → 絞り込みなし（キャスト別フィルタ付き）
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var reservations = getReservationsForCast(ss, castName);
   var template = HtmlService.createTemplateFromFile("index");
@@ -2233,7 +2311,7 @@ function getReservationsForCast(ss, castName) {
   for (var i=1; i<data.length; i++) {
     var row = data[i];
     var castLabel = String(row[col.cast]||"");
-    if (castName && castLabel.indexOf(castName) === -1) continue;
+    if (castName && castLabel.replace(/\s*【[^】]*】/, "").trim() !== castName) continue;
     if (String(row[col.status]) === "キャンセル") continue;
 
     var showDt = String(row[col.show]||"").trim();
@@ -2928,9 +3006,10 @@ function buildControlPanel() {
   sheet.getRange(linkRow+1, 3).setValue(registerUrl).setFontColor("#9B9B97");
 
   sheet.getRange(linkRow+2, 1).setValue("📋 予約リスト").setFontWeight("bold");
-  sheet.getRange(linkRow+2, 2).setFormula('=HYPERLINK("' + webAppUrl + '","予約リストを開く →")');
+  var adminListUrl = listUrlFor(ADMIN_VIEWER);
+  sheet.getRange(linkRow+2, 2).setFormula('=HYPERLINK("' + adminListUrl + '","予約リスト（全員）を開く →")');
   sheet.getRange(linkRow+2, 2).setFontColor("#185FA5");
-  sheet.getRange(linkRow+2, 3).setValue(webAppUrl + "?cast=キャスト名").setFontColor("#9B9B97");
+  sheet.getRange(linkRow+2, 3).setValue("運営用・全員の予約（URLは外部に共有しないでください）").setFontColor("#9B9B97");
 
   var checkinUrl = webAppUrl + "?page=checkin";
   sheet.getRange(linkRow+3, 1).setValue("📱 受付アプリ").setFontWeight("bold");
@@ -3136,13 +3215,12 @@ function updateCastUrls() {
   for (var i = 1; i < castData.length; i++) {
     var castName = castData[i][0];
     if (!castName) continue;
-    var newUrl = webAppUrl + "?cast=" + encodeURIComponent(castName);
-    castSheet.getRange(i+1, 8).setValue(newUrl);
+    castSheet.getRange(i+1, 8).setValue(listUrlFor(castName));
     updated++;
   }
 
   Logger.log("✅ " + updated + "件のURLを更新しました");
-  Logger.log("新しいURL例: " + webAppUrl + "?cast=" + encodeURIComponent(castData[1][0]));
+  Logger.log("新しいURL例: " + listUrlFor(castData[1][0]));
 }
 
 // ============================================================
