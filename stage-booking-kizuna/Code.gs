@@ -1084,7 +1084,8 @@ function formDescriptionText() {
 function update_formTextAndCastUrls() {
   fix_formText();
   updateCastUrls();
-  Logger.log("✅ フォームの説明文と個別URLを更新しました");
+  buildControlPanel();
+  Logger.log("✅ フォームの説明文と個別URL（短縮URL）、操作パネルのリンクを更新しました");
 }
 
 // 更新用（2026/09/28 鍵の修正）：個別URLの鍵を作り直し、操作パネルにテスト予約ボタンを追加し、テスト予約を入れる
@@ -1188,7 +1189,7 @@ function fix_formText() {
   var form = FormApp.openById(formId);
   form.setDescription(formDescriptionText());
   form.setConfirmationMessage(FORM_CONFIRMATION);
-  Logger.log("✅ フォームの説明文と送信後メッセージを更新しました: " + form.getPublishedUrl());
+  Logger.log("✅ フォームの説明文と送信後メッセージを更新しました: " + shortUrl(form.getPublishedUrl()));
 }
 
 // ============================================================
@@ -1985,7 +1986,7 @@ function toriokiTemplate() {
 function getFormPublishedUrl() {
   if (CONFIG.links.form) return CONFIG.links.form;
   var formId = PropertiesService.getScriptProperties().getProperty("FORM_ID");
-  return formId ? FormApp.openById(formId).getPublishedUrl() : "";
+  return formId ? shortUrl(FormApp.openById(formId).getPublishedUrl()) : "";
 }
 
 function officialLinksText() {
@@ -2001,7 +2002,7 @@ function officialLinksText() {
 // 個別URL：取り扱いキャストが入力済みの予約フォーム（お客様に送る用）
 function getCastFormUrl(castLabel) {
   var urls = getCastFormUrls();
-  return urls.byLabel[castLabel] || urls.general;
+  return shortUrl(urls.byLabel[castLabel] || urls.general);
 }
 
 function personalUrlText(castName, castLabel) {
@@ -3270,12 +3271,40 @@ function updateCastUrls() {
     var group    = String(castData[i][1] || "").trim();
     if (!castName) continue;
     var label = castName + " 【" + group + "】";
-    castSheet.getRange(i+1, 8).setValue(formUrls.byLabel[label] || formUrls.general);
+    castSheet.getRange(i+1, 8).setValue(shortUrl(formUrls.byLabel[label] || formUrls.general));
     castSheet.getRange(i+1, 10).setValue(listUrlFor(castName));
     updated++;
   }
   Logger.log("✅ " + updated + "件の個別URL（予約フォーム）と予約リストURLを更新しました");
   return updated + "件のURLを更新しました";
+}
+
+// URLを短縮する（TinyURL → だめなら is.gd → だめなら元のURL）。結果はスクリプト プロパティにキャッシュ
+function shortUrl(url) {
+  if (!url) return "";
+  var digest = Utilities.computeDigest(Utilities.DigestAlgorithm.MD5, url, Utilities.Charset.UTF_8)
+    .map(function(b){ return ("0" + (b & 0xff).toString(16)).slice(-2); }).join("");
+  var props = PropertiesService.getScriptProperties();
+  var key = "short_" + digest;
+  var cached = props.getProperty(key);
+  if (cached) return cached;
+  var services = [
+    "https://tinyurl.com/api-create.php?url=",
+    "https://is.gd/create.php?format=simple&url="
+  ];
+  for (var i = 0; i < services.length; i++) {
+    try {
+      var res = UrlFetchApp.fetch(services[i] + encodeURIComponent(url), { muteHttpExceptions: true });
+      var out = res.getContentText().trim();
+      if (res.getResponseCode() === 200 && /^https:\/\/\S+$/.test(out) && out.length < url.length) {
+        props.setProperty(key, out);
+        return out;
+      }
+    } catch (e) {
+      Logger.log("短縮URLエラー: " + e.message);
+    }
+  }
+  return url;
 }
 
 // 取り扱いキャストの選択肢ごとの「選択済み予約フォームURL」をまとめて作る
