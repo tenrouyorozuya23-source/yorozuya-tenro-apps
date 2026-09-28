@@ -104,6 +104,10 @@ var CONFIG = {
   // ScriptApp.getService().getUrl() はエディタ実行時に /dev（作成者専用）を返すため固定で持つ
   webAppUrl: "https://script.google.com/macros/s/AKfycbykKQ8mfdPuVXsM52TPlKU-IntZ9Z-b_gYOJvHwAVdh5f2T2OvmZDdnWUqq9HhEI7MB/exec",
 
+  // お客様用の短いURL（GitHub Pages の転送ページ）。末尾にキャスト番号を付けるとそのキャストが選ばれたフォームが開く
+  //   例：…/k/1 = 菜乃華れみ。ページは stage-booking-kizuna/tools/make_links.py で生成（キャストの順番を変えたら再生成）
+  ticketUrl: "https://tenrouyorozuya23-source.github.io/yorozuya-tenro-apps/k/",
+
   // LINEリッチメニュー「公式サイト」で案内するリンク（空欄の項目は「準備中」と表示）
   //   予約フォームは空欄なら自動で本システムのフォームURLを使う
   links: {
@@ -1985,6 +1989,7 @@ function toriokiTemplate() {
 // 予約フォームの公開URL
 function getFormPublishedUrl() {
   if (CONFIG.links.form) return CONFIG.links.form;
+  if (CONFIG.ticketUrl) return CONFIG.ticketUrl;
   var formId = PropertiesService.getScriptProperties().getProperty("FORM_ID");
   return formId ? FormApp.openById(formId).getPublishedUrl() : "";
 }
@@ -2001,8 +2006,7 @@ function officialLinksText() {
 
 // 個別URL：取り扱いキャストが入力済みの予約フォーム（お客様に送る用）
 function getCastFormUrl(castLabel) {
-  var urls = getCastFormUrls();
-  return urls.byLabel[castLabel] || getFormPublishedUrl();
+  return ticketUrlFor(String(castLabel).replace(/\s*【[^】]*】/, "").trim());
 }
 
 function personalUrlText(castName, castLabel) {
@@ -3263,21 +3267,31 @@ function updateCastUrls() {
   styleHeader(castSheet.getRange(1, 10));
   castSheet.setColumnWidth(10, 300);
   var castData = castSheet.getDataRange().getValues();
-  var formUrls = getCastFormUrls();
 
   var updated = 0;
   for (var i = 1; i < castData.length; i++) {
     var castName = String(castData[i][0] || "").trim();
-    var group    = String(castData[i][1] || "").trim();
     if (!castName) continue;
-    var label = castName + " 【" + group + "】";
-    // お客様用：取り扱いキャスト選択済みのGoogleフォームを直接開くURL。フォームに無い名前（スタッフ）は通常フォーム
-    castSheet.getRange(i+1, 8).setValue(formUrls.byLabel[label] || getFormPublishedUrl());
+    // お客様用：短いURL（転送ページ経由で取り扱いキャスト選択済みのフォームが開く）。スタッフは通常フォーム
+    castSheet.getRange(i+1, 8).setValue(ticketUrlFor(castName));
     castSheet.getRange(i+1, 10).setValue(listUrlFor(castName));
     updated++;
   }
   Logger.log("✅ " + updated + "件の個別URL（予約フォーム）と予約リストURLを更新しました");
   return updated + "件のURLを更新しました";
+}
+
+// キャスト番号（CONFIG のキャスト順、1始まり。スタッフは 0）
+function castNumber(castName) {
+  var casts = allMembers().filter(function(m){ return !m.staff; });
+  for (var i = 0; i < casts.length; i++) if (casts[i].name === castName) return i + 1;
+  return 0;
+}
+
+// お客様に案内する個別URL（キャスト番号付きの短いURL。スタッフなどは通常の予約フォーム）
+function ticketUrlFor(castName) {
+  var no = castNumber(castName);
+  return no && CONFIG.ticketUrl ? CONFIG.ticketUrl + no : getFormPublishedUrl();
 }
 
 // 取り扱いキャストの選択肢ごとの「選択済み予約フォームURL」をまとめて作る
