@@ -189,7 +189,8 @@ function listKey(name) {
     secret = Utilities.getUuid() + Utilities.getUuid();
     props.setProperty("LIST_URL_SECRET", secret);
   }
-  var sig = Utilities.computeHmacSha256Signature(String(name), secret);
+  // 文字コードを UTF-8 と明示する（省略すると日本語が「?」扱いになり、同じ文字数の名前が同じ鍵になる）
+  var sig = Utilities.computeHmacSha256Signature(String(name), secret, Utilities.Charset.UTF_8);
   return sig.slice(0, 8).map(function(b){ return ("0" + (b & 0xff).toString(16)).slice(-2); }).join("");
 }
 
@@ -1043,6 +1044,14 @@ function formDescriptionText() {
     "【チケット】\n" + formSeatText() + "\n\n" +
     "【お支払い】\n" + CONFIG.payment.ticket + "\n" + CONFIG.payment.goods + "\n\n" +
     "ご予約後、運営事務局より本予約完了のメールをお待ちください。";
+}
+
+// 更新用（2026/09/28 鍵の修正）：個別URLの鍵を作り直し、操作パネルにテスト予約ボタンを追加し、テスト予約を入れる
+function update_fixKeysAndAddTests() {
+  updateCastUrls();
+  buildControlPanel();
+  test_addSampleReservations();
+  Logger.log("✅ 個別URLの鍵を作り直し、操作パネルを更新し、テスト予約を入れました");
 }
 
 // 更新用：キャスト設定に「予約の公開範囲」列を追加し、鍵付きの個別URLと操作パネルを更新する（1回だけ実行）
@@ -2930,6 +2939,10 @@ var CONTROL_OPS = [
     run: function(){ return syncCastSheet(); } },
   { func: "updateCastUrls",            name: "個別URLを更新",             desc: "キャスト設定の個別URL（予約リストのリンク）を公開URLで書き直します",
     run: function(){ updateCastUrls(); return "個別URLを更新しました"; } },
+  { func: "test_addSampleReservations",    name: "テスト予約を入れる",   desc: "全キャストに3件ずつランダムなテスト予約（予約番号 Z-、備考【テスト】、メール送信なし）を入れます",
+    run: function(){ test_addSampleReservations(); return "テスト予約を追加しました"; } },
+  { func: "test_removeSampleReservations", name: "テスト予約を消す",     desc: "予約番号 Z- ・備考【テスト】のテスト予約をすべて削除します",
+    run: function(){ test_removeSampleReservations(); return "テスト予約を削除しました"; } },
   { func: "test_line",                 name: "LINE接続テスト",             desc: "LINEのトークンが有効か確認します（結果はメッセージ欄）",
     run: function(){ return test_line(); } }
 ];
