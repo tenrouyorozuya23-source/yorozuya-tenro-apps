@@ -1986,7 +1986,7 @@ function toriokiTemplate() {
 function getFormPublishedUrl() {
   if (CONFIG.links.form) return CONFIG.links.form;
   var formId = PropertiesService.getScriptProperties().getProperty("FORM_ID");
-  return formId ? shortUrl(FormApp.openById(formId).getPublishedUrl()) : "";
+  return formId ? shortUrl(formGatewayUrl("")) : "";
 }
 
 function officialLinksText() {
@@ -2001,8 +2001,9 @@ function officialLinksText() {
 
 // 個別URL：取り扱いキャストが入力済みの予約フォーム（お客様に送る用）
 function getCastFormUrl(castLabel) {
+  var name = String(castLabel).replace(/\s*【[^】]*】/, "").trim();
   var urls = getCastFormUrls();
-  return shortUrl(urls.byLabel[castLabel] || urls.general);
+  return shortUrl(formGatewayUrl(urls.byLabel[castLabel] ? name : ""));
 }
 
 function personalUrlText(castName, castLabel) {
@@ -2291,6 +2292,11 @@ function doGet(e) {
     return HtmlService.createHtmlOutputFromFile("register")
       .setTitle(CONFIG.title + " レジ")
       .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+  }
+
+  // 予約フォームへの入口（ロゴの読み込み画面を表示してからフォームを開く）
+  if (page === "form") {
+    return formGatewayPage(e.parameter.c || "");
   }
 
   // 受付アプリ
@@ -3271,12 +3277,71 @@ function updateCastUrls() {
     var group    = String(castData[i][1] || "").trim();
     if (!castName) continue;
     var label = castName + " 【" + group + "】";
-    castSheet.getRange(i+1, 8).setValue(shortUrl(formUrls.byLabel[label] || formUrls.general));
+    // お客様用：入口ページ（ロゴの読み込み画面）経由。フォームに無い名前（スタッフ）は通常フォームへ
+    castSheet.getRange(i+1, 8).setValue(shortUrl(formGatewayUrl(formUrls.byLabel[label] ? castName : "")));
     castSheet.getRange(i+1, 10).setValue(listUrlFor(castName));
     updated++;
   }
   Logger.log("✅ " + updated + "件の個別URL（予約フォーム）と予約リストURLを更新しました");
   return updated + "件のURLを更新しました";
+}
+
+// ============================================================
+// 予約フォームの入口ページ
+//   短縮URL → このページ（ロゴの読み込み画面）→ 予約フォーム（取り扱いキャスト選択済み）
+//   自動で移動できない端末向けに「予約フォームを開く」ボタンも出す
+// ============================================================
+function formGatewayUrl(castName) {
+  return getWebAppUrl() + "?page=form" + (castName ? "&c=" + encodeURIComponent(castName) : "");
+}
+
+// 読み込み画面用のロゴ（register.html に埋め込み済みの画像を流用）
+function loadingLogoDataUri() {
+  var cache = CacheService.getScriptCache();
+  var hit = cache.get("loading_logo");
+  if (hit) return hit;
+  var m = HtmlService.createHtmlOutputFromFile("register").getContent().match(/data:image\/webp;base64,[A-Za-z0-9+\/=]+/);
+  var uri = m ? m[0] : "";
+  if (uri && uri.length < 100000) cache.put("loading_logo", uri, 21600);
+  return uri;
+}
+
+function formGatewayPage(castName) {
+  var target = "";
+  try {
+    var urls = getCastFormUrls();
+    var member = castName ? allMembers().filter(function(m){ return m.name === castName; })[0] : null;
+    var label = member ? member.name + " 【" + member.group + "】" : "";
+    target = urls.byLabel[label] || urls.general;
+  } catch (err) { Logger.log("フォームURL取得エラー: " + err.message); }
+  var logo = loadingLogoDataUri();
+  var esc = function(t){ return String(t).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); };
+  var html =
+    '<!DOCTYPE html><html lang="ja"><head><meta charset="utf-8">' +
+    '<meta name="viewport" content="width=device-width,initial-scale=1">' +
+    '<base target="_top"><style>' +
+    'html,body{margin:0;height:100%;background:#0f0e17;color:#e8e4f0;font-family:"Hiragino Sans","Noto Sans JP",sans-serif}' +
+    '.wrap{min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:24px;box-sizing:border-box;text-align:center}' +
+    '.logo{width:min(62vw,300px);height:auto;animation:p 1.8s ease-in-out infinite}' +
+    '@keyframes p{0%,100%{opacity:.75;transform:scale(.98)}50%{opacity:1;transform:scale(1)}}' +
+    '@media (prefers-reduced-motion:reduce){.logo{animation:none}}' +
+    '.t{font-size:13px;letter-spacing:.12em}.s{font-size:12px;color:#8f88a8}' +
+    '.btn{display:none;margin-top:8px;padding:12px 22px;border-radius:999px;background:#c9a76a;color:#1a1424;font-weight:700;text-decoration:none;font-size:14px}' +
+    '</style></head><body><div class="wrap">' +
+    (logo ? '<img class="logo" alt="宵牙狼" src="' + logo + '">' : '') +
+    '<div class="t">' + esc(CONFIG.title) + ' 予約フォームを開いています</div>' +
+    '<div class="s">' + esc(CONFIG.organizer) + '</div>' +
+    (target ? '<a class="btn" id="go" href="' + esc(target) + '">予約フォームを開く</a>'
+            : '<div class="s">予約フォームが見つかりません。運営事務局にお問い合わせください。</div>') +
+    '</div><script>' +
+    (target ? 'var u=' + JSON.stringify(target) + ';' +
+      'setTimeout(function(){try{window.top.location.href=u;}catch(e){}},900);' +
+      'setTimeout(function(){document.getElementById("go").style.display="inline-block";},2500);' : '') +
+    '</script></body></html>';
+  return HtmlService.createHtmlOutput(html)
+    .setTitle(CONFIG.title + " 予約フォーム")
+    .addMetaTag("viewport", "width=device-width, initial-scale=1")
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
 
 // URLを短縮する（TinyURL → だめなら is.gd → だめなら元のURL）。結果はスクリプト プロパティにキャッシュ
