@@ -1,5 +1,7 @@
 # yorozuya-tenro-apps
 
+**ユーザーへの返信・説明は常に日本語で書くこと。**
+
 合同会社萬屋天狼のアプリ集（chain-fx-simulator / particle-mist-simulator / stage-booking-pos-manager / stage-cut）と、freee会計アシスタントの資料を含むリポジトリ。
 
 ## freee会計アシスタント

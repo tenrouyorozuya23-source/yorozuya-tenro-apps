@@ -79,6 +79,10 @@
 - LINE Messaging API
 - HTML / CSS / JavaScript
 
+
+**別公演への展開**
+- [`stage-booking-kizuna/`](stage-booking-kizuna/) — 舞台「家族の絆」（BSD presents）用。席種・料金・キャストを CONFIG で差し替え、売上管理を席種構成から自動生成するよう汎用化
+
 ---
 
 ### 3. ⛓ CHAIN FX — 光る鎖アニメーションシミュレーター
