@@ -1064,7 +1064,7 @@ function setupSalesManagementSheet(ss) {
 }
 
 // フォームの説明文・送信後メッセージ
-var FORM_CONFIRMATION = "ご予約ありがとうございます！\nご入力のメールアドレスに予約受付メールをお送りしました。運営事務局より本予約完了のメールをお待ちください。";
+var FORM_CONFIRMATION = "ご予約ありがとうございます！\nご入力のメールアドレスに予約受付メールをお送りしました。運営事務局より本予約完了のご連絡をお待ちください。";
 
 function formSeatText() {
   return CONFIG.seatTypes.map(function(st){
@@ -1077,7 +1077,14 @@ function formDescriptionText() {
     "【公演日時】（開場は開演の" + CONFIG.doorsOpenMinutes + "分前）\n" + scheduleText() + "\n\n" +
     "【チケット】\n" + formSeatText() + "\n\n" +
     "【お支払い】\n" + CONFIG.payment.ticket + "\n" + CONFIG.payment.goods + "\n\n" +
-    "ご予約後、運営事務局より本予約完了のメールをお待ちください。";
+    "ご予約後、運営事務局より本予約完了のご連絡をお待ちください。";
+}
+
+// 更新用：予約フォームの説明文を最新にし、キャスト設定の個別URLを「取り扱いキャスト選択済みのフォーム」にする（1回だけ実行）
+function update_formTextAndCastUrls() {
+  fix_formText();
+  updateCastUrls();
+  Logger.log("✅ フォームの説明文と個別URLを更新しました");
 }
 
 // 更新用（2026/09/28 鍵の修正）：個別URLの鍵を作り直し、操作パネルにテスト予約ボタンを追加し、テスト予約を入れる
@@ -1993,17 +2000,8 @@ function officialLinksText() {
 
 // 個別URL：取り扱いキャストが入力済みの予約フォーム（お客様に送る用）
 function getCastFormUrl(castLabel) {
-  var formId = PropertiesService.getScriptProperties().getProperty("FORM_ID");
-  if (!formId) return "";
-  var form = FormApp.openById(formId);
-  var items = form.getItems(FormApp.ItemType.LIST);
-  for (var i = 0; i < items.length; i++) {
-    if (items[i].getTitle() === "取り扱いキャスト") {
-      var resp = form.createResponse().withItemResponse(items[i].asListItem().createResponse(castLabel));
-      return resp.toPrefilledUrl();
-    }
-  }
-  return form.getPublishedUrl();
+  var urls = getCastFormUrls();
+  return urls.byLabel[castLabel] || urls.general;
 }
 
 function personalUrlText(castName, castLabel) {
@@ -3252,22 +3250,51 @@ function handleEdit(e) {
 // ============================================================
 // キャスト設定のURLを現在のWebアプリURLに一括更新（1回だけ実行）
 // ============================================================
+// キャスト設定のURLを書き込む
+//   H列「個別URL」         … 取り扱いキャストが選択済みの予約フォーム（お客様に送る用。スタッフは通常のフォーム）
+//   J列「予約リストURL」   … 本人専用の予約リスト（鍵付き）
 function updateCastUrls() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var castSheet = ss.getSheetByName("キャスト設定");
+  castSheet.getRange(1, 8).setValue("個別URL（お客様用予約フォーム）");
+  castSheet.getRange(1, 10).setValue("予約リストURL（本人専用）");
+  styleHeader(castSheet.getRange(1, 8));
+  styleHeader(castSheet.getRange(1, 10));
+  castSheet.setColumnWidth(10, 300);
   var castData = castSheet.getDataRange().getValues();
-  var webAppUrl = getWebAppUrl();
+  var formUrls = getCastFormUrls();
 
   var updated = 0;
   for (var i = 1; i < castData.length; i++) {
-    var castName = castData[i][0];
+    var castName = String(castData[i][0] || "").trim();
+    var group    = String(castData[i][1] || "").trim();
     if (!castName) continue;
-    castSheet.getRange(i+1, 8).setValue(listUrlFor(castName));
+    var label = castName + " 【" + group + "】";
+    castSheet.getRange(i+1, 8).setValue(formUrls.byLabel[label] || formUrls.general);
+    castSheet.getRange(i+1, 10).setValue(listUrlFor(castName));
     updated++;
   }
+  Logger.log("✅ " + updated + "件の個別URL（予約フォーム）と予約リストURLを更新しました");
+  return updated + "件のURLを更新しました";
+}
 
-  Logger.log("✅ " + updated + "件のURLを更新しました");
-  Logger.log("新しいURL例: " + listUrlFor(castData[1][0]));
+// 取り扱いキャストの選択肢ごとの「選択済み予約フォームURL」をまとめて作る
+function getCastFormUrls() {
+  var result = { byLabel: {}, general: "" };
+  var formId = PropertiesService.getScriptProperties().getProperty("FORM_ID");
+  if (!formId) return result;
+  var form = FormApp.openById(formId);
+  result.general = form.getPublishedUrl();
+  var items = form.getItems(FormApp.ItemType.LIST);
+  for (var i = 0; i < items.length; i++) {
+    if (items[i].getTitle() !== "取り扱いキャスト") continue;
+    var list = items[i].asListItem();
+    list.getChoices().forEach(function(ch){
+      var label = ch.getValue();
+      result.byLabel[label] = form.createResponse().withItemResponse(list.createResponse(label)).toPrefilledUrl();
+    });
+  }
+  return result;
 }
 
 // ============================================================
