@@ -389,8 +389,7 @@ function renderReservations(list, query) {
         (r.note ? '<div class="res-note">💬 ' + esc(r.note) + '</div>' : '') +
         (isCancelled ? '<p style="color:var(--gray);font-size:13px;text-align:center;padding:4px 0">キャンセル済みです</p>' :
         '<div class="payment-btns">' +
-          '<button class="pay-btn' + (isCheckedIn && r.payMethod==="cash" ? " active-cash" : "") + '" onclick="checkIn(\'' + esc(r.resNo) + '\',\'cash\')">💴 現金で受付</button>' +
-          '<button class="pay-btn' + (isCheckedIn && r.payMethod==="credit" ? " active-credit" : "") + '" onclick="checkIn(\'' + esc(r.resNo) + '\',\'credit\')">💳 クレカで受付</button>' +
+          '<button class="pay-btn' + (isCheckedIn && r.payMethod==="cash" ? " active-cash" : "") + '" onclick="checkIn(\'' + esc(r.resNo) + '\',\'cash\')" style="grid-column:1/-1">💴 現金で受付（チケットは現金のみ）</button>' +
         '</div>' +
         (isCheckedIn ? '<button class="undo-btn" onclick="undoCheckIn(\'' + esc(r.resNo) + '\')">↩ 受付を取り消す</button>' : '')) +
       '</div>' +

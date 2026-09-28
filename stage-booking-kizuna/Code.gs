@@ -83,6 +83,12 @@ var CONFIG = {
     lineChannelId: "2011762472"
   },
 
+  // お支払い方法（フォーム・メール・LINE案内に表示）
+  payment: {
+    ticket: "チケット代は公演当日、会場受付にて現金でお支払いください（現金のみ）。",
+    goods:  "物販は現金のほか、各種電子決済がご利用いただけます。"
+  },
+
   // メール送信設定
   //   from はスクリプトを動かすアカウント（tenrou.yorozuya.23@gmail.com）の Gmail で
   //   「他のメールアドレスを追加（Send mail as）」に登録済みである必要がある（README 参照）
@@ -977,6 +983,7 @@ function formDescriptionText() {
   return CONFIG.organizer + "\n" + CONFIG.venue + "\n\n" +
     "【公演日時】（開場は開演の" + CONFIG.doorsOpenMinutes + "分前）\n" + scheduleText() + "\n\n" +
     "【チケット】\n" + formSeatText() + "\n\n" +
+    "【お支払い】\n" + CONFIG.payment.ticket + "\n" + CONFIG.payment.goods + "\n\n" +
     "ご予約後、運営事務局より本予約完了のメールをお待ちください。";
 }
 
@@ -1767,7 +1774,8 @@ function toriokiGuideText() {
     "次のメッセージ（【取り置き】から始まる文）を長押しでコピーし、内容を書き換えて送ってください。登録されると予約番号（T-001など）が届きます。\n\n" +
     "・公演日時：\n" + CONFIG.shows.map(function(s){ return "　" + s.dt; }).join("\n") + "\n" +
     "・席種：" + seats + "\n" +
-    "・枚数：数字のみ\n\n" +
+    "・枚数：数字のみ\n" +
+    "・お支払い：当日受付で現金のみ（お客様にお伝えください）\n\n" +
     "🗑 キャンセルのしかた\n" +
     "「キャンセル 予約番号」を送ってください（最後のメッセージをコピーして番号を書き換え）。\n" +
     "キャンセル申請として受け付け、運営が確認後に確定します。ご自身の取り扱い予約のみ申請できます。";
@@ -2478,7 +2486,7 @@ function processCheckout(payload) {
     receiptSheet.getRange("A3").setValue("──────────────────");
     receiptSheet.getRange("A4").setValue("ID : " + payload.customerId);
     receiptSheet.getRange("A5").setValue("日時：" + dateStr + " " + timeStr);
-    receiptSheet.getRange("A6").setValue("支払：" + (payload.payment === "cash" ? "現金" : "クレカ"));
+    receiptSheet.getRange("A6").setValue("支払：" + (payload.payment === "cash" ? "現金" : "電子決済"));
     receiptSheet.getRange("A7").setValue("──────────────────");
 
     var row = 8;
@@ -3298,12 +3306,14 @@ function sendBookingEmails() {
       "以下の内容で本予約を承りました。\n\n" +
       "━━━━━━━━━━━━━━━━━━━━\n" +
       "予約番号：" + resNo + "\n" +
-      "公演日時：" + show  + "\n" +
+      "公演日時：" + show  + "（開場 " + doorsOpenTime(show) + "）\n" +
       "席種　　：" + seat  + "\n" +
-      "枚数　　：" + count + "\n" +
+      "枚数　　：" + toSeatCount(count) + "枚\n" +
+      (getSeatPrice(seat) ? "チケット代：" + yenText(getSeatPrice(seat) * toSeatCount(count)) + "\n" : "") +
       "会場　　：" + CONFIG.venue + "\n" +
       "━━━━━━━━━━━━━━━━━━━━\n\n" +
       "当日は「予約番号」または「お名前」を受付スタッフにお伝えください。\n" +
+      CONFIG.payment.ticket + "\n" +
       "予約番号：" + resNo + "\n\n" +
       "ご不明な点はお気軽にご連絡ください。\n\n" +
       CONFIG.organizer;
@@ -3492,7 +3502,9 @@ function sendReservationReceivedMail(response, reservationNo) {
     "取り扱い　：" + cast + "\n" +
     "━━━━━━━━━━━━━━━━━━━━\n\n" +
     "当日は受付で「予約番号」または「お名前」をお伝えください。\n" +
-    "開場は開演の" + CONFIG.doorsOpenMinutes + "分前です。\n\n" +
+    CONFIG.payment.ticket + "\n" +
+    "開場は開演の" + CONFIG.doorsOpenMinutes + "分前です。\n" +
+    CONFIG.payment.goods + "\n\n" +
     "ご予約内容の変更・キャンセルは、このメールへの返信または取り扱いキャストまでご連絡ください。\n" +
     mailFooter();
 
