@@ -994,6 +994,79 @@ function update_panelAndMembers() {
   Logger.log("✅ " + syncCastSheet());
 }
 
+// ============================================================
+// テスト予約：全キャストに3件ずつランダムな予約を入れる／まとめて消す
+//   ・メールアドレスは空欄（確認メールは送られない）
+//   ・予約番号は Z-001〜（本番の R- 連番を消費しない）、備考は「【テスト】」で始まる
+// ============================================================
+var TEST_NOTE = "【テスト】";
+
+function test_addSampleReservations() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName("予約一覧");
+  var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0].map(String);
+  var col = function(h){ return headers.indexOf(h); };
+
+  var sei = [["佐藤","さとう"],["鈴木","すずき"],["高橋","たかはし"],["田中","たなか"],["伊藤","いとう"],["渡辺","わたなべ"],
+             ["山本","やまもと"],["中村","なかむら"],["小林","こばやし"],["加藤","かとう"],["吉田","よしだ"],["山田","やまだ"],
+             ["松本","まつもと"],["井上","いのうえ"],["木村","きむら"],["林","はやし"],["清水","しみず"],["森","もり"]];
+  var mei = [["陽菜","ひな"],["結衣","ゆい"],["葵","あおい"],["美咲","みさき"],["さくら","さくら"],["莉子","りこ"],
+             ["蓮","れん"],["湊","みなと"],["大翔","ひろと"],["悠真","ゆうま"],["颯太","そうた"],["陽斗","はると"]];
+  var notes = ["", "", "", "通路側希望", "初観劇です", "車椅子で来場予定", "差し入れあり"];
+  var statuses = ["仮予約済み", "仮予約済み", "本予約済み"];
+  var pick = function(a){ return a[Math.floor(Math.random() * a.length)]; };
+
+  var rows = [];
+  CONFIG.groups.forEach(function(g){
+    g.casts.forEach(function(c){
+      for (var k = 0; k < 3; k++) {
+        var s1 = pick(sei), m1 = pick(mei);
+        var torioki = Math.random() < 0.3;
+        var row = headers.map(function(){ return ""; });
+        row[col("タイムスタンプ")]   = new Date();
+        row[col("取り扱いキャスト")] = c.name + " 【" + g.name + "】";
+        row[col("お名前")]           = s1[0] + " " + m1[0];
+        row[col("ふりがな")]         = s1[1] + " " + m1[1];
+        row[col("公演日時")]         = pick(CONFIG.shows).dt;
+        row[col("席種")]             = pick(CONFIG.seatTypes).name;
+        row[col("枚数")]             = 1 + Math.floor(Math.random() * 3);
+        row[col("備考")]             = TEST_NOTE + pick(notes);
+        row[col("予約番号")]         = generateReservationNo("Z");
+        row[col("ステータス")]       = torioki ? "本予約済み" : pick(statuses);
+        if (col("取り置きフラグ") >= 0) row[col("取り置きフラグ")] = torioki ? "取り置き" : "";
+        rows.push(row);
+      }
+    });
+  });
+
+  var start = sheet.getLastRow() + 1;
+  sheet.getRange(start, 1, rows.length, headers.length).setValues(rows);
+  if (col("キャンセル") >= 0) sheet.getRange(start, col("キャンセル") + 1, rows.length, 1).insertCheckboxes();
+
+  updateAttendanceSheets();
+  updateRemainingSeats();
+  Logger.log("✅ テスト予約を " + rows.length + " 件追加しました（予約番号 Z-、備考「" + TEST_NOTE + "」）");
+}
+
+function test_removeSampleReservations() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName("予約一覧");
+  var data = sheet.getDataRange().getValues();
+  var headers = data[0].map(String);
+  var noteCol = headers.indexOf("備考"), resCol = headers.indexOf("予約番号");
+  var removed = 0;
+  for (var r = data.length - 1; r >= 1; r--) {
+    if (String(data[r][noteCol]).indexOf(TEST_NOTE) === 0 && String(data[r][resCol]).indexOf("Z-") === 0) {
+      sheet.deleteRow(r + 1);
+      removed++;
+    }
+  }
+  PropertiesService.getScriptProperties().deleteProperty("resNo_Z");
+  updateAttendanceSheets();
+  updateRemainingSeats();
+  Logger.log("🗑 テスト予約を " + removed + " 件削除しました");
+}
+
 // 修正用：作成済みフォームの説明文・送信後メッセージを最新の文言に更新（1回だけ実行）
 function fix_formText() {
   var formId = PropertiesService.getScriptProperties().getProperty("FORM_ID");
