@@ -201,6 +201,8 @@ AI経由で作成する取引・帳票の明細行には必ず `tag_ids: [354023
 - **明細の消込APIは存在しない**。`wallet_txns` は取得・作成・削除のみ。既存の消込待ち明細と取引の紐付けはfreee Webの「自動で経理」画面でのみ可能（同一口座・同日・同額の取引があれば候補が自動表示されワンクリックで完了）
 - ファイルボックスへの画像アップロードはRemote MCPでは不可（freee Webまたはモバイルアプリから行う）
 - 自社口座間の資金移動はWeb画面の「振替」で処理（取引にしない）
+- **freee請求書起因の取引（deal_origin_name: "freee請求書"）は `PUT /api/1/deals/{id}` に強い制約がある**: 明細行の削除不可、`partner_id`/`ref_number`/`vat` は元の値をそのまま送り返す必要（省略・変更不可）、`details`/`issue_date`/`type` は毎回必須。**入金消込先（payments）の変更だけしたい場合は全体PUTではなく `PUT /api/1/deals/{id}/payments/{payment_id}` を使うこと**——全体PUTだとHTTP 200が返ってもpaymentsの中身が変わらない（サイレント失敗）ことがある
+- 決算期をまたぐ前期（締め済み）日付の取引は `PUT /api/1/deals/{id}` で編集不可（エラー: 期首日以前の取引は編集不可）。当期日付の `manual_journals` で組み替え仕訳を打つ方法で代替する
 
 ## API呼び出しの基本
 
