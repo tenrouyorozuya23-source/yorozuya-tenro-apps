@@ -111,7 +111,7 @@ var CONFIG = {
   // LINEリッチメニュー「公式サイト」で案内するリンク（空欄の項目は「準備中」と表示）
   //   予約フォームは空欄なら自動で本システムのフォームURLを使う
   links: {
-    site:      "",  // 予約サイト（公式サイト）
+    site:      "https://tenrouyorozuya23-source.github.io/yorozuya-tenro-apps/kizuna/",  // 予約サイト（仮・GitHub Pages。本番公開後もこのURLから転送する）
     form:      "",  // 予約フォーム（Googleフォームの「送信」→リンク→「URLを短縮」で作った forms.gle のURLを入れる）
     streaming: ""   // 配信購入ページ
   },
