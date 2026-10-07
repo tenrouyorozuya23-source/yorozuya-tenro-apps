@@ -43,15 +43,22 @@ nav .navcta{background:var(--gold);color:#1a1424;padding:6px 14px;border-radius:
 .hero .btns{display:flex;gap:12px;flex-wrap:wrap;margin-top:22px}
 /* sections */
 section{padding-block:52px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:20px}
-h2{font-size:1.55rem;display:flex;align-items:baseline;gap:12px}
+h2{font-size:1.55rem;display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px}
 h2 small{font-family:"Zen Kaku Gothic New",sans-serif;font-size:.72rem;letter-spacing:.3em;color:var(--gold);font-weight:700}
 .tbd{color:var(--mute);margin:0}
+.facts{display:grid;grid-template-columns:auto 1fr;gap:6px 16px;margin:6px 0 0}
+.facts dt{color:var(--gold);font-size:.85rem;letter-spacing:.1em;padding-top:2px}
+.facts dd{margin:0;font-weight:700;font-size:1.05rem}
+.apply{display:flex;flex-direction:column;align-items:center;gap:10px;padding-block:8px 44px;text-align:center}
+.btn.big{font-size:1.15rem;padding:18px 44px}
+.sub{font-size:1.02rem;margin-top:6px}
+.soon{font-family:"Shippori Mincho B1",serif;font-weight:800;font-size:2rem;letter-spacing:.2em;color:var(--gold);margin:0}
 .lead{color:var(--mute);margin:0;max-width:60ch}
 .news{list-style:none;margin:0;padding:0}
 .news li{display:flex;gap:16px;padding:8px 0;border-bottom:1px solid var(--line)}
 .news time{color:var(--gold);font-variant-numeric:tabular-nums;white-space:nowrap}
 .intro{display:grid;grid-template-columns:minmax(0,280px) 1fr;gap:28px;align-items:start}
-.flyer{width:100%;max-width:280px;border-radius:6px}
+.flyer{width:100%;max-width:420px;border-radius:6px;align-self:center}
 .tbd-box{aspect-ratio:1/1.414;border:1px dashed var(--gold-d);display:flex;align-items:center;justify-content:center;text-align:center;color:var(--mute);font-size:.9rem}
 .story p{margin:0 0 .8em;max-width:60ch}
 table{border-collapse:collapse;width:100%;max-width:520px}
@@ -83,9 +90,9 @@ th{color:var(--mute);font-weight:500;font-size:.85rem}
 .notes{margin:0;padding-left:1.2em;display:grid;gap:6px;color:var(--ink)}
 footer{padding-block:40px 56px;border-top:1px solid var(--line);color:var(--mute);font-size:.85rem;display:flex;flex-direction:column;gap:6px}
 @media (max-width:720px){
-  .hero,.intro{grid-template-columns:1fr;text-align:center;justify-items:center}
-  .intro{text-align:left} .intro .flyer{justify-self:center}
-  .hero .btns{justify-content:center}
+  .hero{grid-template-columns:1fr;justify-items:center}
+  .hero h1,.hero .eyebrow{text-align:center}
+  .tbd-box.flyer{max-width:280px}
   .access{grid-template-columns:1fr}
   .seats li{grid-template-columns:4em 5.5em 1fr}
   nav ul{display:none}
@@ -95,10 +102,10 @@ footer{padding-block:40px 56px;border-top:1px solid var(--line);color:var(--mute
 <nav><div class="wrap">
   <a class="brand" href="#top">家族の絆</a>
   <ul>
-    <li><a href="#about">作品</a></li><li><a href="#schedule">日程</a></li><li><a href="#ticket">チケット</a></li>
-    <li><a href="#cast">出演者</a></li><li><a href="#goods">物販</a></li><li><a href="#access">会場</a></li><li><a href="#notes">注意事項</a></li>
+    <li><a href="#schedule">日程</a></li><li><a href="#cast">出演者</a></li><li><a href="#ticket">チケット</a></li>
+    <li><a href="#access">劇場</a></li><li><a href="#notes">注意事項</a></li><li><a href="#goods">物販</a></li>
   </ul>
-  <a class="navcta" href="/form">予約する</a>
+  <a class="navcta" href="/form">申し込む</a>
 </div></nav>
 
 <main class="wrap" id="top">
@@ -107,47 +114,28 @@ footer{padding-block:40px 56px;border-top:1px solid var(--line);color:var(--mute
   <div>
     <div class="eyebrow">BSD PRESENTS</div>
     <h1>家族の絆</h1>
-    <div class="date">2026.12.4（金）〜 12.8（火）全7公演</div>
-    <div class="venue">シアターグリーン BASE THEATER（池袋）</div>
-    <div class="btns">
-      <a class="btn" href="/form">チケットを予約する</a>
-      <a class="btn ghost" href="#cast">出演者から予約する</a>
-    </div>
+    <dl class="facts">
+      <dt>公演期間</dt><dd>2026年12月4日（金）〜 12月8日（火）</dd>
+      <dt>劇場</dt><dd>シアターグリーン BASE THEATER（池袋）</dd>
+      <dt>公演数</dt><dd>全7公演</dd>
+    </dl>
   </div>
 </header>
 
-<section id="news">
-  <h2><small>NEWS</small>お知らせ</h2>
-  <ul class="news"><li><time>2026.10</time><span>予約受付を開始しました。</span></li></ul>
-</section>
-
-<section id="about">
-  <h2><small>STORY</small>作品紹介</h2>
-  <div class="intro">
-    <div class="flyer tbd-box">フライヤー画像<br>近日公開</div>
-    <div class="story"><p class="tbd">あらすじは近日公開予定です。</p></div>
-  </div>
-</section>
+<div class="apply">
+  <a class="btn big" href="/form">チケットを申し込む</a>
+  <p class="lead">出演者を指定して申し込む場合は、下の「出演者」からどうぞ。</p>
+</div>
 
 <section id="schedule">
-  <h2><small>SCHEDULE</small>公演日程</h2>
+  <h2><small>SCHEDULE</small>公演スケジュール</h2>
   <table><thead><tr><th>日付</th><th>開場</th><th>開演</th></tr></thead><tbody><tr><td><b>12/4</b><span class="dow">（金）</span></td><td class="num">18:00</td><td class="num strong">18:30</td></tr><tr><td><b>12/5</b><span class="dow">（土）</span></td><td class="num">12:30</td><td class="num strong">13:00</td></tr><tr><td><b>12/5</b><span class="dow">（土）</span></td><td class="num">18:00</td><td class="num strong">18:30</td></tr><tr><td><b>12/6</b><span class="dow">（日）</span></td><td class="num">12:30</td><td class="num strong">13:00</td></tr><tr><td><b>12/6</b><span class="dow">（日）</span></td><td class="num">18:00</td><td class="num strong">18:30</td></tr><tr><td><b>12/7</b><span class="dow">（月）</span></td><td class="num">18:00</td><td class="num strong">18:30</td></tr><tr><td><b>12/8</b><span class="dow">（火）</span></td><td class="num">13:30</td><td class="num strong">14:00</td></tr></tbody></table>
   <p class="lead">開場は開演の30分前です。各回60席。</p>
 </section>
 
-<section id="ticket">
-  <h2><small>TICKET</small>チケット</h2>
-  <ul class="seats"><li><span class="seat">SS席</span><span class="price">¥8,000</span><span class="note">最前列確保／非売品・役者ブロマイド付</span></li><li><span class="seat">S席</span><span class="price">¥6,000</span><span class="note">2列目確保</span></li><li><span class="seat">A席</span><span class="price">¥5,000</span><span class="note">3列目以降</span></li></ul>
-  <div class="callout"><b>お支払いは公演当日、会場受付にて現金のみ</b>となります。物販は現金のほか各種電子決済がご利用いただけます。</div>
-  <h3 style="font-size:1.05rem;margin-top:8px">ご予約の流れ</h3>
-  <ol class="steps">
-    <li>「チケットを予約する」、または出演者の「この出演者で予約」から予約フォームを開きます</li>
-    <li>お名前・メールアドレス・公演日時・席種・枚数を入力して送信します</li>
-    <li>予約番号入りの受付メールが届きます（送信元 info.tenrou.event@gmail.com）</li>
-    <li>運営事務局より本予約完了のご連絡をお送りします</li>
-    <li>当日は受付で予約番号またはお名前をお伝えください</li>
-  </ol>
-  <div><a class="btn" href="/form">チケットを予約する</a></div>
+<section id="flyer">
+  <h2><small>FLYER</small>フライヤー</h2>
+  <div class="flyer tbd-box">フライヤー画像<br>近日公開</div>
 </section>
 
 <section id="cast">
@@ -156,27 +144,31 @@ footer{padding-block:40px 56px;border-top:1px solid var(--line);color:var(--mute
   <ul class="casts"><li class="cast"><span class="cname">菜乃華れみ</span><a href="/c/1">この出演者で予約</a></li><li class="cast"><span class="cname">鶴田葵</span><a href="/c/2">この出演者で予約</a></li><li class="cast"><span class="cname">三吉織乃</span><a href="/c/3">この出演者で予約</a></li><li class="cast"><span class="cname">光藤隆馬</span><a href="/c/4">この出演者で予約</a></li><li class="cast"><span class="cname">磐城信治</span><a href="/c/5">この出演者で予約</a></li><li class="cast"><span class="cname">屋冨祖弦貴</span><a href="/c/6">この出演者で予約</a></li><li class="cast"><span class="cname">桑野結女凜</span><a href="/c/7">この出演者で予約</a></li><li class="cast"><span class="cname">岡本莉瑚</span><a href="/c/8">この出演者で予約</a></li><li class="cast"><span class="cname">崎本詩織</span><a href="/c/9">この出演者で予約</a></li><li class="cast"><span class="cname">藤野めいり</span><a href="/c/10">この出演者で予約</a></li><li class="cast"><span class="cname">石山将隆</span><a href="/c/11">この出演者で予約</a></li><li class="cast"><span class="cname">柳瀬佑太</span><a href="/c/12">この出演者で予約</a></li><li class="cast"><span class="cname">五味川竜馬</span><a href="/c/13">この出演者で予約</a></li><li class="cast"><span class="cname">尾ケ井思織</span><a href="/c/14">この出演者で予約</a></li><li class="cast"><span class="cname">天咲ヒカル</span><a href="/c/15">この出演者で予約</a></li><li class="cast"><span class="cname">森本真由</span><a href="/c/16">この出演者で予約</a></li><li class="cast"><span class="cname">泉谷アキヒロ</span><a href="/c/17">この出演者で予約</a></li><li class="cast"><span class="cname">幸村宥弐</span><a href="/c/18">この出演者で予約</a></li></ul>
 </section>
 
+<section id="ticket">
+  <h2><small>TICKET</small>チケット</h2>
+  <ul class="seats"><li><span class="seat">SS席</span><span class="price">¥8,000</span><span class="note">最前列確保／非売品・役者ブロマイド付</span></li><li><span class="seat">S席</span><span class="price">¥6,000</span><span class="note">2列目確保</span></li><li><span class="seat">A席</span><span class="price">¥5,000</span><span class="note">3列目以降</span></li></ul>
+  <div class="callout"><b>お支払いは公演当日、会場受付にて現金のみ</b>となります。</div>
+  <h3 style="font-size:1.05rem;margin-top:8px">お申し込みの流れ</h3>
+  <ol class="steps">
+    <li>「チケットを申し込む」、または出演者の「この出演者で予約」から予約フォームを開きます</li>
+    <li>お名前・メールアドレス・公演日時・席種・枚数を入力して送信します</li>
+    <li>予約番号入りの受付メールが届きます（送信元 info.tenrou.event@gmail.com）</li>
+    <li>運営事務局より本予約完了のご連絡をお送りします</li>
+    <li>当日は受付で予約番号またはお名前をお伝えください</li>
+  </ol>
+  <div><a class="btn" href="/form">チケットを申し込む</a></div>
+</section>
+
 <section id="staff">
   <h2><small>STAFF</small>スタッフ</h2>
   <p class="tbd">スタッフ情報は近日公開予定です。</p>
 </section>
 
-<section id="goods">
-  <h2><small>GOODS</small>物販</h2>
-  <p class="lead">各商品、全出演者分をご用意しています。価格は予価です。</p>
-  <ul class="goods"><li><span>応援ブロマイド（2Lサイズ／2種類）<em>事前予約</em></span><span class="price">¥3,000</span></li><li><span>お祝い札（2種類）<em>事前予約</em></span><span class="price">¥2,000</span></li><li><span>応援ブロマイド＆お祝い札セット（特典付き）<em>事前予約</em></span><span class="price">¥5,000</span></li><li><span>アクリルスタンド<em>事前予約</em></span><span class="price">¥2,000</span></li><li><span>ブロマイド2種類（L版・3枚1組）</span><span class="price">¥1,000</span></li><li><span>サイン入りランダムソロチェキ</span><span class="price">¥1,500</span></li><li><span>終演後のチェキ撮影（サインなし）</span><span class="price">¥2,000</span></li><li><span>宵牙狼オリジナルキーホルダー（2種類）</span><span class="price">¥1,000</span></li></ul>
-</section>
-
-<section id="streaming">
-  <h2><small>STREAMING</small>配信</h2>
-  <p class="tbd">配信チケットの販売ページは準備中です。決まり次第お知らせします。</p>
-</section>
-
 <section id="access">
-  <h2><small>ACCESS</small>会場</h2>
+  <h2><small>THEATER</small>劇場マップ</h2>
   <div class="access">
     <dl>
-      <dt>会場</dt><dd>シアターグリーン BASE THEATER</dd>
+      <dt>劇場</dt><dd>シアターグリーン BASE THEATER</dd>
       <dt>住所</dt><dd>〒171-0022<br>東京都豊島区南池袋2-20-4</dd>
       <dt>JR池袋駅</dt><dd>南改札より地下通路39番出口から徒歩約2分<br>東口から地上で徒歩約6分</dd>
       <dt>東池袋駅</dt><dd>東京メトロ有楽町線 徒歩約5分</dd>
@@ -189,13 +181,27 @@ footer{padding-block:40px 56px;border-top:1px solid var(--line);color:var(--mute
 </section>
 
 <section id="notes">
-  <h2><small>NOTES</small>ご来場の注意事項</h2>
+  <h2><small>NOTES</small>注意事項</h2>
+  <h3 class="sub">キャンセル・変更について</h3>
   <ul class="notes">
-    <li>開場は開演の30分前です。</li>
-    <li>チケット代は公演当日、会場受付にて現金でお支払いください。</li>
-    <li>ご予約内容の変更・キャンセルは、予約受付メールへの返信または取り扱いの出演者までご連絡ください。</li>
+    <li>ご予約のキャンセル・内容の変更は、予約受付メールへの返信、または取り扱いの出演者までご連絡ください。</li>
+    <li>ご来場が難しくなった場合は、お早めにご連絡をお願いいたします。</li>
   </ul>
-  <p class="tbd">その他の注意事項は近日公開予定です。</p>
+  <h3 class="sub">応援花（スタンドフラワー）について</h3>
+  <div class="callout"><b>スタンドフラワー等の応援花はお受けしておりません。</b><br>出演者への応援は、事前予約物販の<b>「お祝い札」</b>でお届けいただけます（下の「オンライン物販」をご覧ください）。</div>
+</section>
+
+<section id="goods">
+  <h2><small>ONLINE</small>オンライン物販（事前予約）</h2>
+  <p class="lead">各商品、全出演者分をご用意しています。価格は予価です。</p>
+  <ul class="goods"><li><span>応援ブロマイド（2Lサイズ／2種類）</span><span class="price">¥3,000</span></li><li><span>お祝い札（2種類）</span><span class="price">¥2,000</span></li><li><span>応援ブロマイド＆お祝い札セット（特典付き）</span><span class="price">¥5,000</span></li><li><span>アクリルスタンド</span><span class="price">¥2,000</span></li></ul>
+  <p class="tbd">お申し込み方法は近日公開予定です。</p>
+</section>
+
+<section id="goods-day">
+  <h2><small>GOODS</small>当日物販</h2>
+  <p class="soon">COMING SOON</p>
+  <p class="lead">当日物販の詳細は近日公開予定です。物販は現金のほか各種電子決済がご利用いただけます。</p>
 </section>
 </main>
 

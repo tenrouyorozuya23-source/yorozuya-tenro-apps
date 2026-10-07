@@ -14,12 +14,11 @@ from make_site import SHOWS, SEATS, GOODS
 
 OUT = os.path.join(ROOT, "kizuna-site")
 
-# ---- 未確定の情報（決まったら書き換える。空欄のままなら「準備中」と表示） ----
-STORY = ""          # あらすじ（改行は \n）
-STAFF = []          # [("脚本・演出", "名前"), ...]
-FLYER = ""          # フライヤー画像のファイル名（kizuna-site/assets/ に置く。例 "flyer.jpg"）
-STREAMING_URL = ""  # 配信チケット販売ページ
-NEWS = [("2026.10", "予約受付を開始しました。")]
+# ---- 未確定の情報（決まったら書き換える。空欄のままなら「準備中」「COMING SOON」と表示） ----
+STAFF = []            # [("脚本・演出", "名前"), ...]
+FLYER = ""            # フライヤー画像のファイル名（kizuna-site/assets/ に置く。例 "flyer.jpg"）
+ONLINE_SHOP_URL = ""  # 事前予約物販（オンライン）の申込ページ
+SHOW_COUNT = 7
 
 def main():
     group, casts = casts_from_code()
@@ -31,15 +30,14 @@ def main():
     cast_cards = "".join(
         f'<li class="cast"><span class="cname">{e(n)}</span><a href="/c/{i}">この出演者で予約</a></li>'
         for i, n in enumerate(casts, 1))
-    goods = "".join(f'<li><span>{e(n)}{"<em>事前予約</em>" if pre else ""}</span><span class="price">¥{p}</span></li>' for n, p, pre in GOODS)
-    story = "".join(f"<p>{e(l)}</p>" for l in STORY.split("\n") if l.strip()) or '<p class="tbd">あらすじは近日公開予定です。</p>'
+    online_goods = "".join(f'<li><span>{e(n)}</span><span class="price">¥{p}</span></li>' for n, p, pre in GOODS if pre)
     staff = ("<dl class='staff'>" + "".join(f"<dt>{e(r)}</dt><dd>{e(n)}</dd>" for r, n in STAFF) + "</dl>") if STAFF else '<p class="tbd">スタッフ情報は近日公開予定です。</p>'
-    flyer = f'<img class="flyer" src="assets/{e(FLYER)}" alt="「家族の絆」フライヤー">' if FLYER else '<div class="flyer tbd-box">フライヤー画像<br>近日公開</div>'
-    streaming = (f'<a class="btn" href="{e(STREAMING_URL)}" rel="noopener">配信チケットを購入する</a>' if STREAMING_URL
-                 else '<p class="tbd">配信チケットの販売ページは準備中です。決まり次第お知らせします。</p>')
-    news = "".join(f"<li><time>{e(d)}</time><span>{e(t)}</span></li>" for d, t in NEWS)
-    page = TEMPLATE.format(show_rows=show_rows, seat_rows=seat_rows, cast_cards=cast_cards, goods=goods,
-                           story=story, staff=staff, flyer=flyer, streaming=streaming, news=news, cast_count=len(casts))
+    flyer = (f'<img class="flyer" src="/assets/{e(FLYER)}" alt="「家族の絆」フライヤー">' if FLYER
+             else '<div class="flyer tbd-box">フライヤー画像<br>近日公開</div>')
+    online_btn = (f'<a class="btn" href="{e(ONLINE_SHOP_URL)}" rel="noopener">事前予約物販を申し込む</a>' if ONLINE_SHOP_URL
+                  else '<p class="tbd">お申し込み方法は近日公開予定です。</p>')
+    page = TEMPLATE.format(show_rows=show_rows, seat_rows=seat_rows, cast_cards=cast_cards, online_goods=online_goods,
+                           staff=staff, flyer=flyer, online_btn=online_btn, show_count=SHOW_COUNT)
     os.makedirs(OUT, exist_ok=True)
     open(os.path.join(OUT, "index.html"), "w", encoding="utf-8").write(page)
 
@@ -98,15 +96,22 @@ nav .navcta{{background:var(--gold);color:#1a1424;padding:6px 14px;border-radius
 .hero .btns{{display:flex;gap:12px;flex-wrap:wrap;margin-top:22px}}
 /* sections */
 section{{padding-block:52px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:20px}}
-h2{{font-size:1.55rem;display:flex;align-items:baseline;gap:12px}}
+h2{{font-size:1.55rem;display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px}}
 h2 small{{font-family:"Zen Kaku Gothic New",sans-serif;font-size:.72rem;letter-spacing:.3em;color:var(--gold);font-weight:700}}
 .tbd{{color:var(--mute);margin:0}}
+.facts{{display:grid;grid-template-columns:auto 1fr;gap:6px 16px;margin:6px 0 0}}
+.facts dt{{color:var(--gold);font-size:.85rem;letter-spacing:.1em;padding-top:2px}}
+.facts dd{{margin:0;font-weight:700;font-size:1.05rem}}
+.apply{{display:flex;flex-direction:column;align-items:center;gap:10px;padding-block:8px 44px;text-align:center}}
+.btn.big{{font-size:1.15rem;padding:18px 44px}}
+.sub{{font-size:1.02rem;margin-top:6px}}
+.soon{{font-family:"Shippori Mincho B1",serif;font-weight:800;font-size:2rem;letter-spacing:.2em;color:var(--gold);margin:0}}
 .lead{{color:var(--mute);margin:0;max-width:60ch}}
 .news{{list-style:none;margin:0;padding:0}}
 .news li{{display:flex;gap:16px;padding:8px 0;border-bottom:1px solid var(--line)}}
 .news time{{color:var(--gold);font-variant-numeric:tabular-nums;white-space:nowrap}}
 .intro{{display:grid;grid-template-columns:minmax(0,280px) 1fr;gap:28px;align-items:start}}
-.flyer{{width:100%;max-width:280px;border-radius:6px}}
+.flyer{{width:100%;max-width:420px;border-radius:6px;align-self:center}}
 .tbd-box{{aspect-ratio:1/1.414;border:1px dashed var(--gold-d);display:flex;align-items:center;justify-content:center;text-align:center;color:var(--mute);font-size:.9rem}}
 .story p{{margin:0 0 .8em;max-width:60ch}}
 table{{border-collapse:collapse;width:100%;max-width:520px}}
@@ -138,9 +143,9 @@ th{{color:var(--mute);font-weight:500;font-size:.85rem}}
 .notes{{margin:0;padding-left:1.2em;display:grid;gap:6px;color:var(--ink)}}
 footer{{padding-block:40px 56px;border-top:1px solid var(--line);color:var(--mute);font-size:.85rem;display:flex;flex-direction:column;gap:6px}}
 @media (max-width:720px){{
-  .hero,.intro{{grid-template-columns:1fr;text-align:center;justify-items:center}}
-  .intro{{text-align:left}} .intro .flyer{{justify-self:center}}
-  .hero .btns{{justify-content:center}}
+  .hero{{grid-template-columns:1fr;justify-items:center}}
+  .hero h1,.hero .eyebrow{{text-align:center}}
+  .tbd-box.flyer{{max-width:280px}}
   .access{{grid-template-columns:1fr}}
   .seats li{{grid-template-columns:4em 5.5em 1fr}}
   nav ul{{display:none}}
@@ -150,10 +155,10 @@ footer{{padding-block:40px 56px;border-top:1px solid var(--line);color:var(--mut
 <nav><div class="wrap">
   <a class="brand" href="#top">家族の絆</a>
   <ul>
-    <li><a href="#about">作品</a></li><li><a href="#schedule">日程</a></li><li><a href="#ticket">チケット</a></li>
-    <li><a href="#cast">出演者</a></li><li><a href="#goods">物販</a></li><li><a href="#access">会場</a></li><li><a href="#notes">注意事項</a></li>
+    <li><a href="#schedule">日程</a></li><li><a href="#cast">出演者</a></li><li><a href="#ticket">チケット</a></li>
+    <li><a href="#access">劇場</a></li><li><a href="#notes">注意事項</a></li><li><a href="#goods">物販</a></li>
   </ul>
-  <a class="navcta" href="/form">予約する</a>
+  <a class="navcta" href="/form">申し込む</a>
 </div></nav>
 
 <main class="wrap" id="top">
@@ -162,47 +167,28 @@ footer{{padding-block:40px 56px;border-top:1px solid var(--line);color:var(--mut
   <div>
     <div class="eyebrow">BSD PRESENTS</div>
     <h1>家族の絆</h1>
-    <div class="date">2026.12.4（金）〜 12.8（火）全7公演</div>
-    <div class="venue">シアターグリーン BASE THEATER（池袋）</div>
-    <div class="btns">
-      <a class="btn" href="/form">チケットを予約する</a>
-      <a class="btn ghost" href="#cast">出演者から予約する</a>
-    </div>
+    <dl class="facts">
+      <dt>公演期間</dt><dd>2026年12月4日（金）〜 12月8日（火）</dd>
+      <dt>劇場</dt><dd>シアターグリーン BASE THEATER（池袋）</dd>
+      <dt>公演数</dt><dd>全{show_count}公演</dd>
+    </dl>
   </div>
 </header>
 
-<section id="news">
-  <h2><small>NEWS</small>お知らせ</h2>
-  <ul class="news">{news}</ul>
-</section>
-
-<section id="about">
-  <h2><small>STORY</small>作品紹介</h2>
-  <div class="intro">
-    {flyer}
-    <div class="story">{story}</div>
-  </div>
-</section>
+<div class="apply">
+  <a class="btn big" href="/form">チケットを申し込む</a>
+  <p class="lead">出演者を指定して申し込む場合は、下の「出演者」からどうぞ。</p>
+</div>
 
 <section id="schedule">
-  <h2><small>SCHEDULE</small>公演日程</h2>
+  <h2><small>SCHEDULE</small>公演スケジュール</h2>
   <table><thead><tr><th>日付</th><th>開場</th><th>開演</th></tr></thead><tbody>{show_rows}</tbody></table>
   <p class="lead">開場は開演の30分前です。各回60席。</p>
 </section>
 
-<section id="ticket">
-  <h2><small>TICKET</small>チケット</h2>
-  <ul class="seats">{seat_rows}</ul>
-  <div class="callout"><b>お支払いは公演当日、会場受付にて現金のみ</b>となります。物販は現金のほか各種電子決済がご利用いただけます。</div>
-  <h3 style="font-size:1.05rem;margin-top:8px">ご予約の流れ</h3>
-  <ol class="steps">
-    <li>「チケットを予約する」、または出演者の「この出演者で予約」から予約フォームを開きます</li>
-    <li>お名前・メールアドレス・公演日時・席種・枚数を入力して送信します</li>
-    <li>予約番号入りの受付メールが届きます（送信元 info.tenrou.event@gmail.com）</li>
-    <li>運営事務局より本予約完了のご連絡をお送りします</li>
-    <li>当日は受付で予約番号またはお名前をお伝えください</li>
-  </ol>
-  <div><a class="btn" href="/form">チケットを予約する</a></div>
+<section id="flyer">
+  <h2><small>FLYER</small>フライヤー</h2>
+  {flyer}
 </section>
 
 <section id="cast">
@@ -211,27 +197,31 @@ footer{{padding-block:40px 56px;border-top:1px solid var(--line);color:var(--mut
   <ul class="casts">{cast_cards}</ul>
 </section>
 
+<section id="ticket">
+  <h2><small>TICKET</small>チケット</h2>
+  <ul class="seats">{seat_rows}</ul>
+  <div class="callout"><b>お支払いは公演当日、会場受付にて現金のみ</b>となります。</div>
+  <h3 style="font-size:1.05rem;margin-top:8px">お申し込みの流れ</h3>
+  <ol class="steps">
+    <li>「チケットを申し込む」、または出演者の「この出演者で予約」から予約フォームを開きます</li>
+    <li>お名前・メールアドレス・公演日時・席種・枚数を入力して送信します</li>
+    <li>予約番号入りの受付メールが届きます（送信元 info.tenrou.event@gmail.com）</li>
+    <li>運営事務局より本予約完了のご連絡をお送りします</li>
+    <li>当日は受付で予約番号またはお名前をお伝えください</li>
+  </ol>
+  <div><a class="btn" href="/form">チケットを申し込む</a></div>
+</section>
+
 <section id="staff">
   <h2><small>STAFF</small>スタッフ</h2>
   {staff}
 </section>
 
-<section id="goods">
-  <h2><small>GOODS</small>物販</h2>
-  <p class="lead">各商品、全出演者分をご用意しています。価格は予価です。</p>
-  <ul class="goods">{goods}</ul>
-</section>
-
-<section id="streaming">
-  <h2><small>STREAMING</small>配信</h2>
-  {streaming}
-</section>
-
 <section id="access">
-  <h2><small>ACCESS</small>会場</h2>
+  <h2><small>THEATER</small>劇場マップ</h2>
   <div class="access">
     <dl>
-      <dt>会場</dt><dd>シアターグリーン BASE THEATER</dd>
+      <dt>劇場</dt><dd>シアターグリーン BASE THEATER</dd>
       <dt>住所</dt><dd>〒171-0022<br>東京都豊島区南池袋2-20-4</dd>
       <dt>JR池袋駅</dt><dd>南改札より地下通路39番出口から徒歩約2分<br>東口から地上で徒歩約6分</dd>
       <dt>東池袋駅</dt><dd>東京メトロ有楽町線 徒歩約5分</dd>
@@ -244,13 +234,27 @@ footer{{padding-block:40px 56px;border-top:1px solid var(--line);color:var(--mut
 </section>
 
 <section id="notes">
-  <h2><small>NOTES</small>ご来場の注意事項</h2>
+  <h2><small>NOTES</small>注意事項</h2>
+  <h3 class="sub">キャンセル・変更について</h3>
   <ul class="notes">
-    <li>開場は開演の30分前です。</li>
-    <li>チケット代は公演当日、会場受付にて現金でお支払いください。</li>
-    <li>ご予約内容の変更・キャンセルは、予約受付メールへの返信または取り扱いの出演者までご連絡ください。</li>
+    <li>ご予約のキャンセル・内容の変更は、予約受付メールへの返信、または取り扱いの出演者までご連絡ください。</li>
+    <li>ご来場が難しくなった場合は、お早めにご連絡をお願いいたします。</li>
   </ul>
-  <p class="tbd">その他の注意事項は近日公開予定です。</p>
+  <h3 class="sub">応援花（スタンドフラワー）について</h3>
+  <div class="callout"><b>スタンドフラワー等の応援花はお受けしておりません。</b><br>出演者への応援は、事前予約物販の<b>「お祝い札」</b>でお届けいただけます（下の「オンライン物販」をご覧ください）。</div>
+</section>
+
+<section id="goods">
+  <h2><small>ONLINE</small>オンライン物販（事前予約）</h2>
+  <p class="lead">各商品、全出演者分をご用意しています。価格は予価です。</p>
+  <ul class="goods">{online_goods}</ul>
+  {online_btn}
+</section>
+
+<section id="goods-day">
+  <h2><small>GOODS</small>当日物販</h2>
+  <p class="soon">COMING SOON</p>
+  <p class="lead">当日物販の詳細は近日公開予定です。物販は現金のほか各種電子決済がご利用いただけます。</p>
 </section>
 </main>
 
