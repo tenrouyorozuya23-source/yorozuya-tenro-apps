@@ -24,16 +24,14 @@ def main():
     group, casts = casts_from_code()
     e = html.escape
     show_rows = "".join(
-        f'<tr><td><b>{d}</b><span class="dow">（{w}）</span></td><td class="num">{o}</td><td class="num strong">{s}</td></tr>'
+        f'<li><b>{d}<span class="dow">({w})</span></b><span class="t">開演 <strong>{s}</strong></span><span class="o">開場 {o}</span></li>'
         for d, w, o, s in SHOWS)
     seat_rows = "".join(f'<li><span class="seat">{n}</span><span class="price">¥{p}</span><span class="note">{t}</span></li>' for n, p, t in SEATS)
-    cast_cards = "".join(
-        f'<li class="cast"><span class="cname">{e(n)}</span><a href="/c/{i}">この出演者で予約</a></li>'
-        for i, n in enumerate(casts, 1))
+    cast_cards = "".join(f'<li><a class="cast" href="/c/{i}">{e(n)}</a></li>' for i, n in enumerate(casts, 1))
     online_goods = "".join(f'<li><span>{e(n)}</span><span class="price">¥{p}</span></li>' for n, p, pre in GOODS if pre)
     staff = ("<dl class='staff'>" + "".join(f"<dt>{e(r)}</dt><dd>{e(n)}</dd>" for r, n in STAFF) + "</dl>") if STAFF else '<p class="tbd">スタッフ情報は近日公開予定です。</p>'
     flyer = (f'<img class="flyer" src="/assets/{e(FLYER)}" alt="「家族の絆」フライヤー">' if FLYER
-             else '<div class="flyer tbd-box">フライヤー画像<br>近日公開</div>')
+             else '<p class="tbd">フライヤー画像は近日公開予定です。</p>')
     online_btn = (f'<a class="btn" href="{e(ONLINE_SHOP_URL)}" rel="noopener">事前予約物販を申し込む</a>' if ONLINE_SHOP_URL
                   else '<p class="tbd">お申し込み方法は近日公開予定です。</p>')
     page = TEMPLATE.format(show_rows=show_rows, seat_rows=seat_rows, cast_cards=cast_cards, online_goods=online_goods,
@@ -69,7 +67,7 @@ TEMPLATE = """<!DOCTYPE html>
 *{{box-sizing:border-box}}
 html{{scroll-behavior:smooth;scroll-padding-top:64px}}
 @media (prefers-reduced-motion:reduce){{html{{scroll-behavior:auto}}}}
-body{{margin:0;background:var(--bg);color:var(--ink);font-family:"Zen Kaku Gothic New","Hiragino Sans","Noto Sans JP",sans-serif;font-size:15px;line-height:1.85}}
+body{{margin:0;background:var(--bg);color:var(--ink);font-family:"Zen Kaku Gothic New","Hiragino Sans","Noto Sans JP",sans-serif;font-size:15px;line-height:1.7}}
 a{{color:var(--gold)}}
 .wrap{{max-width:960px;margin:0 auto;padding-inline:16px}}
 h1,h2,h3{{font-family:"Shippori Mincho B1","Hiragino Mincho ProN",serif;font-weight:800;margin:0;text-wrap:balance}}
@@ -83,7 +81,7 @@ nav ul a{{color:var(--mute);text-decoration:none;font-size:.85rem;white-space:no
 nav ul a:hover,nav ul a:focus-visible{{color:var(--ink)}}
 nav .navcta{{background:var(--gold);color:#1a1424;padding:6px 14px;border-radius:999px;font-weight:700;font-size:.82rem;text-decoration:none;white-space:nowrap}}
 /* hero */
-.hero{{padding-block:56px 48px;display:grid;grid-template-columns:minmax(0,320px) 1fr;gap:36px;align-items:center}}
+.hero{{padding-block:28px 20px;display:grid;grid-template-columns:minmax(0,320px) 1fr;gap:36px;align-items:center}}
 .hero img{{width:100%;max-width:320px;height:auto}}
 .eyebrow{{letter-spacing:.35em;font-size:.75rem;color:var(--gold)}}
 .hero h1{{font-size:clamp(2.8rem,10vw,5rem);line-height:1.08;margin:.15em 0 .25em}}
@@ -95,14 +93,14 @@ nav .navcta{{background:var(--gold);color:#1a1424;padding:6px 14px;border-radius
 .btn.ghost{{background:transparent;color:var(--gold);border:1px solid var(--gold-d)}}
 .hero .btns{{display:flex;gap:12px;flex-wrap:wrap;margin-top:22px}}
 /* sections */
-section{{padding-block:52px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:20px}}
-h2{{font-size:1.55rem;display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px}}
+section{{padding-block:28px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:12px}}
+h2{{font-size:1.35rem;display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px}}
 h2 small{{font-family:"Zen Kaku Gothic New",sans-serif;font-size:.72rem;letter-spacing:.3em;color:var(--gold);font-weight:700}}
 .tbd{{color:var(--mute);margin:0}}
 .facts{{display:grid;grid-template-columns:auto 1fr;gap:6px 16px;margin:6px 0 0}}
 .facts dt{{color:var(--gold);font-size:.85rem;letter-spacing:.1em;padding-top:2px}}
 .facts dd{{margin:0;font-weight:700;font-size:1.05rem}}
-.apply{{display:flex;flex-direction:column;align-items:center;gap:10px;padding-block:8px 44px;text-align:center}}
+.apply{{display:flex;flex-direction:column;align-items:center;gap:6px;padding-block:4px 24px;text-align:center}}
 .btn.big{{font-size:1.15rem;padding:18px 44px}}
 .sub{{font-size:1.02rem;margin-top:6px}}
 .soon{{font-family:"Shippori Mincho B1",serif;font-weight:800;font-size:2rem;letter-spacing:.2em;color:var(--gold);margin:0}}
@@ -111,7 +109,8 @@ h2 small{{font-family:"Zen Kaku Gothic New",sans-serif;font-size:.72rem;letter-s
 .news li{{display:flex;gap:16px;padding:8px 0;border-bottom:1px solid var(--line)}}
 .news time{{color:var(--gold);font-variant-numeric:tabular-nums;white-space:nowrap}}
 .intro{{display:grid;grid-template-columns:minmax(0,280px) 1fr;gap:28px;align-items:start}}
-.flyer{{width:100%;max-width:420px;border-radius:6px;align-self:center}}
+.flyer{{width:100%;max-width:360px;border-radius:6px;align-self:center}}
+.tbd-box.flyer{{max-width:220px}}
 .tbd-box{{aspect-ratio:1/1.414;border:1px dashed var(--gold-d);display:flex;align-items:center;justify-content:center;text-align:center;color:var(--mute);font-size:.9rem}}
 .story p{{margin:0 0 .8em;max-width:60ch}}
 table{{border-collapse:collapse;width:100%;max-width:520px}}
@@ -120,32 +119,39 @@ th{{color:var(--mute);font-weight:500;font-size:.85rem}}
 .num{{font-variant-numeric:tabular-nums}} .strong{{font-weight:700;color:#fff}}
 .dow{{color:var(--mute)}}
 .seats,.goods{{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}}
-.seats li{{display:grid;grid-template-columns:4.5em 6em 1fr;gap:12px;align-items:baseline;padding:13px 0;border-bottom:1px solid var(--line)}}
+.seats li{{display:grid;grid-template-columns:4.5em 6em 1fr;gap:10px;align-items:baseline;padding:7px 0;border-bottom:1px solid var(--line)}}
 .seat{{font-family:"Shippori Mincho B1",serif;font-size:1.3rem;font-weight:800;color:var(--gold)}}
 .price{{font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}}
 .seats .note{{color:var(--mute);font-size:.9rem}}
 .callout{{background:var(--panel);border-left:4px solid var(--gold);padding:14px 16px;border-radius:0 8px 8px 0}}
 .callout b{{color:#fff}}
-.steps{{margin:0;padding:0;list-style:none;counter-reset:s;display:grid;gap:10px}}
+.steps{{margin:0;padding:0;list-style:none;counter-reset:s;display:grid;gap:4px;font-size:.92rem}}
 .steps li{{counter-increment:s;display:grid;grid-template-columns:30px 1fr;gap:12px;align-items:start}}
 .steps li::before{{content:counter(s);width:28px;height:28px;border-radius:50%;background:var(--gold);color:#1a1424;font-weight:700;display:flex;align-items:center;justify-content:center;font-size:.85rem;margin-top:2px}}
-.casts{{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px}}
-.cast{{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:10px}}
-.cname{{font-family:"Shippori Mincho B1",serif;font-weight:800;font-size:1.1rem}}
-.cast a{{font-size:.82rem;color:var(--gold);text-decoration:none;border:1px solid var(--gold-d);border-radius:999px;padding:4px 10px;align-self:flex-start}}
-.cast a:hover{{background:var(--gold);color:#1a1424}}
-.goods li{{display:flex;justify-content:space-between;gap:12px;padding:11px 0;border-bottom:1px solid var(--line)}}
+.casts{{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px}}
+.cast{{display:block;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:9px 10px;color:var(--ink);text-decoration:none;font-weight:700;font-size:.92rem;text-align:center}}
+.cast:hover,.cast:focus-visible{{border-color:var(--gold);color:#fff;outline:none}}
+.shows{{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(4,1fr);gap:8px}}
+.shows li{{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:8px 10px;display:flex;flex-direction:column;line-height:1.45}}
+.shows b{{font-size:1.02rem}} .shows .t{{font-variant-numeric:tabular-nums}} .shows .t strong{{color:#fff;font-size:1.08rem}}
+.shows .o{{color:var(--mute);font-size:.8rem;font-variant-numeric:tabular-nums}}
+.goods li{{display:flex;justify-content:space-between;gap:12px;padding:6px 0;font-size:.92rem;border-bottom:1px solid var(--line)}}
 .goods em{{font-style:normal;font-size:.72rem;color:var(--gold);border:1px solid var(--gold-d);border-radius:4px;padding:0 6px;margin-left:8px;white-space:nowrap}}
-.access{{display:grid;grid-template-columns:1fr 1fr;gap:24px}}
+.access{{display:grid;grid-template-columns:1fr 1fr;gap:16px;font-size:.92rem}}
 .access dl,.staff{{margin:0;display:grid;grid-template-columns:auto 1fr;gap:6px 16px}}
 .access dt,.staff dt{{color:var(--mute)}} .access dd,.staff dd{{margin:0}}
-.map{{width:100%;aspect-ratio:16/9;border:0;border-radius:8px;filter:grayscale(.3)}}
+.map{{width:100%;height:220px;border:0;border-radius:8px;filter:grayscale(.3)}}
 .notes{{margin:0;padding-left:1.2em;display:grid;gap:6px;color:var(--ink)}}
-footer{{padding-block:40px 56px;border-top:1px solid var(--line);color:var(--mute);font-size:.85rem;display:flex;flex-direction:column;gap:6px}}
+footer{{padding-block:24px 32px;border-top:1px solid var(--line);color:var(--mute);font-size:.85rem;display:flex;flex-direction:column;gap:6px}}
 @media (max-width:720px){{
-  .hero{{grid-template-columns:1fr;justify-items:center}}
+  .hero{{grid-template-columns:1fr;justify-items:center;gap:8px}}
+  .hero img{{max-width:190px}}
+  .hero h1{{font-size:2.6rem}}
+  .shows{{grid-template-columns:repeat(2,1fr)}}
+  .casts{{grid-template-columns:repeat(3,1fr)}}
+  .cast{{font-size:.82rem;padding:8px 4px}}
   .hero h1,.hero .eyebrow{{text-align:center}}
-  .tbd-box.flyer{{max-width:280px}}
+  .facts{{gap:2px 12px}} .facts dd{{font-size:.95rem}}
   .access{{grid-template-columns:1fr}}
   .seats li{{grid-template-columns:4em 5.5em 1fr}}
   nav ul{{display:none}}
@@ -168,7 +174,7 @@ footer{{padding-block:40px 56px;border-top:1px solid var(--line);color:var(--mut
     <div class="eyebrow">BSD PRESENTS</div>
     <h1>家族の絆</h1>
     <dl class="facts">
-      <dt>公演期間</dt><dd>2026年12月4日（金）〜 12月8日（火）</dd>
+      <dt>公演期間</dt><dd>2026.12.4（金）〜12.8（火）</dd>
       <dt>劇場</dt><dd>シアターグリーン BASE THEATER（池袋）</dd>
       <dt>公演数</dt><dd>全{show_count}公演</dd>
     </dl>
@@ -182,8 +188,8 @@ footer{{padding-block:40px 56px;border-top:1px solid var(--line);color:var(--mut
 
 <section id="schedule">
   <h2><small>SCHEDULE</small>公演スケジュール</h2>
-  <table><thead><tr><th>日付</th><th>開場</th><th>開演</th></tr></thead><tbody>{show_rows}</tbody></table>
-  <p class="lead">開場は開演の30分前です。各回60席。</p>
+  <ul class="shows">{show_rows}</ul>
+  <p class="lead">開場は開演の30分前・各回60席</p>
 </section>
 
 <section id="flyer">
@@ -193,7 +199,7 @@ footer{{padding-block:40px 56px;border-top:1px solid var(--line);color:var(--mut
 
 <section id="cast">
   <h2><small>CAST</small>出演者</h2>
-  <p class="lead">応援している出演者の「この出演者で予約」を押すと、取り扱いが選ばれた状態で予約フォームが開きます。</p>
+  <p class="lead">お名前を押すと、その出演者の取り扱いで予約フォームが開きます。</p>
   <ul class="casts">{cast_cards}</ul>
 </section>
 
@@ -203,7 +209,7 @@ footer{{padding-block:40px 56px;border-top:1px solid var(--line);color:var(--mut
   <div class="callout"><b>お支払いは公演当日、会場受付にて現金のみ</b>となります。</div>
   <h3 style="font-size:1.05rem;margin-top:8px">お申し込みの流れ</h3>
   <ol class="steps">
-    <li>「チケットを申し込む」、または出演者の「この出演者で予約」から予約フォームを開きます</li>
+    <li>「チケットを申し込む」、または出演者のお名前から予約フォームを開きます</li>
     <li>お名前・メールアドレス・公演日時・席種・枚数を入力して送信します</li>
     <li>予約番号入りの受付メールが届きます（送信元 info.tenrou.event@gmail.com）</li>
     <li>運営事務局より本予約完了のご連絡をお送りします</li>
