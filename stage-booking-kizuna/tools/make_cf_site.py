@@ -291,7 +291,7 @@ footer img{{width:96px;opacity:.9;margin-bottom:6px}}
 </div></nav>
 
 <header class="hero" id="top">
-  <div class="kv"><img src="/assets/kv.webp" alt="" width="1600" height="1392" fetchpriority="high"></div>
+  <div class="kv"><img src="/assets/kv.webp" alt="" width="1600" height="1403" fetchpriority="high"></div>
   <div class="inner">
     <img class="logo" src="/assets/logo.webp" alt="宵牙狼" width="480" height="360">
     <div class="presents">BSD Presents</div>
@@ -319,8 +319,8 @@ footer img{{width:96px;opacity:.9;margin-bottom:6px}}
 <section id="flyer">
   <div class="hd"><span class="en">Flyer</span><h2>フライヤー</h2></div>
   <div class="flyers">
-    <a class="frame" href="/assets/flyer-front-l.webp" target="_blank" rel="noopener"><img src="/assets/flyer-front.webp" alt="「家族の絆」フライヤー表面" width="1400" height="1964" loading="lazy"><span>Front</span></a>
-    <a class="frame" href="/assets/flyer-back-l.webp" target="_blank" rel="noopener"><img src="/assets/flyer-back.webp" alt="「家族の絆」フライヤー裏面（出演者・あらすじ・タイムテーブル・チケット料金・スタッフ）" width="1400" height="1964" loading="lazy"><span>Back</span></a>
+    <a class="frame" href="/assets/flyer-front-l.webp" target="_blank" rel="noopener"><img src="/assets/flyer-front.webp" alt="「家族の絆」フライヤー表面" width="1400" height="1980" loading="lazy"><span>Front</span></a>
+    <a class="frame" href="/assets/flyer-back-l.webp" target="_blank" rel="noopener"><img src="/assets/flyer-back.webp" alt="「家族の絆」フライヤー裏面（出演者・あらすじ・タイムテーブル・チケット料金・スタッフ）" width="1400" height="1980" loading="lazy"><span>Back</span></a>
   </div>
   <div class="story frame">
     <h3>あらすじ</h3>
