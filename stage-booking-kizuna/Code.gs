@@ -1194,7 +1194,11 @@ function fix_formText() {
   var form = FormApp.openById(formId);
   form.setDescription(formDescriptionText());
   form.setConfirmationMessage(FORM_CONFIRMATION);
-  Logger.log("✅ フォームの説明文と送信後メッセージを更新しました: " + form.getPublishedUrl());
+  // 席種の質問の説明（料金）も最新にする
+  form.getItems(FormApp.ItemType.LIST).forEach(function(item){
+    if (item.getTitle() === "席種") item.setHelpText(formSeatText());
+  });
+  Logger.log("✅ フォームの説明文・席種の料金・送信後メッセージを更新しました: " + form.getPublishedUrl());
 }
 
 // ============================================================
