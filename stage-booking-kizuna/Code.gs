@@ -40,6 +40,10 @@ var CONFIG = {
   ],
   doorsOpenMinutes: 30, // 開場は開演の30分前
 
+  // 予約受付の開始日時（日本時間）。これより前はフォームを閉じておき、時刻になったら自動で開く → setup_openSchedule()
+  reservationOpenAt:    "2026-10-12T21:00:00+09:00",
+  reservationOpenLabel: "2026年10月12日（月）21:00",
+
   groups: [
     {
       name: "家族の絆",
@@ -502,7 +506,7 @@ function setupMasterSheet(ss) {
     sheet.getRange(row,1).setValue(showId);
     sheet.getRange(row,2).setValue(show.dt);
     sheet.getRange(row,3).setValue(show.cap);
-    sheet.getRange(row,4).setFormula('=SUMIFS(予約一覧!H:H,予約一覧!F:F,"' + show.dt + '",予約一覧!K:K,"<>キャンセル")');
+    sheet.getRange(row,4).setFormula('=SUMIFS(予約一覧!H:H,予約一覧!F:F,"' + show.dt + '",予約一覧!K:K,"<>キャンセル",予約一覧!K:K,"<>キャンセル待ち")');
     sheet.getRange(row,5).setFormula("=C"+row+"-D"+row);
     sheet.getRange(row,6).setFormula(
       '=IF(E'+row+'<=0,"満席",IF(E'+row+'<=10,"△ わずか",IF(E'+row+'<=30,"○ 少なめ","◎ 余裕あり")))'
@@ -908,7 +912,7 @@ function setupSalesManagementSheet(ss) {
   // 公演マスタ：席種(7行目〜) → 空行 → 特別チケット見出し・ヘッダー → 特別チケット → 空行 → 公演一覧見出し → ヘッダー
   var masterShowHeadRow = 7 + CONFIG.seatTypes.length + CONFIG.specialTickets.length + 5;
   var L = columnToLetter;
-  var live = '予約一覧!K:K,"<>キャンセル"';
+  var live = '予約一覧!K:K,"<>キャンセル",予約一覧!K:K,"<>キャンセル待ち"';
 
   for (var i=0; i<showCount; i++) {
     var dt = CONFIG.shows[i].dt;
@@ -1069,7 +1073,7 @@ function setupSalesManagementSheet(ss) {
 }
 
 // フォームの説明文・送信後メッセージ
-var FORM_CONFIRMATION = "ご予約ありがとうございます！\nご入力のメールアドレスに予約受付メールをお送りしました。運営事務局より本予約完了のご連絡をお待ちください。";
+var FORM_CONFIRMATION = "ご予約ありがとうございます！\nご入力のメールアドレスに「ご予約確定」のメールをお送りしました。\n満席の公演はキャンセル待ち（仮予約）での受付となり、その旨のメールをお送りしています。";
 
 function formSeatText() {
   return CONFIG.seatTypes.map(function(st){
@@ -1082,7 +1086,57 @@ function formDescriptionText() {
     "【公演日時】（開場は開演の" + CONFIG.doorsOpenMinutes + "分前）\n" + scheduleText() + "\n\n" +
     "【チケット】\n" + formSeatText() + "\n\n" +
     "【お支払い】\n" + CONFIG.payment.ticket + "\n" + CONFIG.payment.goods + "\n\n" +
-    "ご予約後、運営事務局より本予約完了のご連絡をお待ちください。";
+    "【ご予約について】\n送信と同時にご予約が確定し、「ご予約確定」のメールが届きます。\n" +
+    "満席の公演はキャンセル待ち（仮予約）での受付となり、お席が空き次第、ご予約確定のメールをお送りします。" +
+    (isReservationOpen() ? "" : "\n\n【予約受付開始】" + CONFIG.reservationOpenLabel + "〜");
+}
+
+// ============================================================
+// 予約受付の開始（CONFIG.reservationOpenAt）
+//   setup_openSchedule() を1回実行すると、開始前ならフォームを閉じて案内を表示し、
+//   開始時刻に openReservations() が自動で動いてフォームを開く（案内も消える）
+// ============================================================
+function reservationOpenDate() {
+  return new Date(CONFIG.reservationOpenAt);
+}
+
+function isReservationOpen() {
+  return !CONFIG.reservationOpenAt || new Date() >= reservationOpenDate();
+}
+
+function closedFormMessage() {
+  return "「" + CONFIG.title + "」のチケット予約受付は " + CONFIG.reservationOpenLabel + " から開始します。\n" +
+    "開始時刻になると、このページからご予約いただけるようになります。";
+}
+
+function setup_openSchedule() {
+  var form = FormApp.openById(PropertiesService.getScriptProperties().getProperty("FORM_ID"));
+  ScriptApp.getProjectTriggers().forEach(function(t){
+    if (t.getHandlerFunction() === "openReservations") ScriptApp.deleteTrigger(t);
+  });
+  if (isReservationOpen()) {
+    openReservations();
+    return "予約受付の開始時刻を過ぎているため、フォームを開きました";
+  }
+  form.setCustomClosedFormMessage(closedFormMessage());
+  form.setAcceptingResponses(false);
+  form.setDescription(formDescriptionText());
+  ScriptApp.newTrigger("openReservations").timeBased().at(reservationOpenDate()).create();
+  var msg = "フォームを閉じました。" + CONFIG.reservationOpenLabel + " に自動で予約受付を開始します";
+  Logger.log("✅ " + msg);
+  return msg;
+}
+
+// 開始時刻にトリガーから呼ばれる（手動で実行すれば今すぐ受付開始）
+function openReservations() {
+  var form = FormApp.openById(PropertiesService.getScriptProperties().getProperty("FORM_ID"));
+  form.setAcceptingResponses(true);
+  fix_formText();
+  ScriptApp.getProjectTriggers().forEach(function(t){
+    if (t.getHandlerFunction() === "openReservations") ScriptApp.deleteTrigger(t);
+  });
+  Logger.log("✅ 予約受付を開始しました: " + form.getPublishedUrl());
+  return "予約受付を開始しました";
 }
 
 // 更新用：予約フォームの説明文を最新にし、キャスト設定の個別URLを「取り扱いキャスト選択済みのフォーム」にする（1回だけ実行）
@@ -1373,8 +1427,20 @@ function onFormSubmit(e) {
 
   var reservationNo = generateReservationNo("R");
 
+  // 残席があれば本予約、足りなければキャンセル待ち（仮予約）。同時送信で定員を超えないようロックする
+  var lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+  var waitlisted = false;
+  try {
+    waitlisted = showDt && seatType !== "全通券" &&
+      remainingSeatsFor(sheet, showDt, targetRow) < (Number(seatCount) || 1);
+    if (colMap.status) sheet.getRange(targetRow, colMap.status).setValue(waitlisted ? STATUS_WAIT : STATUS_CONFIRMED);
+    SpreadsheetApp.flush();
+  } finally {
+    lock.releaseLock();
+  }
+
   if (colMap.resNo)    sheet.getRange(targetRow, colMap.resNo).setValue(reservationNo);
-  if (colMap.status)   sheet.getRange(targetRow, colMap.status).setValue("仮予約済み");
   if (colMap.torioki)  sheet.getRange(targetRow, colMap.torioki).setValue("");
   if (colMap.seatType) sheet.getRange(targetRow, colMap.seatType).setValue(seatType);
   if (colMap.seatCount)sheet.getRange(targetRow, colMap.seatCount).setValue(seatCount);
@@ -1395,8 +1461,118 @@ function onFormSubmit(e) {
 
   addToDailyStack(e.response);
 
-  // お客様へ予約受付メール
-  try { sendReservationReceivedMail(e.response, reservationNo); } catch(err) { Logger.log("予約受付メール送信エラー: " + err.message); }
+  // お客様へメール（本予約＝ご予約確定／満席＝キャンセル待ち受付）
+  try { sendReservationReceivedMail(e.response, reservationNo, waitlisted); } catch(err) { Logger.log("予約メール送信エラー: " + err.message); }
+}
+
+// ============================================================
+// 本予約／キャンセル待ち
+// ============================================================
+var STATUS_CONFIRMED = "本予約済み";
+var STATUS_WAIT      = "キャンセル待ち";
+
+// 席数に数える予約か（キャンセル・キャンセル待ちは数えない）
+function countsAsSeat(status) {
+  status = String(status || "");
+  return status !== "キャンセル" && status !== STATUS_WAIT;
+}
+
+function sameShow(a, b) {
+  a = String(a || "").trim(); b = String(b || "").trim();
+  return a === b || a.replace(/\s/g, "") === b.replace(/\s/g, "");
+}
+
+// 公演の定員（公演マスタの値を優先）
+function showCapacity(showDt) {
+  var master = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("公演マスタ");
+  if (master) {
+    var data = master.getDataRange().getValues();
+    for (var i = 0; i < data.length; i++) {
+      if (sameShow(data[i][1], showDt) && typeof data[i][2] === "number") return data[i][2];
+    }
+  }
+  for (var i = 0; i < CONFIG.shows.length; i++) if (sameShow(CONFIG.shows[i].dt, showDt)) return CONFIG.shows[i].cap;
+  return 0;
+}
+
+// 残席（excludeRow の行は数えない。1始まりの行番号）
+function remainingSeatsFor(sheet, showDt, excludeRow) {
+  var data = sheet.getDataRange().getValues();
+  var hdr = data[0].map(String);
+  var cShow = hdr.indexOf("公演日時"), cStatus = hdr.indexOf("ステータス"), cCount = hdr.indexOf("枚数");
+  var used = 0;
+  for (var i = 1; i < data.length; i++) {
+    if (i + 1 === excludeRow) continue;
+    if (!sameShow(data[i][cShow], showDt) || !countsAsSeat(data[i][cStatus])) continue;
+    used += toSeatCount(data[i][cCount]);
+  }
+  return showCapacity(showDt) - used;
+}
+
+// キャンセル待ちを申込順に繰り上げる（空きに収まる予約だけ本予約にしてメールを送る）
+//   showDt を省略すると全公演
+function promoteWaitlist(showDt) {
+  var lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+  var promoted = [];
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheet = ss.getSheetByName("予約一覧");
+    var data = sheet.getDataRange().getValues();
+    var hdr = data[0].map(String);
+    var c = {
+      ts: hdr.indexOf("タイムスタンプ"), show: hdr.indexOf("公演日時"), status: hdr.indexOf("ステータス"),
+      count: hdr.indexOf("枚数"), name: hdr.indexOf("お名前"), mail: hdr.indexOf("メールアドレス"),
+      seat: hdr.indexOf("席種"), resNo: hdr.indexOf("予約番号"), cast: hdr.indexOf("取り扱いキャスト")
+    };
+    var shows = showDt ? [showDt] : CONFIG.shows.map(function(s){ return s.dt; });
+    shows.forEach(function(dt){
+      var used = 0, waits = [];
+      for (var i = 1; i < data.length; i++) {
+        if (!sameShow(data[i][c.show], dt)) continue;
+        var st = String(data[i][c.status] || "");
+        if (st === STATUS_WAIT) waits.push(i);
+        else if (countsAsSeat(st)) used += toSeatCount(data[i][c.count]);
+      }
+      var left = showCapacity(dt) - used;
+      waits.sort(function(a, b){ return new Date(data[a][c.ts]) - new Date(data[b][c.ts]); });
+      waits.forEach(function(i){
+        var n = toSeatCount(data[i][c.count]);
+        if (n > left) return;
+        left -= n;
+        sheet.getRange(i + 1, c.status + 1).setValue(STATUS_CONFIRMED);
+        data[i][c.status] = STATUS_CONFIRMED;
+        try {
+          sendBookingConfirmedMail({
+            mail: data[i][c.mail], name: data[i][c.name], show: data[i][c.show], seat: data[i][c.seat],
+            count: n, resNo: data[i][c.resNo], cast: data[i][c.cast]
+          }, true);
+        } catch(err) { Logger.log("繰り上げメール送信エラー: " + err.message); }
+        promoted.push(data[i][c.resNo]);
+      });
+      if (promoted.length) {
+        try { updateSingleAttendanceSheet(ss, dt); } catch(err) {}
+      }
+    });
+    if (promoted.length) { try { updateRemainingSeats(); } catch(err) {} }
+  } finally {
+    lock.releaseLock();
+  }
+  var msg = promoted.length ? promoted.join("・") + " をキャンセル待ちから本予約に繰り上げました" : "繰り上げできるキャンセル待ちはありません";
+  Logger.log("✅ " + msg);
+  return msg;
+}
+
+// 更新用：本予約・キャンセル待ちの仕組みを入れたあと1回だけ実行
+//   売上管理・公演マスタの集計式をキャンセル待ちを除く形に直し、予約受付の開始スケジュールを設定する
+function update_bookingFlow() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  setupSalesManagementSheet(ss);
+  updateRemainingSeats();
+  fix_formText();
+  buildControlPanel();
+  Logger.log("✅ " + setup_openSchedule());
+  Logger.log("✅ 本予約・キャンセル待ちの仕組みに更新しました");
 }
 
 
@@ -1459,7 +1635,7 @@ function updateSingleAttendanceSheet(ss, showDt) {
     // スペース等の揺れを吸収して照合
     if (rowShowDt !== showDt &&
         rowShowDt.replace(/\s/g,"") !== showDt.replace(/\s/g,"")) continue;
-    if (String(r[rCol.status]) === "キャンセル") continue;
+    if (!countsAsSeat(r[rCol.status])) continue;  // キャンセル・キャンセル待ちは受付表に載せない
 
     var resNo = String(r[rCol.resNo] || "");
 
@@ -2487,7 +2663,7 @@ function updateCastSummary(ss) {
     for (var j = 1; j < reservations.length; j++) {
       var r = reservations[j];
       if (String(r[castCol]) !== castLabel) continue;
-      if (String(r[statusCol2]) === "キャンセル") continue;
+      if (!countsAsSeat(r[statusCol2])) continue;
       totalCount++;
       totalSeats += Number(r[countCol]) || 0;
     }
@@ -2907,7 +3083,7 @@ function updateRemainingSeats() {
       var rowStatus = String(reservations[j][resCol.status] || "");
       // スペース揺れを吸収して公演日時を照合
       if ((rowShow === showDt || rowShow.replace(/\s/g,"") === showDt.replace(/\s/g,"")) &&
-          rowStatus !== "キャンセル") {
+          countsAsSeat(rowStatus)) {
         count += Number(reservations[j][resCol.count]) || 0;
       }
     }
@@ -3005,8 +3181,10 @@ function createCastSheets() {
 var CONTROL_OPS = [
   { func: "updateRemainingSeats",      name: "残席を更新する",             desc: "公演マスタの予約数・残席を最新化します",
     run: function(){ return updateRemainingSeats(); } },
-  { func: "sendBookingEmails",         name: "本予約メールを下書き作成",   desc: "仮予約済みのお客様への本予約確認メールを " + CONFIG.mail.from + " の下書きに作成し、本予約済みにします",
-    run: function(){ return sendBookingEmails(); } },
+  { func: "promoteWaitlist",           name: "キャンセル待ちを繰り上げ",   desc: "空席があれば、キャンセル待ち（仮予約）を申込順に本予約へ繰り上げ、ご予約確定メールを送ります（キャンセル確定時は自動で実行）",
+    run: function(){ return promoteWaitlist(); } },
+  { func: "openReservations",          name: "予約受付を今すぐ開始",       desc: "予約フォームを開きます（通常は " + CONFIG.reservationOpenLabel + " に自動で開きます）",
+    run: function(){ return openReservations(); } },
   { func: "updateAttendanceSheets",    name: "受付表を更新する",           desc: "各公演の受付表シートとキャスト別の集計を最新化します",
     run: function(){ updateAttendanceSheets(); return "受付表を更新しました"; } },
   { func: "sortAllAttendanceByResNo",  name: "受付表を予約番号順に並べる", desc: "全公演の受付表を予約番号（R-001）の昇順に並び替えます",
@@ -3196,12 +3374,15 @@ function handleEdit(e) {
               seatCol  > 0 ? sheet.getRange(row, seatCol).getValue()  : "",
               countCol > 0 ? sheet.getRange(row, countCol).getValue() : "");
           } catch(err) { Logger.log("キャンセルメール送信エラー: " + err.message); }
+
+          // 空いた席をキャンセル待ちの方へ繰り上げ（申込順）
+          if (showDt) { try { promoteWaitlist(showDt); } catch(err) { Logger.log("繰り上げエラー: " + err.message); } }
         }
       }
     } else if (col === cancelCol && row >= 2 && e.value === "FALSE") {
       // キャンセルチェックをOFFにした（キャンセル取り消し）
       if (statusCol > 0) {
-        sheet.getRange(row, statusCol).setValue("仮予約済み");  // キャンセル取り消し→仮予約に戻す
+        sheet.getRange(row, statusCol).setValue(STATUS_CONFIRMED);  // キャンセル取り消し→本予約に戻す
         sheet.getRange(row, 1, 1, sheet.getLastColumn())
           .setBackground(null).setFontColor(null);
         var showDt = showCol > 0 ? sheet.getRange(row, showCol).getValue() : "";
@@ -3756,43 +3937,65 @@ function mailFooter() {
     "※このメールは予約システムから自動送信しています。";
 }
 
-// 予約受付（仮予約）メール：フォーム送信時
-function sendReservationReceivedMail(response, reservationNo) {
+// フォーム送信時のメール：本予約ならご予約確定、満席ならキャンセル待ち受付
+function sendReservationReceivedMail(response, reservationNo, waitlisted) {
   if (!CONFIG.mail.reservation) return;
   var a = {};
   var answers = response.getItemResponses();
   for (var i = 0; i < answers.length; i++) {
     a[answers[i].getItem().getTitle()] = answers[i].getResponse();
   }
-  var mail  = a["メールアドレス"];
-  var name  = a["お名前"] || "";
-  var show  = a["ご希望の公演日時"] || "";
-  var seat  = a["席種"] || "";
-  var count = toSeatCount(a["枚数"]);
-  var cast  = String(a["取り扱いキャスト"] || "").replace(/\s*【.+】/, "");
-  var price = getSeatPrice(seat);
+  var r = {
+    mail: a["メールアドレス"], name: a["お名前"] || "", show: a["ご希望の公演日時"] || "",
+    seat: a["席種"] || "", count: toSeatCount(a["枚数"]), resNo: reservationNo, cast: a["取り扱いキャスト"] || ""
+  };
+  if (waitlisted) sendWaitlistMail(r);
+  else sendBookingConfirmedMail(r, false);
+}
 
-  var body =
-    name + " 様\n\n" +
-    "この度は「" + CONFIG.title + "」にご予約いただき、誠にありがとうございます。\n" +
-    "以下の内容でご予約を受け付けました（仮予約）。\n" +
-    "運営事務局より本予約完了のメールをお送りしますので、今しばらくお待ちください。\n\n" +
-    "━━━━━━━━━━━━━━━━━━━━\n" +
-    "予約番号　：" + reservationNo + "\n" +
-    "公演日時　：" + show + "（開場 " + doorsOpenTime(show) + "）\n" +
-    "席種　　　：" + seat + "\n" +
+function reservationDetailText(r) {
+  var price = getSeatPrice(r.seat);
+  var count = toSeatCount(r.count);
+  return "━━━━━━━━━━━━━━━━━━━━\n" +
+    "予約番号　：" + r.resNo + "\n" +
+    "公演日時　：" + r.show + "（開場 " + doorsOpenTime(r.show) + "）\n" +
+    "席種　　　：" + r.seat + "\n" +
     "枚数　　　：" + count + "枚\n" +
     (price ? "チケット代：" + yenText(price * count) + "（" + yenText(price) + " × " + count + "枚）\n" : "") +
-    "取り扱い　：" + cast + "\n" +
-    "━━━━━━━━━━━━━━━━━━━━\n\n" +
+    "取り扱い　：" + String(r.cast || "").replace(/\s*【.+】/, "") + "\n" +
+    "会場　　　：" + CONFIG.venue + "\n" +
+    "━━━━━━━━━━━━━━━━━━━━\n\n";
+}
+
+// ご予約確定（本予約）メール。promoted=true はキャンセル待ちからの繰り上げ
+function sendBookingConfirmedMail(r, promoted) {
+  var body =
+    r.name + " 様\n\n" +
+    "この度は「" + CONFIG.title + "」にご予約いただき、誠にありがとうございます。\n" +
+    (promoted ? "お待たせいたしました。キャンセル待ちでお申し込みのお席が確保できましたので、\n以下の内容でご予約が確定しました（本予約）。\n\n"
+              : "以下の内容でご予約が確定しました（本予約）。\n\n") +
+    reservationDetailText(r) +
     "当日は受付で「予約番号」または「お名前」をお伝えください。\n" +
     CONFIG.payment.ticket + "\n" +
     "開場は開演の" + CONFIG.doorsOpenMinutes + "分前です。\n" +
     CONFIG.payment.goods + "\n\n" +
     "ご予約内容の変更・キャンセルは、このメールへの返信または取り扱いキャストまでご連絡ください。\n" +
     mailFooter();
+  sendMail(r.mail, "【" + CONFIG.title + "】ご予約確定のお知らせ（予約番号 " + r.resNo + "）", body);
+}
 
-  sendMail(mail, "【" + CONFIG.title + "】ご予約受付のお知らせ（予約番号 " + reservationNo + "）", body);
+// キャンセル待ち（仮予約）受付メール
+function sendWaitlistMail(r) {
+  var body =
+    r.name + " 様\n\n" +
+    "この度は「" + CONFIG.title + "」にお申し込みいただき、誠にありがとうございます。\n" +
+    "ご希望の公演はただいま満席のため、キャンセル待ち（仮予約）として受け付けました。\n" +
+    "お席が空き次第、お申し込み順に「ご予約確定」のメールをお送りします。\n" +
+    "※ご予約確定のメールが届くまでは、ご予約は確定しておりません。\n\n" +
+    reservationDetailText(r) +
+    "キャンセル待ちの取り消しは、このメールへの返信または取り扱いキャストまでご連絡ください。\n" +
+    mailFooter();
+  sendMail(r.mail, "【" + CONFIG.title + "】キャンセル待ち受付のお知らせ（受付番号 " + r.resNo + "）", body);
 }
 
 // キャンセル受付メール：予約一覧でキャンセルを確定したとき
@@ -3938,7 +4141,7 @@ function getCheckinData() {
   for (var i = 1; i < resData.length; i++) {
     var showDt = String(resData[i][col.show] || "").trim();
     var status = String(resData[i][col.status] || "");
-    if (!showDt || status === "キャンセル") continue;
+    if (!showDt || !countsAsSeat(status)) continue;
     countByShow[showDt] = (countByShow[showDt] || 0) + 1;
   }
 

@@ -9,6 +9,7 @@ Cloudflare Pages では「ビルドの出力ディレクトリ」に kizuna-site
 未確定の情報は下の設定を書き換えて再実行する。
 """
 import html, os, sys
+from datetime import datetime, timezone, timedelta
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from make_links import casts_from_code, prefilled, FORM_URL, ROOT
 from make_site import SHOWS, SEATS, GOODS
@@ -30,6 +31,10 @@ STORY = ("難攻不落と言われた小田原城が豊臣により滅ぼされ�
 STORY_LAST = "紅葉が狙われる訳……それは……"
 ONLINE_SHOP_URL = "https://kqrd0ip8sfe3dllyi8kn.stores.jp/"  # 事前予約物販（STORES）。空欄なら「近日公開」と表示
 SHOW_COUNT = 7
+# 予約受付の開始日時（日本時間）。これより前に生成したページは「受付開始前」表示になり、時刻になるとブラウザ上で自動的に申込可能な表示へ切り替わる
+OPEN_AT = "2026-10-12T21:00:00+09:00"
+OPEN_LABEL = "2026年10月12日（月）21:00"
+OPEN_SHORT = "10/12（月）21:00"
 
 def main():
     group, casts = casts_from_code()
@@ -54,14 +59,16 @@ def main():
         f'<li><a class="cast" href="/c/{i}" aria-label="{e(n)} の取り扱いで予約する">'
         f'<span class="ph"><img src="/assets/cast/{i:02d}.webp" alt="" width="480" height="640" loading="lazy" decoding="async"></span>'
         f'<span class="nm">{e(n)}</span>' + (f'<span class="af">{e(AFFIL[n])}</span>' if n in AFFIL else '') +
-        '<span class="go">この出演者で予約 →</span></a></li>'
+        f'<span class="go"><span class="only-open">この出演者で予約 →</span><span class="only-pre">{OPEN_SHORT} 受付開始</span></span></a></li>'
         for i, n in enumerate(casts, 1))
     online_goods = "".join(f'<li><span>{e(n)}</span><span class="price">¥{p}</span></li>' for n, p, pre in GOODS if pre)
     staff = "".join(f"<dt>{e(r)}</dt><dd>{e(n)}</dd>" for r, n in STAFF)
     story = "".join(f"<p>{e(p)}</p>" for p in STORY)
     online_btn = (f'<a class="btn" href="{e(ONLINE_SHOP_URL)}" target="_blank" rel="noopener">オンラインストア（STORES）で予約する <span class="arr">→</span></a>' if ONLINE_SHOP_URL
                   else '<p class="tbd">お申し込み方法は近日公開予定です。</p>')
-    page = TEMPLATE.format(show_rows=show_rows, seat_rows=seat_rows, cast_cards=cast_cards, online_goods=online_goods,
+    preopen = datetime.now(timezone.utc) < datetime.fromisoformat(OPEN_AT)
+    page = TEMPLATE.format(html_class=' class="preopen"' if preopen else "", open_at=OPEN_AT,
+                           open_label=OPEN_LABEL, open_short=OPEN_SHORT,show_rows=show_rows, seat_rows=seat_rows, cast_cards=cast_cards, online_goods=online_goods,
                            staff=staff, story=story, story_last=e(STORY_LAST), online_btn=online_btn,
                            show_count=SHOW_COUNT, site=SITE_URL)
     os.makedirs(OUT, exist_ok=True)
@@ -78,11 +85,17 @@ def main():
     print("wrote kizuna-site/ (", len(casts), "casts )")
 
 TEMPLATE = """<!DOCTYPE html>
-<html lang="ja"><head><meta charset="utf-8">
+<html lang="ja"{html_class}><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>家族の絆｜BSD presents 舞台公演</title>
 <meta name="description" content="BSD presents 舞台「家族の絆」2026年12月4日（金）〜8日（火）全7公演 シアターグリーン BASE THEATER（池袋）。チケット予約受付中。">
 <meta name="theme-color" content="#08122a">
+<script>
+/* 予約受付開始（{open_label}）になったら「受付開始前」表示を外す */
+(function(){{var t=Date.parse("{open_at}"),d=document.documentElement;
+function chk(){{if(Date.now()>=t){{d.classList.remove("preopen");return true;}}return false;}}
+if(!chk()){{var iv=setInterval(function(){{if(chk())clearInterval(iv);}},10000);}}}})();
+</script>
 <meta property="og:type" content="website">
 <meta property="og:title" content="BSD presents 舞台「家族の絆」">
 <meta property="og:description" content="2026.12.4（金）〜12.8（火）全7公演／シアターグリーン BASE THEATER（池袋）／チケット予約受付中">
@@ -252,6 +265,19 @@ section{{padding-block:56px 8px}}
 .soon{{font-family:var(--latin);font-style:italic;font-weight:500;font-size:2.4rem;letter-spacing:.3em;color:var(--gold);margin:0;text-align:center}}
 #goods .ctr{{margin-top:18px}}
 
+/* 予約受付開始前 */
+.only-pre{{display:none}}
+.preopen .only-pre{{display:block}}
+.preopen .only-open{{display:none}}
+.preopen a[href="/form"],.preopen .cast{{pointer-events:none;cursor:default}}
+.preopen .btn[href="/form"]{{background:transparent;color:var(--gold-l);border:1px solid var(--gold);box-shadow:none}}
+.preopen .navcta{{background:transparent;color:var(--gold-l);border:1px solid var(--gold)}}
+.openbar{{max-width:640px;margin:0 auto;padding:14px 18px;text-align:center;border:1px solid var(--gold);background:rgba(201,169,106,.10)}}
+.openbar small{{display:block;font-family:var(--latin);font-style:italic;letter-spacing:.3em;color:var(--gold);font-size:.85rem}}
+.openbar b{{display:block;font-family:var(--serif);font-size:1.15rem;letter-spacing:.06em;color:var(--ink)}}
+.openbar .dt{{font-family:var(--num);font-size:1.3rem;color:var(--gold-l);margin-top:2px}}
+.openbar > span{{display:block;color:var(--mute);font-size:.8rem;margin-top:2px}}
+.hero-cta .openbar{{margin:0;text-align:left}}
 footer{{margin-top:64px;padding:32px 16px 40px;border-top:1px solid var(--line);color:var(--mute);font-size:.82rem;text-align:center;display:flex;flex-direction:column;align-items:center;gap:6px}}
 footer img{{width:96px;opacity:.9;margin-bottom:6px}}
 
@@ -315,7 +341,7 @@ footer img{{width:96px;opacity:.9;margin-bottom:6px}}
     <li><a href="#schedule">日程</a></li><li><a href="#flyer">フライヤー</a></li><li><a href="#cast">出演者</a></li><li><a href="#ticket">チケット</a></li>
     <li><a href="#staff">スタッフ</a></li><li><a href="#access">劇場</a></li><li><a href="#notes">注意事項</a></li><li><a href="#goods">物販</a></li>
   </ul>
-  <a class="navcta" href="/form">チケット予約</a>
+  <a class="navcta" href="/form"><span class="only-open">チケット予約</span><span class="only-pre">{open_short} 受付開始</span></a>
 </div></nav>
 
 <header class="hero" id="top">
@@ -332,7 +358,8 @@ footer img{{width:96px;opacity:.9;margin-bottom:6px}}
         <div><dt>Stages</dt><dd>全<span class="n">{show_count}</span>公演</dd></div>
       </dl>
       <div class="hero-cta">
-        <a class="btn big" href="/form">チケットを申し込む <span class="arr">→</span></a>
+        <div class="openbar only-pre"><small>Coming Soon</small><b>チケット予約 受付開始</b><b class="dt">{open_label}〜</b><span>開始時刻になると、このページから自動でお申し込みいただけるようになります。</span></div>
+        <a class="btn big" href="/form"><span class="only-open">チケットを申し込む <span class="arr">→</span></span><span class="only-pre">{open_short} 受付開始</span></a>
         <p class="lead">出演者を指定してお申し込みの場合は、下の「出演者」からお選びください。</p>
       </div>
     </div>
@@ -341,7 +368,8 @@ footer img{{width:96px;opacity:.9;margin-bottom:6px}}
 
 <main class="wrap">
 <div class="apply">
-  <a class="btn big" href="/form">チケットを申し込む <span class="arr">→</span></a>
+  <div class="openbar only-pre"><small>Coming Soon</small><b>チケット予約 受付開始</b><b class="dt">{open_label}〜</b><span>開始時刻になると、このページから自動でお申し込みいただけるようになります。</span></div>
+  <a class="btn big" href="/form"><span class="only-open">チケットを申し込む <span class="arr">→</span></span><span class="only-pre">{open_short} 受付開始</span></a>
   <p class="lead">出演者を指定してお申し込みの場合は、下の「出演者」からお選びください。</p>
 </div>
 
@@ -379,12 +407,12 @@ footer img{{width:96px;opacity:.9;margin-bottom:6px}}
     <ol class="steps">
       <li>「チケットを申し込む」、または出演者のお写真から予約フォームを開きます</li>
       <li>お名前・メールアドレス・公演日時・席種・枚数を入力して送信します</li>
-      <li>予約番号入りの受付メールが届きます（送信元 info.tenrou.event@gmail.com）</li>
-      <li>運営事務局より本予約完了のご連絡をお送りします</li>
+      <li>送信と同時にご予約が確定し、予約番号入りの「ご予約確定」メールが届きます（送信元 info.tenrou.event@gmail.com）</li>
+      <li>満席の公演はキャンセル待ち（仮予約）での受付となり、お席が空き次第、お申し込み順にご予約確定のメールをお送りします</li>
       <li>当日は受付で予約番号またはお名前をお伝えください</li>
     </ol>
   </div>
-  <div class="ctr"><a class="btn" href="/form">チケットを申し込む <span class="arr">→</span></a></div>
+  <div class="ctr"><a class="btn" href="/form"><span class="only-open">チケットを申し込む <span class="arr">→</span></span><span class="only-pre">{open_short} 受付開始</span></a></div>
 </section>
 
 <section id="staff">

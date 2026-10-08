@@ -1,9 +1,15 @@
 <!DOCTYPE html>
-<html lang="ja"><head><meta charset="utf-8">
+<html lang="ja" class="preopen"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>家族の絆｜BSD presents 舞台公演</title>
 <meta name="description" content="BSD presents 舞台「家族の絆」2026年12月4日（金）〜8日（火）全7公演 シアターグリーン BASE THEATER（池袋）。チケット予約受付中。">
 <meta name="theme-color" content="#08122a">
+<script>
+/* 予約受付開始（2026年10月12日（月）21:00）になったら「受付開始前」表示を外す */
+(function(){var t=Date.parse("2026-10-12T21:00:00+09:00"),d=document.documentElement;
+function chk(){if(Date.now()>=t){d.classList.remove("preopen");return true;}return false;}
+if(!chk()){var iv=setInterval(function(){if(chk())clearInterval(iv);},10000);}})();
+</script>
 <meta property="og:type" content="website">
 <meta property="og:title" content="BSD presents 舞台「家族の絆」">
 <meta property="og:description" content="2026.12.4（金）〜12.8（火）全7公演／シアターグリーン BASE THEATER（池袋）／チケット予約受付中">
@@ -173,6 +179,19 @@ section{padding-block:56px 8px}
 .soon{font-family:var(--latin);font-style:italic;font-weight:500;font-size:2.4rem;letter-spacing:.3em;color:var(--gold);margin:0;text-align:center}
 #goods .ctr{margin-top:18px}
 
+/* 予約受付開始前 */
+.only-pre{display:none}
+.preopen .only-pre{display:block}
+.preopen .only-open{display:none}
+.preopen a[href="/form"],.preopen .cast{pointer-events:none;cursor:default}
+.preopen .btn[href="/form"]{background:transparent;color:var(--gold-l);border:1px solid var(--gold);box-shadow:none}
+.preopen .navcta{background:transparent;color:var(--gold-l);border:1px solid var(--gold)}
+.openbar{max-width:640px;margin:0 auto;padding:14px 18px;text-align:center;border:1px solid var(--gold);background:rgba(201,169,106,.10)}
+.openbar small{display:block;font-family:var(--latin);font-style:italic;letter-spacing:.3em;color:var(--gold);font-size:.85rem}
+.openbar b{display:block;font-family:var(--serif);font-size:1.15rem;letter-spacing:.06em;color:var(--ink)}
+.openbar .dt{font-family:var(--num);font-size:1.3rem;color:var(--gold-l);margin-top:2px}
+.openbar > span{display:block;color:var(--mute);font-size:.8rem;margin-top:2px}
+.hero-cta .openbar{margin:0;text-align:left}
 footer{margin-top:64px;padding:32px 16px 40px;border-top:1px solid var(--line);color:var(--mute);font-size:.82rem;text-align:center;display:flex;flex-direction:column;align-items:center;gap:6px}
 footer img{width:96px;opacity:.9;margin-bottom:6px}
 
@@ -236,7 +255,7 @@ footer img{width:96px;opacity:.9;margin-bottom:6px}
     <li><a href="#schedule">日程</a></li><li><a href="#flyer">フライヤー</a></li><li><a href="#cast">出演者</a></li><li><a href="#ticket">チケット</a></li>
     <li><a href="#staff">スタッフ</a></li><li><a href="#access">劇場</a></li><li><a href="#notes">注意事項</a></li><li><a href="#goods">物販</a></li>
   </ul>
-  <a class="navcta" href="/form">チケット予約</a>
+  <a class="navcta" href="/form"><span class="only-open">チケット予約</span><span class="only-pre">10/12（月）21:00 受付開始</span></a>
 </div></nav>
 
 <header class="hero" id="top">
@@ -253,7 +272,8 @@ footer img{width:96px;opacity:.9;margin-bottom:6px}
         <div><dt>Stages</dt><dd>全<span class="n">7</span>公演</dd></div>
       </dl>
       <div class="hero-cta">
-        <a class="btn big" href="/form">チケットを申し込む <span class="arr">→</span></a>
+        <div class="openbar only-pre"><small>Coming Soon</small><b>チケット予約 受付開始</b><b class="dt">2026年10月12日（月）21:00〜</b><span>開始時刻になると、このページから自動でお申し込みいただけるようになります。</span></div>
+        <a class="btn big" href="/form"><span class="only-open">チケットを申し込む <span class="arr">→</span></span><span class="only-pre">10/12（月）21:00 受付開始</span></a>
         <p class="lead">出演者を指定してお申し込みの場合は、下の「出演者」からお選びください。</p>
       </div>
     </div>
@@ -262,7 +282,8 @@ footer img{width:96px;opacity:.9;margin-bottom:6px}
 
 <main class="wrap">
 <div class="apply">
-  <a class="btn big" href="/form">チケットを申し込む <span class="arr">→</span></a>
+  <div class="openbar only-pre"><small>Coming Soon</small><b>チケット予約 受付開始</b><b class="dt">2026年10月12日（月）21:00〜</b><span>開始時刻になると、このページから自動でお申し込みいただけるようになります。</span></div>
+  <a class="btn big" href="/form"><span class="only-open">チケットを申し込む <span class="arr">→</span></span><span class="only-pre">10/12（月）21:00 受付開始</span></a>
   <p class="lead">出演者を指定してお申し込みの場合は、下の「出演者」からお選びください。</p>
 </div>
 
@@ -288,7 +309,7 @@ footer img{width:96px;opacity:.9;margin-bottom:6px}
 <section id="cast">
   <div class="hd"><span class="en">Cast</span><h2>出演者</h2></div>
   <p class="lead" style="text-align:center;margin-bottom:22px">お写真を押すと、その出演者の取り扱いで予約フォームが開きます。</p>
-  <ul class="casts"><li><a class="cast" href="/c/1" aria-label="菜乃華れみ の取り扱いで予約する"><span class="ph"><img src="/assets/cast/01.webp" alt="" width="480" height="640" loading="lazy" decoding="async"></span><span class="nm">菜乃華れみ</span><span class="go">この出演者で予約 →</span></a></li><li><a class="cast" href="/c/2" aria-label="鶴田葵 の取り扱いで予約する"><span class="ph"><img src="/assets/cast/02.webp" alt="" width="480" height="640" loading="lazy" decoding="async"></span><span class="nm">鶴田葵</span><span class="af">株式会社ブルーフコーポレーション</span><span class="go">この出演者で予約 →</span></a></li><li><a class="cast" href="/c/3" aria-label="三吉織乃 の取り扱いで予約する"><span class="ph"><img src="/assets/cast/03.webp" alt="" width="480" height="640" loading="lazy" decoding="async"></span><span class="nm">三吉織乃</span><span class="af">仮面女子</span><span class="go">この出演者で予約 →</span></a></li><li><a class="cast" href="/c/4" aria-label="光藤隆馬 の取り扱いで予約する"><span class="ph"><img src="/assets/cast/04.webp" alt="" width="480" height="640" loading="lazy" decoding="async"></span><span class="nm">光藤隆馬</span><span class="go">この出演者で予約 →</span></a></li><li><a class="cast" href="/c/5" aria-label="磐城信治 の取り扱いで予約する"><span class="ph"><img src="/assets/cast/05.webp" alt="" width="480" height="640" loading="lazy" decoding="async"></span><span class="nm">磐城信治</span><span class="go">この出演者で予約 →</span></a></li><li><a class="cast" href="/c/6" aria-label="屋冨祖弦貴 の取り扱いで予約する"><span class="ph"><img src="/assets/cast/06.webp" alt="" width="480" height="640" loading="lazy" decoding="async"></span><span class="nm">屋冨祖弦貴</span><span class="go">この出演者で予約 →</span></a></li><li><a class="cast" href="/c/7" aria-label="桑野結女凜 の取り扱いで予約する"><span class="ph"><img src="/assets/cast/07.webp" alt="" width="480" height="640" loading="lazy" decoding="async"></span><span class="nm">桑野結女凜</span><span class="go">この出演者で予約 →</span></a></li><li><a class="cast" href="/c/8" aria-label="岡本莉瑚 の取り扱いで予約する"><span class="ph"><img src="/assets/cast/08.webp" alt="" width="480" height="640" loading="lazy" decoding="async"></span><span class="nm">岡本莉瑚</span><span class="go">この出演者で予約 →</span></a></li><li><a class="cast" href="/c/9" aria-label="崎本詩織 の取り扱いで予約する"><span class="ph"><img src="/assets/cast/09.webp" alt="" width="480" height="640" loading="lazy" decoding="async"></span><span class="nm">崎本詩織</span><span class="af">株式会社グローアップ</span><span class="go">この出演者で予約 →</span></a></li><li><a class="cast" href="/c/10" aria-label="藤野めいり の取り扱いで予約する"><span class="ph"><img src="/assets/cast/10.webp" alt="" width="480" height="640" loading="lazy" decoding="async"></span><span class="nm">藤野めいり</span><span class="go">この出演者で予約 →</span></a></li><li><a class="cast" href="/c/11" aria-label="石山将隆 の取り扱いで予約する"><span class="ph"><img src="/assets/cast/11.webp" alt="" width="480" height="640" loading="lazy" decoding="async"></span><span class="nm">石山将隆</span><span class="go">この出演者で予約 →</span></a></li><li><a class="cast" href="/c/12" aria-label="柳瀬佑太 の取り扱いで予約する"><span class="ph"><img src="/assets/cast/12.webp" alt="" width="480" height="640" loading="lazy" decoding="async"></span><span class="nm">柳瀬佑太</span><span class="go">この出演者で予約 →</span></a></li><li><a class="cast" href="/c/13" aria-label="五味川竜馬 の取り扱いで予約する"><span class="ph"><img src="/assets/cast/13.webp" alt="" width="480" height="640" loading="lazy" decoding="async"></span><span class="nm">五味川竜馬</span><span class="af">ユニットばんぶるびい</span><span class="go">この出演者で予約 →</span></a></li><li><a class="cast" href="/c/14" aria-label="尾ケ井思織 の取り扱いで予約する"><span class="ph"><img src="/assets/cast/14.webp" alt="" width="480" height="640" loading="lazy" decoding="async"></span><span class="nm">尾ケ井思織</span><span class="go">この出演者で予約 →</span></a></li><li><a class="cast" href="/c/15" aria-label="天咲ヒカル の取り扱いで予約する"><span class="ph"><img src="/assets/cast/15.webp" alt="" width="480" height="640" loading="lazy" decoding="async"></span><span class="nm">天咲ヒカル</span><span class="go">この出演者で予約 →</span></a></li><li><a class="cast" href="/c/16" aria-label="森本真由 の取り扱いで予約する"><span class="ph"><img src="/assets/cast/16.webp" alt="" width="480" height="640" loading="lazy" decoding="async"></span><span class="nm">森本真由</span><span class="go">この出演者で予約 →</span></a></li><li><a class="cast" href="/c/17" aria-label="泉谷アキヒロ の取り扱いで予約する"><span class="ph"><img src="/assets/cast/17.webp" alt="" width="480" height="640" loading="lazy" decoding="async"></span><span class="nm">泉谷アキヒロ</span><span class="go">この出演者で予約 →</span></a></li><li><a class="cast" href="/c/18" aria-label="幸村宥弐 の取り扱いで予約する"><span class="ph"><img src="/assets/cast/18.webp" alt="" width="480" height="640" loading="lazy" decoding="async"></span><span class="nm">幸村宥弐</span><span class="go">この出演者で予約 →</span></a></li></ul>
+  <ul class="casts"><li><a class="cast" href="/c/1" aria-label="菜乃華れみ の取り扱いで予約する"><span class="ph"><img src="/assets/cast/01.webp" alt="" width="480" height="640" loading="lazy" decoding="async"></span><span class="nm">菜乃華れみ</span><span class="go"><span class="only-open">この出演者で予約 →</span><span class="only-pre">10/12（月）21:00 受付開始</span></span></a></li><li><a class="cast" href="/c/2" aria-label="鶴田葵 の取り扱いで予約する"><span class="ph"><img src="/assets/cast/02.webp" alt="" width="480" height="640" loading="lazy" decoding="async"></span><span class="nm">鶴田葵</span><span class="af">株式会社ブルーフコーポレーション</span><span class="go"><span class="only-open">この出演者で予約 →</span><span class="only-pre">10/12（月）21:00 受付開始</span></span></a></li><li><a class="cast" href="/c/3" aria-label="三吉織乃 の取り扱いで予約する"><span class="ph"><img src="/assets/cast/03.webp" alt="" width="480" height="640" loading="lazy" decoding="async"></span><span class="nm">三吉織乃</span><span class="af">仮面女子</span><span class="go"><span class="only-open">この出演者で予約 →</span><span class="only-pre">10/12（月）21:00 受付開始</span></span></a></li><li><a class="cast" href="/c/4" aria-label="光藤隆馬 の取り扱いで予約する"><span class="ph"><img src="/assets/cast/04.webp" alt="" width="480" height="640" loading="lazy" decoding="async"></span><span class="nm">光藤隆馬</span><span class="go"><span class="only-open">この出演者で予約 →</span><span class="only-pre">10/12（月）21:00 受付開始</span></span></a></li><li><a class="cast" href="/c/5" aria-label="磐城信治 の取り扱いで予約する"><span class="ph"><img src="/assets/cast/05.webp" alt="" width="480" height="640" loading="lazy" decoding="async"></span><span class="nm">磐城信治</span><span class="go"><span class="only-open">この出演者で予約 →</span><span class="only-pre">10/12（月）21:00 受付開始</span></span></a></li><li><a class="cast" href="/c/6" aria-label="屋冨祖弦貴 の取り扱いで予約する"><span class="ph"><img src="/assets/cast/06.webp" alt="" width="480" height="640" loading="lazy" decoding="async"></span><span class="nm">屋冨祖弦貴</span><span class="go"><span class="only-open">この出演者で予約 →</span><span class="only-pre">10/12（月）21:00 受付開始</span></span></a></li><li><a class="cast" href="/c/7" aria-label="桑野結女凜 の取り扱いで予約する"><span class="ph"><img src="/assets/cast/07.webp" alt="" width="480" height="640" loading="lazy" decoding="async"></span><span class="nm">桑野結女凜</span><span class="go"><span class="only-open">この出演者で予約 →</span><span class="only-pre">10/12（月）21:00 受付開始</span></span></a></li><li><a class="cast" href="/c/8" aria-label="岡本莉瑚 の取り扱いで予約する"><span class="ph"><img src="/assets/cast/08.webp" alt="" width="480" height="640" loading="lazy" decoding="async"></span><span class="nm">岡本莉瑚</span><span class="go"><span class="only-open">この出演者で予約 →</span><span class="only-pre">10/12（月）21:00 受付開始</span></span></a></li><li><a class="cast" href="/c/9" aria-label="崎本詩織 の取り扱いで予約する"><span class="ph"><img src="/assets/cast/09.webp" alt="" width="480" height="640" loading="lazy" decoding="async"></span><span class="nm">崎本詩織</span><span class="af">株式会社グローアップ</span><span class="go"><span class="only-open">この出演者で予約 →</span><span class="only-pre">10/12（月）21:00 受付開始</span></span></a></li><li><a class="cast" href="/c/10" aria-label="藤野めいり の取り扱いで予約する"><span class="ph"><img src="/assets/cast/10.webp" alt="" width="480" height="640" loading="lazy" decoding="async"></span><span class="nm">藤野めいり</span><span class="go"><span class="only-open">この出演者で予約 →</span><span class="only-pre">10/12（月）21:00 受付開始</span></span></a></li><li><a class="cast" href="/c/11" aria-label="石山将隆 の取り扱いで予約する"><span class="ph"><img src="/assets/cast/11.webp" alt="" width="480" height="640" loading="lazy" decoding="async"></span><span class="nm">石山将隆</span><span class="go"><span class="only-open">この出演者で予約 →</span><span class="only-pre">10/12（月）21:00 受付開始</span></span></a></li><li><a class="cast" href="/c/12" aria-label="柳瀬佑太 の取り扱いで予約する"><span class="ph"><img src="/assets/cast/12.webp" alt="" width="480" height="640" loading="lazy" decoding="async"></span><span class="nm">柳瀬佑太</span><span class="go"><span class="only-open">この出演者で予約 →</span><span class="only-pre">10/12（月）21:00 受付開始</span></span></a></li><li><a class="cast" href="/c/13" aria-label="五味川竜馬 の取り扱いで予約する"><span class="ph"><img src="/assets/cast/13.webp" alt="" width="480" height="640" loading="lazy" decoding="async"></span><span class="nm">五味川竜馬</span><span class="af">ユニットばんぶるびい</span><span class="go"><span class="only-open">この出演者で予約 →</span><span class="only-pre">10/12（月）21:00 受付開始</span></span></a></li><li><a class="cast" href="/c/14" aria-label="尾ケ井思織 の取り扱いで予約する"><span class="ph"><img src="/assets/cast/14.webp" alt="" width="480" height="640" loading="lazy" decoding="async"></span><span class="nm">尾ケ井思織</span><span class="go"><span class="only-open">この出演者で予約 →</span><span class="only-pre">10/12（月）21:00 受付開始</span></span></a></li><li><a class="cast" href="/c/15" aria-label="天咲ヒカル の取り扱いで予約する"><span class="ph"><img src="/assets/cast/15.webp" alt="" width="480" height="640" loading="lazy" decoding="async"></span><span class="nm">天咲ヒカル</span><span class="go"><span class="only-open">この出演者で予約 →</span><span class="only-pre">10/12（月）21:00 受付開始</span></span></a></li><li><a class="cast" href="/c/16" aria-label="森本真由 の取り扱いで予約する"><span class="ph"><img src="/assets/cast/16.webp" alt="" width="480" height="640" loading="lazy" decoding="async"></span><span class="nm">森本真由</span><span class="go"><span class="only-open">この出演者で予約 →</span><span class="only-pre">10/12（月）21:00 受付開始</span></span></a></li><li><a class="cast" href="/c/17" aria-label="泉谷アキヒロ の取り扱いで予約する"><span class="ph"><img src="/assets/cast/17.webp" alt="" width="480" height="640" loading="lazy" decoding="async"></span><span class="nm">泉谷アキヒロ</span><span class="go"><span class="only-open">この出演者で予約 →</span><span class="only-pre">10/12（月）21:00 受付開始</span></span></a></li><li><a class="cast" href="/c/18" aria-label="幸村宥弐 の取り扱いで予約する"><span class="ph"><img src="/assets/cast/18.webp" alt="" width="480" height="640" loading="lazy" decoding="async"></span><span class="nm">幸村宥弐</span><span class="go"><span class="only-open">この出演者で予約 →</span><span class="only-pre">10/12（月）21:00 受付開始</span></span></a></li></ul>
 </section>
 
 <section id="ticket">
@@ -300,12 +321,12 @@ footer img{width:96px;opacity:.9;margin-bottom:6px}
     <ol class="steps">
       <li>「チケットを申し込む」、または出演者のお写真から予約フォームを開きます</li>
       <li>お名前・メールアドレス・公演日時・席種・枚数を入力して送信します</li>
-      <li>予約番号入りの受付メールが届きます（送信元 info.tenrou.event@gmail.com）</li>
-      <li>運営事務局より本予約完了のご連絡をお送りします</li>
+      <li>送信と同時にご予約が確定し、予約番号入りの「ご予約確定」メールが届きます（送信元 info.tenrou.event@gmail.com）</li>
+      <li>満席の公演はキャンセル待ち（仮予約）での受付となり、お席が空き次第、お申し込み順にご予約確定のメールをお送りします</li>
       <li>当日は受付で予約番号またはお名前をお伝えください</li>
     </ol>
   </div>
-  <div class="ctr"><a class="btn" href="/form">チケットを申し込む <span class="arr">→</span></a></div>
+  <div class="ctr"><a class="btn" href="/form"><span class="only-open">チケットを申し込む <span class="arr">→</span></span><span class="only-pre">10/12（月）21:00 受付開始</span></a></div>
 </section>
 
 <section id="staff">
