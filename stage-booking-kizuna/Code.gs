@@ -106,12 +106,13 @@ var CONFIG = {
 
   // お客様用の短いURL（GitHub Pages の転送ページ）。末尾にキャスト番号を付けるとそのキャストが選ばれたフォームが開く
   //   例：…/k/1 = 菜乃華れみ。ページは stage-booking-kizuna/tools/make_links.py で生成（キャストの順番を変えたら再生成）
-  ticketUrl: "https://tenrouyorozuya23-source.github.io/yorozuya-tenro-apps/k/",
+  //   本番：Cloudflare Pages（yoigarou.kizuna.tenrou.info）の _redirects。/c/1〜/c/18。kizuna-site/ で管理
+  ticketUrl: "https://yoigarou.kizuna.tenrou.info/c/",
 
   // LINEリッチメニュー「公式サイト」で案内するリンク（空欄の項目は「準備中」と表示）
   //   予約フォームは空欄なら自動で本システムのフォームURLを使う
   links: {
-    site:      "",  // 予約サイト（公式サイト）
+    site:      "https://yoigarou.kizuna.tenrou.info/",  // 予約サイト（Cloudflare Pages）
     form:      "",  // 予約フォーム（Googleフォームの「送信」→リンク→「URLを短縮」で作った forms.gle のURLを入れる）
     streaming: ""   // 配信購入ページ
   },
@@ -1727,6 +1728,30 @@ function toLineMessage(m) {
   return typeof m === "string" ? { type: "text", text: m } : m;
 }
 
+// ポストバックのデータを、リッチメニューの文言（予約確認など）に読み替える
+//   data が「予約確認」のような文言そのもの、または action=予約確認 / text=… / cmd=… の形に対応
+//   英語のキー（reservation, hold, site, url など）も読み替える
+function postbackToText(pb) {
+  var raw = String((pb && pb.data) || "").trim();
+  if (!raw) return "";
+  var val = raw;
+  if (raw.indexOf("=") !== -1) {
+    var params = {};
+    raw.split("&").forEach(function(kv){
+      var i = kv.indexOf("=");
+      if (i > 0) params[decodeURIComponent(kv.slice(0, i))] = decodeURIComponent(kv.slice(i + 1).replace(/\+/g, " "));
+    });
+    val = params.action || params.text || params.cmd || params.menu || params.type || raw;
+  }
+  var alias = {
+    "reservation": "予約確認", "reserve": "予約確認", "check": "予約確認", "status": "予約確認", "list": "予約確認",
+    "hold": "取り置き/キャンセル", "torioki": "取り置き/キャンセル", "cancel": "取り置き/キャンセル",
+    "site": "公式サイト", "official": "公式サイト", "links": "公式サイト",
+    "url": "個別URL", "personal": "個別URL", "myurl": "個別URL", "ticket": "個別URL"
+  };
+  return alias[String(val).toLowerCase()] || val;
+}
+
 // doPost 処理中の返信バッファ（replyToken で返せる相手への送信はここに溜める）
 var LINE_OUTBOX = null;
 
@@ -1867,6 +1892,14 @@ function test_line() {
   } else {
     msg = "❌ LINE接続エラー：" + res.getResponseCode() + " / " + res.getContentText();
   }
+  // 今月のメッセージ送信数と上限（応答メッセージは数えられない。プッシュ通知が対象）
+  try {
+    var q = JSON.parse(UrlFetchApp.fetch("https://api.line.me/v2/bot/message/quota", { headers: { "Authorization": "Bearer " + token } }).getContentText());
+    var c = JSON.parse(UrlFetchApp.fetch("https://api.line.me/v2/bot/message/quota/consumption", { headers: { "Authorization": "Bearer " + token } }).getContentText());
+    msg += "／今月の送信数 " + c.totalUsage + " 通" + (q.type === "limited" ? "（上限 " + q.value + " 通）" : "（上限なし）");
+  } catch (err) {
+    msg += "／送信数の取得に失敗: " + err.message;
+  }
   Logger.log(msg);
   Logger.log("ウェブアプリURL（LINEのWebhook URLと一致しているか確認）: " + getWebAppUrl());
   return msg;
@@ -1916,7 +1949,9 @@ function doPost(e) {
         }
       }
 
-      lineLog("受信", event.type + (event.message && event.message.text ? "：" + event.message.text : ""), event.source.userId);
+      lineLog("受信", event.type +
+        (event.message && event.message.text ? "：" + event.message.text : "") +
+        (event.postback ? "：" + event.postback.data : ""), event.source.userId);
       // このイベントへの返信は応答メッセージ（無料・送信数にカウントされない）でまとめて返す
       LINE_OUTBOX = { userId: event.source.userId, replyToken: event.replyToken, messages: [] };
       try {
@@ -1924,6 +1959,10 @@ function doPost(e) {
           handleFollow(event.source.userId);
         } else if (event.type === "message" && event.message.type === "text") {
           handleMessage(event.source.userId, event.message.text);
+        } else if (event.type === "postback") {
+          // ポストバック方式のボタン（管理画面や別ツールで作ったリッチメニュー等）も文字のボタンと同じに扱う
+          var cmd = postbackToText(event.postback);
+          if (cmd) handleMessage(event.source.userId, cmd);
         }
       } finally {
         flushLineOutbox();
@@ -1989,7 +2028,7 @@ function toriokiTemplate() {
 // 予約フォームの公開URL
 function getFormPublishedUrl() {
   if (CONFIG.links.form) return CONFIG.links.form;
-  if (CONFIG.ticketUrl) return CONFIG.ticketUrl;
+  if (CONFIG.ticketUrl) return CONFIG.ticketUrl.replace(/c\/$/, "form");  // 例 https://yoigarou.kizuna.tenrou.info/form
   var formId = PropertiesService.getScriptProperties().getProperty("FORM_ID");
   return formId ? FormApp.openById(formId).getPublishedUrl() : "";
 }

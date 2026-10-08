@@ -61,3 +61,23 @@
 - LINE のアクセストークンをスクリプト プロパティから取得（チャネルシークレットから自動発行にも対応）
 - お客様への予約受付・キャンセル受付メールと、LINE未登録キャストへのメール通知を追加（送信元 `CONFIG.mail.from`）
 - 編集トリガーの関数名を `onEdit` → `handleEdit` に変更（シンプルトリガーとして二重実行され、キャンセル通知が送れないことがあったため）
+
+## 予約サイト（Cloudflare Pages）
+
+`kizuna-site/` が本番の予約サイト一式（ビルド不要の静的ファイル）。生成元は `stage-booking-kizuna/tools/make_cf_site.py`。
+
+| ファイル | 内容 |
+|---|---|
+| `kizuna-site/index.html` | トップページ（お知らせ・作品紹介・日程・チケット・出演者・スタッフ・物販・配信・会場・注意事項） |
+| `kizuna-site/_redirects` | 短いURL。`/form` = 予約フォーム、`/c/1`〜`/c/18` = 出演者が選ばれた予約フォーム |
+| `kizuna-site/_headers` | キャッシュ等 |
+| `kizuna-site/assets/` | 画像（ロゴ。フライヤー画像もここに置く） |
+
+### 公開手順（Cloudflare ダッシュボード）
+1. Workers & Pages →「作成」→ Pages →「Git に接続」で `yorozuya-tenro-apps` リポジトリを選ぶ
+2. 本番ブランチ：`main`／フレームワーク：なし／ビルドコマンド：空欄／**ビルド出力ディレクトリ：`kizuna-site`**
+3. 公開後、「カスタムドメイン」で使うドメイン（例 `kizuna.tenrou.info`）を追加し、表示される CNAME を DNS（tenrou.info は Wix）に登録する
+
+### 内容の更新
+`make_cf_site.py` 冒頭の `STORY`（あらすじ）・`STAFF`・`FLYER`・`STREAMING_URL`・`NEWS` を書き換えて
+`python3 stage-booking-kizuna/tools/make_cf_site.py` を実行し、コミットする。キャストの追加・順番変更時も再実行する。
