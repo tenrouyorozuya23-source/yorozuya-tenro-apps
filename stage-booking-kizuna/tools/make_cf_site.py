@@ -31,6 +31,19 @@ STORY = ("難攻不落と言われた小田原城が豊臣により滅ぼされ�
 STORY_LAST = "紅葉が狙われる訳……それは……"
 ONLINE_SHOP_URL = "https://kqrd0ip8sfe3dllyi8kn.stores.jp/"  # 事前予約物販（STORES）。空欄なら「近日公開」と表示
 SHOW_COUNT = 7
+# サイトの出演者の並び順（入れ替える2人の組）。/c/番号・写真の番号・予約システム（Code.gs）の順番はそのまま
+#   Code.gs の順番を変えると、配布済みの個別URL（/c/番号）や物販の商品IDがずれるため、表示だけ入れ替える
+SWAP_ON_SITE = [("桑野結女凜", "岡本莉瑚"), ("藤野めいり", "五味川竜馬")]
+
+def display_casts(casts):
+    """(Code.gs の番号, 名前) をサイトの表示順で返す"""
+    order = list(enumerate(casts, 1))
+    pos = {n: k for k, (_, n) in enumerate(order)}
+    for a, b in SWAP_ON_SITE:
+        ia, ib = pos[a], pos[b]
+        order[ia], order[ib] = order[ib], order[ia]
+        pos[a], pos[b] = ib, ia
+    return order
 # 予約受付の開始日時（日本時間）。これより前に生成したページは「受付開始前」表示になり、時刻になるとブラウザ上で自動的に申込可能な表示へ切り替わる
 OPEN_AT = "2026-10-12T21:00:00+09:00"
 OPEN_LABEL = "2026年10月12日（月）21:00"
@@ -60,7 +73,7 @@ def main():
         f'<span class="ph"><img src="/assets/cast/{i:02d}.webp" alt="" width="480" height="640" loading="lazy" decoding="async"></span>'
         f'<span class="nm">{e(n)}</span>' + (f'<span class="af">{e(AFFIL[n])}</span>' if n in AFFIL else '') +
         f'<span class="go"><span class="only-open">この出演者で予約 →</span><span class="only-pre">{OPEN_SHORT} 受付開始</span></span></a></li>'
-        for i, n in enumerate(casts, 1))
+        for i, n in display_casts(casts))
     online_goods = "".join(f'<li><span>{e(n)}</span><span class="price">¥{p}</span></li>' for n, p, pre in GOODS if pre)
     staff = "".join(f"<dt>{e(r)}</dt><dd>{e(n)}</dd>" for r, n in STAFF)
     story = "".join(f"<p>{e(p)}</p>" for p in STORY)
