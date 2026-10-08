@@ -65,7 +65,9 @@ var CONFIG = {
         { name: "天咲ヒカル",   mail: "" },
         { name: "森本真由",     mail: "" },
         { name: "泉谷アキヒロ", mail: "" },
-        { name: "幸村宥弐",     mail: "" }
+        // 幸村宥弐は主催（BSD）のため、予約フォーム・予約一覧・LINE では「BSD」（個人の予約＝団体予約）。
+        // 物販は役者本人の商品なので goodsName の名前で作る。サイト・フライヤーの出演者欄は幸村宥弐のまま
+        { name: "BSD",          mail: "", goodsName: "幸村宥弐" }
       ]
     }
   ],
@@ -156,7 +158,7 @@ function buildCastGoods() {
         var item = CONFIG.goodsItems[pi];
         goods.push({
           id:    item.code + "-" + (no < 10 ? "0" : "") + no,
-          name:  casts[ci].name + "_" + item.name,
+          name:  (casts[ci].goodsName || casts[ci].name) + "_" + item.name,
           price: item.price,
           note:  item.note || ""
         });
@@ -1561,6 +1563,39 @@ function promoteWaitlist(showDt) {
   var msg = promoted.length ? promoted.join("・") + " をキャンセル待ちから本予約に繰り上げました" : "繰り上げできるキャンセル待ちはありません";
   Logger.log("✅ " + msg);
   return msg;
+}
+
+// 更新用（1回だけ実行）：幸村宥弐の予約名義を「BSD」に変える
+//   キャスト設定・LINEユーザー・予約一覧の名前を置き換え、予約フォームの「取り扱いキャスト」の選択肢と個別URLを作り直す
+//   LINE登録（UserID）・メールアドレス・既存の予約はそのまま引き継ぐ
+function update_renameToBSD() {
+  var OLD = "幸村宥弐", NEW = "BSD";
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var group = CONFIG.groups[0].name;
+  var replaced = 0;
+  [["キャスト設定", 1, OLD, NEW], ["LINEユーザー", 2, OLD, NEW],
+   ["予約一覧", 2, OLD + " 【" + group + "】", NEW + " 【" + group + "】"]].forEach(function(t){
+    var sh = ss.getSheetByName(t[0]);
+    if (!sh || sh.getLastRow() < 2) return;
+    var rng = sh.getRange(2, t[1], sh.getLastRow() - 1, 1);
+    var vals = rng.getValues();
+    vals.forEach(function(v){ if (String(v[0]).trim() === t[2]) { v[0] = t[3]; replaced++; } });
+    rng.setValues(vals);
+  });
+  updateFormCastChoices();
+  Logger.log("✅ " + syncCastSheet());
+  buildControlPanel();
+  Logger.log("✅ 幸村宥弐 → BSD に " + replaced + " か所置き換え、フォームの選択肢と個別URLを更新しました");
+}
+
+// 予約フォームの「取り扱いキャスト」の選択肢を CONFIG のキャストで作り直す
+function updateFormCastChoices() {
+  var form = FormApp.openById(PropertiesService.getScriptProperties().getProperty("FORM_ID"));
+  var choices = [];
+  CONFIG.groups.forEach(function(g){ g.casts.forEach(function(c){ choices.push(c.name + " 【" + g.name + "】"); }); });
+  form.getItems(FormApp.ItemType.LIST).forEach(function(item){
+    if (item.getTitle() === "取り扱いキャスト") item.asListItem().setChoiceValues(choices);
+  });
 }
 
 // 更新用：本予約・キャンセル待ちの仕組みを入れたあと1回だけ実行

@@ -35,6 +35,9 @@ SHOW_COUNT = 7
 #   Code.gs の順番を変えると、配布済みの個別URL（/c/番号）や物販の商品IDがずれるため、表示だけ入れ替える
 SWAP_ON_SITE = [("桑野結女凜", "岡本莉瑚"), ("藤野めいり", "五味川竜馬")]
 
+# 予約システム上の名前 → サイトに出す名前（幸村宥弐は主催のため予約名義が「BSD」）
+DISPLAY_NAME = {"BSD": "幸村宥弐"}
+
 def display_casts(casts):
     """(Code.gs の番号, 名前) をサイトの表示順で返す"""
     order = list(enumerate(casts, 1))
@@ -69,9 +72,9 @@ def main():
         f'<span class="price"><small>¥</small>{p}</span><span class="note">{t}</span></li>'
         for i, (n, p, t) in enumerate(SEATS))
     cast_cards = "".join(
-        f'<li><a class="cast" href="/c/{i}" aria-label="{e(n)} の取り扱いで予約する">'
+        f'<li><a class="cast" href="/c/{i}" aria-label="{e(DISPLAY_NAME.get(n, n))} の取り扱いで予約する">'
         f'<span class="ph"><img src="/assets/cast/{i:02d}.webp" alt="" width="480" height="640" loading="lazy" decoding="async"></span>'
-        f'<span class="nm">{e(n)}</span>' + (f'<span class="af">{e(AFFIL[n])}</span>' if n in AFFIL else '') +
+        f'<span class="nm">{e(DISPLAY_NAME.get(n, n))}</span>' + (f'<span class="af">{e(AFFIL[n])}</span>' if n in AFFIL else '') +
         f'<span class="go"><span class="only-open">この出演者で予約 →</span><span class="only-pre">{OPEN_SHORT} 受付開始</span></span></a></li>'
         for i, n in display_casts(casts))
     online_goods = "".join(f'<li><span>{e(n)}</span><span class="price">¥{p}</span></li>' for n, p, pre in GOODS if pre)
