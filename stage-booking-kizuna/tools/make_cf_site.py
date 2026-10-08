@@ -13,6 +13,7 @@ from make_links import casts_from_code, prefilled, FORM_URL, ROOT
 from make_site import SHOWS, SEATS, GOODS
 
 OUT = os.path.join(ROOT, "kizuna-site")
+SITE_URL = "https://yoigarou.kizuna.tenrou.info"  # 本番ドメイン
 
 # ---- 未確定の情報（決まったら書き換える。空欄のままなら「準備中」「COMING SOON」と表示） ----
 STAFF = []            # [("脚本・演出", "名前"), ...]
@@ -57,7 +58,9 @@ TEMPLATE = """<!DOCTYPE html>
 <meta property="og:type" content="website">
 <meta property="og:title" content="BSD presents 舞台「家族の絆」">
 <meta property="og:description" content="2026.12.4（金）〜12.8（火）全7公演／シアターグリーン BASE THEATER（池袋）／チケット予約受付中">
-<meta property="og:image" content="/assets/logo.webp">
+<meta property="og:image" content="https://yoigarou.kizuna.tenrou.info/assets/logo.webp">
+<meta property="og:url" content="https://yoigarou.kizuna.tenrou.info/">
+<link rel="canonical" href="https://yoigarou.kizuna.tenrou.info/">
 <meta name="twitter:card" content="summary">
 <link rel="icon" href="/assets/logo.webp">
 <link rel="preconnect" href="https://fonts.googleapis.com">

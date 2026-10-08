@@ -106,12 +106,13 @@ var CONFIG = {
 
   // お客様用の短いURL（GitHub Pages の転送ページ）。末尾にキャスト番号を付けるとそのキャストが選ばれたフォームが開く
   //   例：…/k/1 = 菜乃華れみ。ページは stage-booking-kizuna/tools/make_links.py で生成（キャストの順番を変えたら再生成）
-  ticketUrl: "https://tenrouyorozuya23-source.github.io/yorozuya-tenro-apps/k/",
+  //   本番：Cloudflare Pages（yoigarou.kizuna.tenrou.info）の _redirects。/c/1〜/c/18。kizuna-site/ で管理
+  ticketUrl: "https://yoigarou.kizuna.tenrou.info/c/",
 
   // LINEリッチメニュー「公式サイト」で案内するリンク（空欄の項目は「準備中」と表示）
   //   予約フォームは空欄なら自動で本システムのフォームURLを使う
   links: {
-    site:      "https://tenrouyorozuya23-source.github.io/yorozuya-tenro-apps/kizuna/",  // 予約サイト（仮・GitHub Pages。本番公開後もこのURLから転送する）
+    site:      "https://yoigarou.kizuna.tenrou.info/",  // 予約サイト（Cloudflare Pages）
     form:      "",  // 予約フォーム（Googleフォームの「送信」→リンク→「URLを短縮」で作った forms.gle のURLを入れる）
     streaming: ""   // 配信購入ページ
   },
@@ -2027,7 +2028,7 @@ function toriokiTemplate() {
 // 予約フォームの公開URL
 function getFormPublishedUrl() {
   if (CONFIG.links.form) return CONFIG.links.form;
-  if (CONFIG.ticketUrl) return CONFIG.ticketUrl;
+  if (CONFIG.ticketUrl) return CONFIG.ticketUrl.replace(/c\/$/, "form");  // 例 https://yoigarou.kizuna.tenrou.info/form
   var formId = PropertiesService.getScriptProperties().getProperty("FORM_ID");
   return formId ? FormApp.openById(formId).getPublishedUrl() : "";
 }
