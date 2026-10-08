@@ -3781,7 +3781,7 @@ function sendBookingEmails() {
       CONFIG.payment.ticket + "\n" +
       "予約番号：" + resNo + "\n\n" +
       "ご不明な点はお気軽にご連絡ください。\n\n" +
-      CONFIG.organizer;
+      MAIL_SIGNATURE;
     try {
       // 下書きとして保存（送信はしない）
       GmailApp.createDraft(mail, subject, body, mailOptions());
@@ -3905,7 +3905,7 @@ function mailOptions() {
 function sendMail(to, subject, body) {
   to = String(to || "").trim();
   if (!to || to.indexOf("@") === -1) return false;
-  GmailApp.sendEmail(to, subject, body, mailOptions());
+  GmailApp.sendEmail(to, subject, withSignature(body), mailOptions());
   return true;
 }
 
@@ -3928,13 +3928,20 @@ function yenText(n) {
   return "¥" + String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 
+// すべてのメールの最後に付ける署名（sendMail が自動で付ける）
+var MAIL_SIGNATURE =
+  "――――――――――――――\n" +
+  "BSD presents 公演　宵牙狼  「家族の絆」 制作部\n" +
+  "(同)萬屋天狼 イベント事業部\n" +
+  "メール：info.tenrou.event@gmail.com\n" +
+  "――――――――――――――";
+
+function withSignature(body) {
+  return String(body).replace(/\s+$/, "") + "\n\n" + MAIL_SIGNATURE;
+}
+
 function mailFooter() {
-  return "\n━━━━━━━━━━━━━━━━━━━━\n" +
-    CONFIG.organizer + "「" + CONFIG.title + "」\n" +
-    "会場：" + CONFIG.venue + "\n" +
-    "お問い合わせ：" + CONFIG.mail.from + "\n" +
-    "━━━━━━━━━━━━━━━━━━━━\n" +
-    "※このメールは予約システムから自動送信しています。";
+  return "\n※このメールは予約システムから自動送信しています。";
 }
 
 // フォーム送信時のメール：本予約ならご予約確定、満席ならキャンセル待ち受付
