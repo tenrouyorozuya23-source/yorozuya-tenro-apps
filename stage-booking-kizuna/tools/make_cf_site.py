@@ -28,7 +28,7 @@ STORY = ("難攻不落と言われた小田原城が豊臣により滅ぼされ�
          "変わりに宿と食事。一宿一飯の恩義で返す。そんな時ある盗賊団が紅葉を襲う。守る護衛団達。何故紅葉を襲うのか……"
          "謎が謎を呼びそれは次第に一つの真実に辿り着く。")
 STORY_LAST = "紅葉が狙われる訳……それは……"
-ONLINE_SHOP_URL = ""  # 事前予約物販（オンライン）の申込ページ。空欄なら「近日公開」と表示
+ONLINE_SHOP_URL = "https://kqrd0ip8sfe3dllyi8kn.stores.jp/"  # 事前予約物販（STORES）。空欄なら「近日公開」と表示
 SHOW_COUNT = 7
 
 def main():
@@ -47,7 +47,7 @@ def main():
         return f'<li class="day{cls}"><div class="date"><span class="m">{m}.</span>{dd}<span class="w">{w}</span></div><ul>{ts}</ul></li>'
     show_rows = "".join(day_card(*x) for x in days)
     seat_rows = "".join(
-        f'<li class="seatcard{" top" if i == 0 else ""}"><span class="seat">{n.replace("席", "")}<small>席</small></span>'
+        f'<li class="seatcard {("ss", "s", "a")[min(i, 2)]}"><span class="seat">{n.replace("席", "")}<small>席</small></span>'
         f'<span class="price"><small>¥</small>{p}</span><span class="note">{t}</span></li>'
         for i, (n, p, t) in enumerate(SEATS))
     cast_cards = "".join(
@@ -59,7 +59,7 @@ def main():
     online_goods = "".join(f'<li><span>{e(n)}</span><span class="price">¥{p}</span></li>' for n, p, pre in GOODS if pre)
     staff = "".join(f"<dt>{e(r)}</dt><dd>{e(n)}</dd>" for r, n in STAFF)
     story = "".join(f"<p>{e(p)}</p>" for p in STORY)
-    online_btn = (f'<a class="btn" href="{e(ONLINE_SHOP_URL)}" rel="noopener">事前予約物販を申し込む</a>' if ONLINE_SHOP_URL
+    online_btn = (f'<a class="btn" href="{e(ONLINE_SHOP_URL)}" target="_blank" rel="noopener">オンラインストア（STORES）で予約する <span class="arr">→</span></a>' if ONLINE_SHOP_URL
                   else '<p class="tbd">お申し込み方法は近日公開予定です。</p>')
     page = TEMPLATE.format(show_rows=show_rows, seat_rows=seat_rows, cast_cards=cast_cards, online_goods=online_goods,
                            staff=staff, story=story, story_last=e(STORY_LAST), online_btn=online_btn,
@@ -94,11 +94,11 @@ TEMPLATE = """<!DOCTYPE html>
 <link rel="preload" as="image" href="/assets/kv.webp">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Shippori+Mincho+B1:wght@500;700;800&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Noto+Serif+JP:wght@500;600;700&family=Shippori+Mincho+B1:wght@500;700;800&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap">
 <style>
 :root{{--bg:#08122a;--bg2:#0c1a3a;--panel:#0f1f45;--panel2:#132657;--line:rgba(201,169,106,.22);--line2:rgba(201,169,106,.45);
   --ink:#f3ede1;--mute:#a3aecb;--gold:#c9a96a;--gold-l:#e6cd95;--gold-d:#8f7443;--red:#b23a34;
-  --serif:"Shippori Mincho B1","Hiragino Mincho ProN","Yu Mincho",serif;--latin:"Cormorant Garamond","Times New Roman",serif}}
+  --serif:"Shippori Mincho B1","Hiragino Mincho ProN","Yu Mincho",serif;--latin:"Cormorant Garamond","Times New Roman",serif;--num:"Noto Serif JP","Hiragino Mincho ProN","Yu Mincho",serif}}
 *{{box-sizing:border-box}}
 html{{scroll-behavior:smooth;scroll-padding-top:64px;-webkit-text-size-adjust:100%}}
 @media (prefers-reduced-motion:reduce){{html{{scroll-behavior:auto}}*{{transition:none!important}}}}
@@ -121,13 +121,18 @@ nav ul a:hover,nav ul a:focus-visible{{color:var(--gold-l)}}
 nav ul+.navcta{{margin-left:0}}
 
 /* hero */
-.hero{{position:relative;isolation:isolate;overflow:hidden;border-bottom:1px solid var(--line)}}
+.hero{{position:relative;isolation:isolate;overflow:hidden;border-bottom:1px solid var(--line);background:var(--bg)}}
 .hero .kv{{position:absolute;inset:0;z-index:-1}}
 .hero .kv img{{width:100%;height:100%;object-fit:cover;object-position:50% 18%}}
 .hero .kv::after{{content:"";position:absolute;inset:0;background:
   linear-gradient(180deg,rgba(8,18,42,.15) 0%,rgba(8,18,42,0) 30%,rgba(8,18,42,.55) 62%,var(--bg) 100%),
   linear-gradient(90deg,rgba(8,18,42,.35),rgba(8,18,42,0) 30%,rgba(8,18,42,0) 70%,rgba(8,18,42,.35));mix-blend-mode:normal}}
-.hero .inner{{min-height:min(88vh,860px);display:flex;flex-direction:column;align-items:center;justify-content:flex-end;text-align:center;padding:48vh 16px 40px}}
+.hero .inner{{display:flex;flex-direction:column;align-items:center;text-align:center;padding:66vw 12px 26px}}
+.hero .copy{{display:flex;flex-direction:column;align-items:center}}
+.hero .kvfull,.hero .hero-cta{{display:none}}
+.hero .kv{{bottom:auto}}
+.hero .kv img{{height:auto}}
+.hero .kv::after{{background:linear-gradient(180deg,rgba(8,18,42,0) 0%,rgba(8,18,42,0) 45%,rgba(8,18,42,.7) 75%,var(--bg) 100%)}}
 .hero .logo{{width:200px;height:auto;filter:drop-shadow(0 6px 20px rgba(0,0,0,.6))}}
 .presents{{font-family:var(--latin);font-style:italic;letter-spacing:.3em;color:var(--gold-l);font-size:.95rem;margin:6px 0 2px}}
 .hero h1{{font-size:clamp(1.9rem,5.6vw,2.9rem);letter-spacing:.35em;margin-right:-.35em;text-shadow:0 2px 18px rgba(0,0,0,.6)}}
@@ -136,7 +141,7 @@ nav ul+.navcta{{margin-left:0}}
 .facts div:first-child{{border-left:0}}
 .facts dt{{font-family:var(--latin);letter-spacing:.3em;color:var(--gold);font-size:.78rem;text-transform:uppercase}}
 .facts dd{{margin:0;font-family:var(--serif);font-weight:700;font-size:1.08rem;text-shadow:0 2px 10px rgba(0,0,0,.7)}}
-.facts .n{{font-family:var(--latin);font-size:1.35rem;font-weight:600;letter-spacing:.04em}}
+.facts .n{{font-family:var(--num);font-size:1.2rem;font-weight:600;letter-spacing:.02em}}
 
 .btn{{display:inline-flex;align-items:center;justify-content:center;gap:10px;padding:14px 34px;border-radius:2px;
   background:linear-gradient(180deg,var(--gold-l),var(--gold));color:#0a1530;font-weight:700;letter-spacing:.12em;text-decoration:none;font-size:1rem;border:0;
@@ -161,12 +166,12 @@ section{{padding-block:56px 8px}}
 /* schedule */
 .days{{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(5,1fr);gap:10px}}
 .day{{padding:18px 12px 16px;text-align:center}}
-.day .date{{font-family:var(--latin);font-weight:600;font-size:2.3rem;line-height:1;color:var(--ink)}}
+.day .date{{font-family:var(--num);font-weight:600;font-size:2rem;line-height:1;color:var(--ink)}}
 .day .m{{font-size:1.05rem;color:var(--mute);margin-right:2px}}
 .day .w{{display:block;font-family:var(--serif);font-size:.85rem;color:var(--gold);margin-top:8px;letter-spacing:.2em}}
 .day.sat .w{{color:#9db8ff}} .day.sun .w{{color:#f08f86}}
 .day ul{{list-style:none;margin:12px 0 0;padding:12px 0 0;border-top:1px solid var(--line);display:grid;gap:8px}}
-.day .t{{display:block;font-family:var(--latin);font-weight:600;font-size:1.45rem;line-height:1.1;letter-spacing:.04em}}
+.day .t{{display:block;font-family:var(--num);font-weight:600;font-size:1.25rem;line-height:1.2;letter-spacing:.02em;font-variant-numeric:tabular-nums}}
 .day .o{{display:block;color:var(--mute);font-size:.74rem;font-variant-numeric:tabular-nums}}
 .cap{{text-align:center;color:var(--mute);font-size:.85rem;margin:14px 0 0}}
 
@@ -184,9 +189,8 @@ section{{padding-block:56px 8px}}
 /* cast */
 .casts{{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(6,1fr);gap:18px 14px}}
 .cast{{display:flex;flex-direction:column;align-items:center;text-decoration:none;color:var(--ink);text-align:center}}
-.cast .ph{{position:relative;display:block;width:100%;aspect-ratio:3/4;padding:4px;border:1px solid var(--line2);background:var(--panel);overflow:hidden}}
-.cast .ph img{{width:100%;height:100%;object-fit:cover;transition:transform .5s}}
-.cast .ph::after{{content:"";position:absolute;inset:4px;background:linear-gradient(180deg,rgba(8,18,42,0) 60%,rgba(8,18,42,.35));pointer-events:none}}
+.cast .ph{{display:block;width:100%;border:1px solid var(--line2);overflow:hidden;line-height:0}}
+.cast .ph img{{width:100%;height:auto;aspect-ratio:3/4;object-fit:cover;transition:transform .5s}}
 .cast:hover .ph img{{transform:scale(1.04)}}
 .cast:hover .ph{{border-color:var(--gold)}}
 .cast .nm{{font-family:var(--serif);font-weight:700;font-size:.98rem;margin-top:9px;letter-spacing:.06em}}
@@ -195,11 +199,20 @@ section{{padding-block:56px 8px}}
 
 /* ticket */
 .seats{{list-style:none;margin:0 auto;padding:0;display:grid;grid-template-columns:repeat(3,1fr);gap:14px;max-width:860px}}
-.seatcard{{display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px;padding:24px 14px;border:1px solid var(--line);background:linear-gradient(180deg,rgba(19,38,87,.55),rgba(12,26,58,.55))}}
-.seatcard.top{{border-color:var(--gold);background:linear-gradient(180deg,rgba(201,169,106,.16),rgba(19,38,87,.5))}}
-.seat{{font-family:var(--latin);font-weight:600;font-size:2.4rem;line-height:1;color:var(--gold-l);letter-spacing:.05em}}
+.seatcard{{position:relative;display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px;padding:24px 14px;border:1px solid var(--line2);background:linear-gradient(180deg,rgba(19,38,87,.55),rgba(12,26,58,.55))}}
+/* 席種の格：A＝細い金枠／S＝金枠＋淡い金／SS＝二重金枠＋金のグラデーション＋光 */
+.seatcard.a{{border-color:var(--line)}}
+.seatcard.a .seat{{color:#b3a27f}}
+.seatcard.s{{border-color:var(--gold);background:linear-gradient(160deg,rgba(201,169,106,.20),rgba(201,169,106,.06) 55%,rgba(19,38,87,.55))}}
+.seatcard.s .seat{{color:var(--gold-l)}}
+.seatcard.ss{{border:1px solid #fbecc4;background:linear-gradient(155deg,#f6e4b4 0%,#dcbd7f 45%,#b8914f 100%);color:#0a1530;
+  box-shadow:0 0 0 1px rgba(8,18,42,.9),0 0 0 3px var(--gold),0 12px 40px rgba(201,169,106,.4)}}
+.seatcard.ss .seat,.seatcard.ss .seat small{{color:#0a1530}}
+.seatcard.ss .price{{color:#0a1530}}
+.seatcard.ss .note{{color:#2b2a33;font-weight:500}}
+.seat{{font-family:var(--num);font-weight:700;font-size:2rem;line-height:1;color:var(--gold-l);letter-spacing:.05em}}
 .seat small{{font-family:var(--serif);font-size:.9rem;margin-left:2px;color:var(--gold)}}
-.seatcard .price{{font-family:var(--latin);font-weight:600;font-size:1.9rem;line-height:1.1;font-variant-numeric:tabular-nums}}
+.seatcard .price{{font-family:var(--num);font-weight:600;font-size:1.6rem;line-height:1.1;font-variant-numeric:tabular-nums}}
 .seatcard .price small{{font-size:.6em;margin-right:2px}}
 .seatcard .note{{color:var(--mute);font-size:.82rem;line-height:1.5}}
 .callout{{max-width:860px;margin:18px auto 0;padding:14px 18px;border:1px solid var(--line2);text-align:center;background:rgba(201,169,106,.07)}}
@@ -208,7 +221,7 @@ section{{padding-block:56px 8px}}
 .flow h3{{font-size:1rem;letter-spacing:.2em;text-align:center;margin-bottom:14px;color:var(--gold-l)}}
 .steps{{margin:0;padding:0;list-style:none;counter-reset:s;display:grid;gap:10px;font-size:.92rem}}
 .steps li{{counter-increment:s;display:grid;grid-template-columns:34px 1fr;gap:12px;align-items:center}}
-.steps li::before{{content:counter(s);width:32px;height:32px;background:linear-gradient(180deg,var(--gold-l),var(--gold));color:#0a1530;font-family:var(--latin);font-weight:600;font-size:1.05rem;display:flex;align-items:center;justify-content:center;clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%)}}
+.steps li::before{{content:counter(s);width:32px;height:32px;background:linear-gradient(180deg,var(--gold-l),var(--gold));color:#0a1530;font-family:var(--num);font-weight:600;font-size:.9rem;display:flex;align-items:center;justify-content:center;clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%)}}
 .ctr{{text-align:center;margin-top:26px}}
 
 /* staff */
@@ -234,7 +247,7 @@ section{{padding-block:56px 8px}}
 .goods{{list-style:none;margin:0 auto;padding:6px 26px;max-width:640px}}
 .goods li{{display:flex;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid var(--line);font-size:.95rem}}
 .goods li:last-child{{border-bottom:0}}
-.goods .price{{font-family:var(--latin);font-weight:600;font-size:1.15rem;white-space:nowrap}}
+.goods .price{{font-family:var(--num);font-weight:600;font-size:1.02rem;white-space:nowrap}}
 .goods-note{{text-align:center;margin:0 0 14px}}
 .soon{{font-family:var(--latin);font-style:italic;font-weight:500;font-size:2.4rem;letter-spacing:.3em;color:var(--gold);margin:0;text-align:center}}
 #goods .ctr{{margin-top:18px}}
@@ -242,18 +255,33 @@ section{{padding-block:56px 8px}}
 footer{{margin-top:64px;padding:32px 16px 40px;border-top:1px solid var(--line);color:var(--mute);font-size:.82rem;text-align:center;display:flex;flex-direction:column;align-items:center;gap:6px}}
 footer img{{width:96px;opacity:.9;margin-bottom:6px}}
 
+@media (max-width:980px){{
+  nav ul{{display:none}}
+  nav ul+.navcta{{margin-left:auto}}
+}}
+/* PC：キービジュアルを全体表示し、右に公演情報を並べる */
+@media (min-width:861px){{
+  .hero .kv{{bottom:0}}
+  .hero .kv img{{height:100%;object-position:50% 30%;filter:blur(16px) brightness(.42) saturate(1.1);transform:scale(1.1)}}
+  .hero .kv::after{{background:linear-gradient(180deg,rgba(8,18,42,.2),rgba(8,18,42,.1) 60%,var(--bg))}}
+  .hero .inner{{display:grid;grid-template-columns:auto minmax(0,1fr);gap:clamp(32px,5vw,72px);align-items:center;max-width:1080px;margin:0 auto;padding:44px 24px 52px;text-align:left}}
+  .hero .kvfull{{display:block;height:min(74vh,660px);width:auto;max-width:44vw;object-fit:contain;border:1px solid var(--line2);padding:6px;background:rgba(8,18,42,.5);box-shadow:0 24px 60px rgba(0,0,0,.55)}}
+  .hero .copy{{align-items:flex-start}}
+  .hero .logo{{width:170px}}
+  .hero h1{{letter-spacing:.2em;margin-right:0}}
+  .facts{{flex-direction:column;gap:12px;margin-top:22px;justify-content:flex-start}}
+  .facts div{{border-left:0;border-top:1px solid var(--line);padding:10px 0 0}}
+  .facts div:first-child{{border-top:0;padding-top:0}}
+  .hero .hero-cta{{display:flex;flex-direction:column;gap:10px;margin-top:28px}}
+  .hero .hero-cta .lead{{font-size:.82rem}}
+  main > .apply{{display:none}}
+}}
 @media (max-width:880px){{
   .casts{{grid-template-columns:repeat(4,1fr)}}
   .days{{grid-template-columns:repeat(3,1fr)}}
 }}
 @media (max-width:720px){{
   body{{font-size:14.5px}}
-  nav ul{{display:none}}
-  nav ul+.navcta{{margin-left:auto}}
-  .hero .inner{{min-height:auto;padding:66vw 12px 26px}}
-  .hero .kv{{bottom:auto}}
-  .hero .kv img{{height:auto}}
-  .hero .kv::after{{background:linear-gradient(180deg,rgba(8,18,42,0) 0%,rgba(8,18,42,0) 45%,rgba(8,18,42,.7) 75%,var(--bg) 100%)}}
   .hero .logo{{width:150px}}
   .facts{{flex-direction:column;gap:6px}}
   .facts div{{border-left:0;padding:0}}
@@ -267,7 +295,7 @@ footer img{{width:96px;opacity:.9;margin-bottom:6px}}
   .casts{{grid-template-columns:repeat(3,1fr);gap:16px 10px}}
   .cast .nm{{font-size:.86rem}}
   .cast .go{{display:none}}
-  .seats{{grid-template-columns:1fr;gap:10px}}
+  .seats{{grid-template-columns:1fr;gap:14px}}
   .seatcard{{display:grid;grid-template-columns:4.2em 1fr;grid-template-rows:auto auto;text-align:left;align-items:center;gap:0 14px;padding:14px 18px}}
   .seatcard .seat{{grid-row:1/3;font-size:2rem}}
   .seatcard .price{{font-size:1.5rem}}
@@ -293,14 +321,21 @@ footer img{{width:96px;opacity:.9;margin-bottom:6px}}
 <header class="hero" id="top">
   <div class="kv"><img src="/assets/kv.webp" alt="" width="1600" height="1403" fetchpriority="high"></div>
   <div class="inner">
-    <img class="logo" src="/assets/logo.webp" alt="宵牙狼" width="480" height="360">
-    <div class="presents">BSD Presents</div>
-    <h1>舞台「家族の絆」</h1>
-    <dl class="facts">
-      <div><dt>Date</dt><dd><span class="n">2026.12.4</span>（金）〜<span class="n">12.8</span>（火）</dd></div>
-      <div><dt>Theater</dt><dd>シアターグリーン BASE THEATER</dd></div>
-      <div><dt>Stages</dt><dd>全<span class="n">{show_count}</span>公演</dd></div>
-    </dl>
+    <img class="kvfull" src="/assets/flyer-front.webp" alt="「家族の絆」キービジュアル" width="1400" height="1980">
+    <div class="copy">
+      <img class="logo" src="/assets/logo.webp" alt="宵牙狼" width="480" height="360">
+      <div class="presents">BSD Presents</div>
+      <h1>舞台「家族の絆」</h1>
+      <dl class="facts">
+        <div><dt>Date</dt><dd><span class="n">2026.12.4</span>（金）〜<span class="n">12.8</span>（火）</dd></div>
+        <div><dt>Theater</dt><dd>シアターグリーン BASE THEATER</dd></div>
+        <div><dt>Stages</dt><dd>全<span class="n">{show_count}</span>公演</dd></div>
+      </dl>
+      <div class="hero-cta">
+        <a class="btn big" href="/form">チケットを申し込む <span class="arr">→</span></a>
+        <p class="lead">出演者を指定してお申し込みの場合は、下の「出演者」からお選びください。</p>
+      </div>
+    </div>
   </div>
 </header>
 
