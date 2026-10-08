@@ -17,7 +17,7 @@ var CONFIG = {
 
   // 席種設定（販売有無・単価はスプシの公演マスタで変更可）
   seatTypes: [
-    { name: "SS席", price: 8000, enabled: true, note: "最前列確保／非売品・役者ブロマイド付" },
+    { name: "SS席", price: 7000, enabled: true, note: "最前列確保／非売品・役者ブロマイド付" },
     { name: "S席",  price: 6000, enabled: true, note: "2列目確保" },
     { name: "A席",  price: 5000, enabled: true, note: "3列目以降" }
   ],
