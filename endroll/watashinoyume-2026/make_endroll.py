@@ -67,8 +67,8 @@ def main():
     ap.add_argument('--font-size', type=int, default=39)
     ap.add_argument('--line-height', type=int, default=62)
     ap.add_argument('--lead', type=float, default=0.5, help='最初の行が出始めるまでの秒数')
-    ap.add_argument('--stop-at', type=float, default=143.0,
-                    help='スクロールが止まる秒数（音源 2:23.0 のいちばん大きな音）')
+    ap.add_argument('--stop-at', type=float, default=139.4,
+                    help='スクロールが止まる秒数（音源 2:19.4 の BGM 最後の1音。2:23 の大きな音は拍手）')
     ap.add_argument('--fade-start', type=float, default=146.0, help='文字と音のフェードアウト開始秒')
     ap.add_argument('--fade', type=float, default=2.0, help='フェードアウトの長さ（秒）')
     ap.add_argument('--fade-curve', type=float, default=4.0,
