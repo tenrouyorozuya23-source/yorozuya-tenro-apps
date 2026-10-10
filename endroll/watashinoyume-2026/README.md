@@ -7,7 +7,9 @@
 | 公演 | テキスト | 停止（BGM最後の1音） | フェード | 終わり |
 |---|---|---|---|---|
 | 第3回目 11:00 マチネ | `credits_matinee.txt` | 2:19.40 | 2:26.0〜2:28.0 | 2:29.0 |
-| 第4回目 15:00 ソワレ | `credits_soiree.txt` | 2:18.85 | 2:21.14〜2:23.14（音源の終わり） | 2:24.14 |
+| 第4回目 15:00 ソワレ | `credits_soiree.txt` | 2:19.00 | 2:23.09〜2:25.09（音源の終わり） | 2:26.09 |
+
+ソワレは始まりに1秒のフェードイン（文字と音）を付ける。
 
 ※ 2:20 すぎからの大きな音は拍手なので、止める位置にはしない。
 
@@ -30,7 +32,7 @@ python3 make_endroll.py --credits credits_matinee.txt --audio Akaikutsu_マチ�
 # ソワレ（4回目）
 python3 docx_to_credits.py ソワレのDVD文字データ.docx > credits_soiree.txt
 python3 make_endroll.py --credits credits_soiree.txt --audio ソワレ音源.wav \
-  --font NotoSerifJP-Bold.ttf --fade-in 1 --stop-at 138.85 --fade-start 141.14 --end 144.14 --out soiree.mp4
+  --font NotoSerifJP-Bold.ttf --fade-in 1 --stop-at 139.0 --fade-start 143.09 --end 146.09 --out soiree.mp4
 ```
 
 文字の修正はテキストを直接編集して `make_endroll.py` を再実行すればよい。
