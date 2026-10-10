@@ -1,4 +1,4 @@
-"""credits.txt と音源から、黒地に白文字が下から上へ流れるエンドロール動画を作る。
+"""テキスト（credits_*.txt）と音源から、黒地に白文字が下から上へ流れるエンドロール動画を作る。
 
 - 1行 = 1行、空行 = 1行分の余白。すべて中央揃え・明朝体（太字）。
 - 最後の見出し（【事務局】）から末尾までのブロックが、--stop-at 秒（音源のインパクト）で
@@ -9,7 +9,7 @@
 - 1ピクセル未満の位置も補間するので、スクロールがガタつかない。
 
 使い方:
-  python3 make_endroll.py --audio 音源.wav --font NotoSerifJP-Bold.ttf --out endroll.mp4
+  python3 make_endroll.py --credits credits_matinee.txt --audio 音源.wav --font NotoSerifJP-Bold.ttf --out endroll.mp4
 """
 import argparse
 import subprocess
@@ -19,8 +19,6 @@ from pathlib import Path
 
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
-
-HERE = Path(__file__).resolve().parent
 
 
 def render_sheet(lines, font, width, line_height):
@@ -60,7 +58,7 @@ def main():
     ap.add_argument('--audio', required=True)
     ap.add_argument('--font', required=True)
     ap.add_argument('--out', default='endroll.mp4')
-    ap.add_argument('--credits', default=str(HERE / 'credits.txt'))
+    ap.add_argument('--credits', required=True, help='credits_matinee.txt / credits_soiree.txt')
     ap.add_argument('--width', type=int, default=1920)
     ap.add_argument('--height', type=int, default=1080)
     ap.add_argument('--fps', default='30000/1001')
