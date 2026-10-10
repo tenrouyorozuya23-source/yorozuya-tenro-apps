@@ -4,7 +4,8 @@
 - 最後の見出し（【事務局】）から末尾までのブロックが、--stop-at 秒（音源のインパクト）で
   画面中央に来てピタッと止まるよう、一定速度でスクロールする。
 - 止まった画面に前の行が残らないよう、必要なら最後のブロックの前の余白を広げる。
-- --fade-start から --fade 秒かけて文字と音を同時にフェードアウトし、黒画面のまま --end 秒で終わる。
+- --fade-start から --fade 秒かけて文字と音を同時に指数フェードアウトし（はじめ速く、最後はゆっくり消える）、
+  黒画面のまま --end 秒で終わる。
 - 1ピクセル未満の位置も補間するので、スクロールがガタつかない。
 
 使い方:
@@ -12,6 +13,8 @@
 """
 import argparse
 import subprocess
+import tempfile
+import wave
 from pathlib import Path
 
 import numpy as np
@@ -32,6 +35,26 @@ def render_sheet(lines, font, width, line_height):
     return np.asarray(sheet, dtype=np.float32)
 
 
+def exp_fade(x, k):
+    """x: 0→1 の進み具合。指数で 1→0 に落ちる（終点でちょうど 0）。"""
+    x = np.clip(x, 0.0, 1.0)
+    return (np.exp(-k * x) - np.exp(-k)) / (1 - np.exp(-k))
+
+
+def write_faded_audio(src, dst, start, length, k):
+    """音源に指数フェードアウトをかけ、フェード後は無音にした WAV を書く。"""
+    with wave.open(src) as w:
+        params = w.getparams()
+        assert params.sampwidth == 2, '16bit PCM のみ対応'
+        pcm = np.frombuffer(w.readframes(params.nframes), np.int16).reshape(-1, params.nchannels)
+    t = np.arange(len(pcm)) / params.framerate
+    gain = exp_fade((t - start) / length, k)[:, None]
+    out = np.round(pcm * gain).astype(np.int16)
+    with wave.open(dst, 'wb') as w:
+        w.setparams(params)
+        w.writeframes(out.tobytes())
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--audio', required=True)
@@ -44,10 +67,12 @@ def main():
     ap.add_argument('--font-size', type=int, default=39)
     ap.add_argument('--line-height', type=int, default=62)
     ap.add_argument('--lead', type=float, default=0.5, help='最初の行が出始めるまでの秒数')
-    ap.add_argument('--stop-at', type=float, default=139.4,
-                    help='スクロールが止まる秒数（音源 2:19.4 のインパクト）')
+    ap.add_argument('--stop-at', type=float, default=143.0,
+                    help='スクロールが止まる秒数（音源 2:23.0 のいちばん大きな音）')
     ap.add_argument('--fade-start', type=float, default=146.0, help='文字と音のフェードアウト開始秒')
     ap.add_argument('--fade', type=float, default=2.0, help='フェードアウトの長さ（秒）')
+    ap.add_argument('--fade-curve', type=float, default=4.0,
+                    help='指数フェードのカーブの強さ（大きいほど最初に速く落ち、最後が長く残る）')
     ap.add_argument('--end', type=float, default=149.0, help='動画の終わり（秒）。フェード後は黒・無音')
     args = ap.parse_args()
 
@@ -85,12 +110,18 @@ def main():
     print(f'{len(lines)}行  シート高さ {sheet.shape[0]}px  {speed:.1f}px/秒  '
           f'{args.stop_at:.2f}秒で停止  {args.fade_start:.2f}〜{args.fade_start + args.fade:.2f}秒でフェード')
 
+    def fade_gain(t):
+        return float(exp_fade((t - args.fade_start) / args.fade, args.fade_curve))
+
+    faded_audio = tempfile.NamedTemporaryFile(suffix='.wav', delete=False).name
+    write_faded_audio(args.audio, faded_audio, args.fade_start, args.fade, args.fade_curve)
+
     ff = subprocess.Popen([
         'ffmpeg', '-y', '-loglevel', 'error',
         '-f', 'rawvideo', '-pix_fmt', 'gray', '-s', f'{W}x{H}', '-r', args.fps, '-i', '-',
-        '-i', args.audio,
+        '-i', faded_audio,
         '-map', '0:v', '-map', '1:a',
-        '-af', f'afade=t=out:st={args.fade_start}:d={args.fade},apad', '-t', f'{args.end}',
+        '-af', 'apad', '-t', f'{args.end}',
         '-c:v', 'libx264', '-preset', 'slow', '-crf', '16', '-pix_fmt', 'yuv420p',
         '-tune', 'animation', '-movflags', '+faststart',
         '-c:a', 'aac', '-b:a', '320k', args.out,
@@ -102,10 +133,12 @@ def main():
         i = int(top)
         frac = top - i
         view = canvas[i:i + H] * (1 - frac) + canvas[i + 1:i + 1 + H] * frac
-        view *= min(max((args.fade_start + args.fade - t) / args.fade, 0.0), 1.0)
+        view *= fade_gain(t)
         ff.stdin.write(np.clip(view + 0.5, 0, 255).astype(np.uint8).tobytes())
     ff.stdin.close()
-    if ff.wait() != 0:
+    code = ff.wait()
+    Path(faded_audio).unlink()
+    if code != 0:
         raise SystemExit('ffmpeg が失敗しました')
     print(f'書き出し完了: {args.out}')
 
