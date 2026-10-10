@@ -30,7 +30,7 @@ python3 make_endroll.py --credits credits_matinee.txt --audio Akaikutsu_マチ�
 # ソワレ（4回目）
 python3 docx_to_credits.py ソワレのDVD文字データ.docx > credits_soiree.txt
 python3 make_endroll.py --credits credits_soiree.txt --audio ソワレ音源.wav \
-  --font NotoSerifJP-Bold.ttf --stop-at 138.85 --fade-start 141.14 --end 144.14 --out soiree.mp4
+  --font NotoSerifJP-Bold.ttf --fade-in 1 --stop-at 138.85 --fade-start 141.14 --end 144.14 --out soiree.mp4
 ```
 
 文字の修正はテキストを直接編集して `make_endroll.py` を再実行すればよい。

@@ -39,14 +39,17 @@ def exp_fade(x, k):
     return (np.exp(-k * x) - np.exp(-k)) / (1 - np.exp(-k))
 
 
-def write_faded_audio(src, dst, start, length, k):
-    """音源に指数フェードアウトをかけ、フェード後は無音にした WAV を書く。"""
+def write_faded_audio(src, dst, start, length, k, fade_in):
+    """音源の頭に fade_in 秒のフェードイン、最後に指数フェードアウトをかけ、フェード後は無音にした WAV を書く。"""
     with wave.open(src) as w:
         params = w.getparams()
         assert params.sampwidth == 2, '16bit PCM のみ対応'
         pcm = np.frombuffer(w.readframes(params.nframes), np.int16).reshape(-1, params.nchannels)
     t = np.arange(len(pcm)) / params.framerate
-    gain = exp_fade((t - start) / length, k)[:, None]
+    gain = exp_fade((t - start) / length, k)
+    if fade_in > 0:
+        gain = gain * np.clip(t / fade_in, 0.0, 1.0)
+    gain = gain[:, None]
     out = np.round(pcm * gain).astype(np.int16)
     with wave.open(dst, 'wb') as w:
         w.setparams(params)
@@ -65,6 +68,7 @@ def main():
     ap.add_argument('--font-size', type=int, default=39)
     ap.add_argument('--line-height', type=int, default=62)
     ap.add_argument('--lead', type=float, default=0.5, help='最初の行が出始めるまでの秒数')
+    ap.add_argument('--fade-in', type=float, default=0.0, help='始まりのフェードイン（秒）。文字と音の両方')
     ap.add_argument('--stop-at', type=float, default=139.4,
                     help='スクロールが止まる秒数（音源 2:19.4 の BGM 最後の1音。2:23 の大きな音は拍手）')
     ap.add_argument('--fade-start', type=float, default=146.0, help='文字と音のフェードアウト開始秒')
@@ -109,10 +113,13 @@ def main():
           f'{args.stop_at:.2f}秒で停止  {args.fade_start:.2f}〜{args.fade_start + args.fade:.2f}秒でフェード')
 
     def fade_gain(t):
-        return float(exp_fade((t - args.fade_start) / args.fade, args.fade_curve))
+        gain = float(exp_fade((t - args.fade_start) / args.fade, args.fade_curve))
+        if args.fade_in > 0:
+            gain *= min(t / args.fade_in, 1.0)
+        return gain
 
     faded_audio = tempfile.NamedTemporaryFile(suffix='.wav', delete=False).name
-    write_faded_audio(args.audio, faded_audio, args.fade_start, args.fade, args.fade_curve)
+    write_faded_audio(args.audio, faded_audio, args.fade_start, args.fade, args.fade_curve, args.fade_in)
 
     ff = subprocess.Popen([
         'ffmpeg', '-y', '-loglevel', 'error',
