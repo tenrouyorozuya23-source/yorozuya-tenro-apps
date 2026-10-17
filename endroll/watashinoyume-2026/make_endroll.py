@@ -10,7 +10,7 @@
 - 1ピクセル未満の位置も補間するので、スクロールがガタつかない。
 
 使い方:
-  python3 make_endroll.py --credits credits_matinee.txt --audio 音源.wav --font ZenMaruGothic-Bold.ttf --out endroll.mp4
+  python3 make_endroll.py --credits credits_matinee.txt --audio 音源.wav --font BIZUDPGothic-Bold.ttf --out endroll.mp4
 """
 import argparse
 import subprocess
@@ -88,8 +88,9 @@ def main():
     ap.add_argument('--lead', type=float, default=2.80,
                     help='最初の行が画面下から見え始める秒数（マチネ音源 0:02.80 の「テー」）')
     ap.add_argument('--fade-in', type=float, default=0.0, help='始まりのフェードイン（秒）。文字と音の両方')
-    ap.add_argument('--stop-at', type=float, default=139.4,
-                    help='スクロールが止まる秒数（マチネ音源 2:19.4 の「デン！」。2:23 の大きな音は拍手）')
+    ap.add_argument('--stop-at', type=float, default=140.32,
+                    help='スクロールが止まる秒数（マチネ音源 2:20.32。最後の「デー・デー・デー・デン！」4打目。'
+                         '2:23 の大きな音は拍手）')
     ap.add_argument('--fade-start', type=float, default=146.0, help='文字と音のフェードアウト開始秒')
     ap.add_argument('--fade', type=float, default=2.0, help='フェードアウトの長さ（秒）')
     ap.add_argument('--fade-curve', type=float, default=4.0,

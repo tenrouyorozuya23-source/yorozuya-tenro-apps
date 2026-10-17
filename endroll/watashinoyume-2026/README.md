@@ -1,16 +1,16 @@
 # 「ワタシノユメ 2026」エンドロール（23日 マチネ／ソワレ）
 
-黒地に白文字（丸ゴシック・太字・中央揃え）のテキストが下から上へ流れるエンドロール動画を作る。
+黒地に白文字（UDゴシック・太字・中央揃え）のテキストが下から上へ流れるエンドロール動画を作る。
 
 - BGM 冒頭の「テー（レッテレッテーレレレ…）」で最初の行が画面下から見え始める
-- 最後の【事務局】ブロックが BGM 最後の「デーデーデー**デン！**」で画面中央にピタッと止まる
+- 最後の【事務局】ブロックが BGM 最後の「デー・デー・デー・**デン！**」（約0.31秒間隔の4打）の4打目で画面中央にピタッと止まる
 - 文字と音を同時に2秒の指数フェードアウト（最後はゆっくり消える）
 - 0.5秒あけて「ありがとう！松永　春さん」を FI 0.5秒 → キープ 5秒 → FO 1.0秒、黒画面1秒で終わり
 
 | 公演 | テキスト | 見え始め（テー） | 停止（デン！） | フェードアウト | 一文 | 終わり |
 |---|---|---|---|---|---|---|
-| 第3回目 11:00 マチネ | `credits_matinee.txt` | 0:02.80 | 2:19.40 | 2:26.0〜2:28.0 | 2:28.5〜2:35.0 | 2:36.0 |
-| 第4回目 15:00 ソワレ | `credits_soiree.txt` | 0:02.38 | 2:19.00 | 2:23.09〜2:25.09（音源の終わり） | 2:25.59〜2:32.09 | 2:33.09 |
+| 第3回目 11:00 マチネ | `credits_matinee.txt` | 0:02.80 | 2:20.32 | 2:26.0〜2:28.0 | 2:28.5〜2:35.0 | 2:36.0 |
+| 第4回目 15:00 ソワレ | `credits_soiree.txt` | 0:02.38 | 2:19.91 | 2:23.09〜2:25.09（音源の終わり） | 2:25.59〜2:32.09 | 2:33.09 |
 
 ソワレは始まりに1秒のフェードイン（文字と音）を付ける。
 ※ 2:20 すぎからの大きな音は拍手なので、止める位置にはしない。
@@ -26,20 +26,20 @@ Cast は「氏名」「役名」の2行で表示する。
 
 ## 作り方
 
-フォント: [Zen Maru Gothic](https://fonts.google.com/specimen/Zen+Maru+Gothic) Bold（Google Fonts）。
-HG丸ゴシックM-PRO は Windows 付属で配布できないため、見た目の近い無料の丸ゴシックを使う。
+フォント: [BIZ UDPゴシック](https://fonts.google.com/specimen/BIZ+UDPGothic) Bold（Google Fonts、モリサワのユニバーサルデザインフォント）。
+メイリオ・HG丸ゴシックM-PRO は Windows 付属で配布できないため、視認性の高い無料の UD ゴシックを使う。
 手元の .ttf/.ttc を `--font` に渡せばそのフォントで作れる。
 
 ```sh
 # マチネ（3回目）
 python3 docx_to_credits.py 「ワタシノユメ2026」DVD文字データ_3回目公演.docx > credits_matinee.txt
 python3 make_endroll.py --credits credits_matinee.txt --audio Akaikutsu_マチネ_エンドロール.wav \
-  --font ZenMaruGothic-Bold.ttf --out matinee.mp4
+  --font BIZUDPGothic-Bold.ttf --out matinee.mp4
 
 # ソワレ（4回目）
 python3 docx_to_credits.py 「ワタシノユメ2026」DVD文字データ_4回目公演.docx > credits_soiree.txt
 python3 make_endroll.py --credits credits_soiree.txt --audio Akaikutsu_ソワレ_エンドロール.wav \
-  --font ZenMaruGothic-Bold.ttf --fade-in 1 --lead 2.38 --stop-at 139.0 --fade-start 143.09 --out soiree.mp4
+  --font BIZUDPGothic-Bold.ttf --fade-in 1 --lead 2.38 --stop-at 139.91 --fade-start 143.09 --out soiree.mp4
 ```
 
 文字の修正はテキストを直接編集して `make_endroll.py` を再実行すればよい。
