@@ -1,7 +1,7 @@
 """DVD文字データ(.docx)から credits.txt を作る。
 
 1段落 = 1行。空段落・空白だけの段落は空行（余白）として残す。
-Cast 行は「氏名（最初の2語）」と「役名」に分け、全角スペース2つでつなぐ。
+Cast 行は「氏名（最初の2語）」と「役名」に分け、氏名・役名の2行にする。
 使い方: python3 docx_to_credits.py 入力.docx > credits.txt
 """
 import re
@@ -39,8 +39,10 @@ def main(path):
         if line.startswith('【'):
             in_cast = line == '【Cast】'
         elif in_cast and line:
+            # 1行目に氏名（最初の2語）、2行目に役名
             words = line.split()
-            line = '　'.join(words[:2]) + '　　' + '　'.join(words[2:])
+            lines.append('　'.join(words[:2]))
+            line = '　'.join(words[2:])
         lines.append(line)
     while lines and not lines[0]:
         lines.pop(0)

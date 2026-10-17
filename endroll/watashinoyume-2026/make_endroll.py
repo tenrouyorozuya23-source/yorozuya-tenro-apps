@@ -1,6 +1,6 @@
 """テキスト（credits_*.txt）と音源から、黒地に白文字が下から上へ流れるエンドロール動画を作る。
 
-- 1行 = 1行、空行 = 1行分の余白。すべて中央揃え・明朝体（太字）。
+- 1行 = 1行、空行 = 1行分の余白。すべて中央揃え・太字。
 - 最後の見出し（【事務局】）から末尾までのブロックが、--stop-at 秒（音源のインパクト）で
   画面中央に来てピタッと止まるよう、一定速度でスクロールする。
 - 止まった画面に前の行が残らないよう、必要なら最後のブロックの前の余白を広げる。
@@ -9,7 +9,7 @@
 - 1ピクセル未満の位置も補間するので、スクロールがガタつかない。
 
 使い方:
-  python3 make_endroll.py --credits credits_matinee.txt --audio 音源.wav --font NotoSerifJP-Bold.ttf --out endroll.mp4
+  python3 make_endroll.py --credits credits_matinee.txt --audio 音源.wav --font MPLUSRounded1c-Bold.ttf --out endroll.mp4
 """
 import argparse
 import subprocess

@@ -1,6 +1,6 @@
 # 「ワタシノユメ 2026」エンドロール（23日 マチネ／ソワレ）
 
-黒地に白文字（明朝体・太字・中央揃え）のテキストが下から上へ流れるエンドロール動画を作る。
+黒地に白文字（丸ゴシック・太字・中央揃え）のテキストが下から上へ流れるエンドロール動画を作る。
 最後の【事務局】ブロックが BGM の最後の1音で画面中央にピタッと止まり、
 文字と音を同時に2秒の指数フェードアウト（最後はゆっくり消える）で消して、黒画面のまま終わる。
 
@@ -21,18 +21,22 @@
 
 ## 作り方
 
-フォント: [Noto Serif JP](https://fonts.google.com/noto/specimen/Noto+Serif+JP) Bold（Google Fonts）
+フォント: [M PLUS Rounded 1c](https://fonts.google.com/specimen/M+PLUS+Rounded+1c) Bold（Google Fonts）。
+HG丸ゴシックM-PRO・メイリオは Windows 付属で配布できないため、見た目の近い無料の丸ゴシックを使う。
+手元の .ttf/.ttc を `--font` に渡せばそのフォントで作れる。
+
+Cast は「氏名」「役名」の2行で表示する。
 
 ```sh
 # マチネ（3回目）
 python3 docx_to_credits.py 「ワタシノユメ2026」DVD文字データ_3回目公演.docx > credits_matinee.txt
 python3 make_endroll.py --credits credits_matinee.txt --audio Akaikutsu_マチネ_エンドロール.wav \
-  --font NotoSerifJP-Bold.ttf --out matinee.mp4
+  --font MPLUSRounded1c-Bold.ttf --out matinee.mp4
 
 # ソワレ（4回目）
 python3 docx_to_credits.py ソワレのDVD文字データ.docx > credits_soiree.txt
 python3 make_endroll.py --credits credits_soiree.txt --audio ソワレ音源.wav \
-  --font NotoSerifJP-Bold.ttf --fade-in 1 --stop-at 139.0 --fade-start 143.09 --end 146.09 --out soiree.mp4
+  --font MPLUSRounded1c-Bold.ttf --fade-in 1 --stop-at 139.0 --fade-start 143.09 --end 146.09 --out soiree.mp4
 ```
 
 文字の修正はテキストを直接編集して `make_endroll.py` を再実行すればよい。
