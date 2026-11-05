@@ -66,8 +66,8 @@ a{color:inherit}
 .lines{position:relative;height:220vh;height:220svh;background:var(--black)}
 .lines .pin{position:sticky;top:0;height:100vh;height:100svh;display:grid;align-content:center}
 .lines p{margin:0;font:600 clamp(32px,5vw,56px)/1.25 "Noto Sans JP";letter-spacing:-.01em;max-width:16em}
-.lines .ln{display:block;opacity:.18;transition:opacity .6s var(--ease)}
-.lines .ln.on{opacity:1}
+.lines .ln{display:block;color:#6e6e73;transition:color .6s var(--ease)}
+.lines .ln.on{color:var(--ink)}
 
 /* 3. 固定して進める連番 */
 .reveal{position:relative;height:360vh;background:#000}
@@ -132,7 +132,7 @@ footer .wrap{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px 2
 @media (prefers-reduced-motion:reduce){
   .hero .copy{animation:none}
   .io{opacity:1;transform:none;transition:none}
-  .lines .ln{opacity:1;transition:none}
+  .lines .ln{color:var(--ink);transition:none}
   .reveal{height:auto}.reveal .stage{position:relative;height:auto;padding:var(--pad) 0}
   .reveal .cap{position:relative;opacity:1;bottom:auto;margin-top:24px}
   .curtain .lit,.hero .lit{transition:none;animation:none}dialog{transition:none}
