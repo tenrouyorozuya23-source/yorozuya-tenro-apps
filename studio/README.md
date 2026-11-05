@@ -18,14 +18,22 @@ Claude が 計画 → テスト → 制作 → 公開 → 報告 → 次の計�
 | ファイル | 役割 |
 |---|---|
 | `tools/bgm.py` | オリジナルBGMを数値合成で作る（拍・キュー情報を JSON で出力） |
-| `tools/render.mjs` | HTML/Canvas アニメをフレーム単位で書き出して H.264 動画にする |
+| `tools/analyze_audio.py` | 既存の楽曲（SUNO 等）から BPM・拍・小節頭・キー・セクション・推奨カットを抽出 |
+| `tools/motion.js` | ページで使う決定論モーション部品（イージング、閉形式ばね、拍同期 `M.hit/M.land/M.snapToBeat`、文字送り、カウントアップ、固定幅数字） |
+| `tools/render.mjs` | HTML/Canvas アニメをフレーム単位で書き出して H.264（BT.709 タグ付き）にする。`--workers` で並列、`--blur N` でモーションブラー、`--still` で静止画 |
 | `tools/master.py` | 映像と音を合体、-14 LUFS に整え、QC（黒味・無音・ラウドネス）とコンタクトシートを出す |
+| `tools/review.py` | 完成品のレビューシート（拍ごとのシート、カット前後 ±3f のストリップ、文字クロップ）と、黒味・静止・ラウドネス・音と絵の拍ずれ（ms / フレーム）の数値レポート |
 
 ```bash
 python3 tools/bgm.py projects/P001-brand-ad-15s/song.json /tmp/bgm.wav
-node tools/render.mjs projects/P001-brand-ad-15s/scene.html /tmp/video.mp4 --data /tmp/bgm.beats.json --dur 15
+node tools/render.mjs projects/P001-brand-ad-15s/scene.html /tmp/video.mp4 --data /tmp/bgm.beats.json --dur 15 --workers 4
 python3 tools/master.py /tmp/video.mp4 /tmp/bgm.wav /tmp/final.mp4 --dur 15
+python3 tools/review.py /tmp/final.mp4 --beats /tmp/bgm.beats.json --crops "6.6:80,960,920,440"
+# 速い動きの区間だけモーションブラー（描画コストは N 倍）
+node tools/render.mjs scene.html /tmp/part.mp4 --data /tmp/bgm.beats.json --from 3 --dur 3 --blur 4
 ```
+
+ページでは `<script src="../../tools/motion.js"></script>` を読み込むと `window.M` が使える（API はファイル冒頭に日本語で記載）。
 
 ## 連携の設定（ユーザー側の作業）
 

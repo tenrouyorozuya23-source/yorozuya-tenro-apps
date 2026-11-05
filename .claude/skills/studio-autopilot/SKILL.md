@@ -12,7 +12,9 @@ description: 天狼スタジオの自動制作サイクル（計画→テスト�
 - 管理アプリ: https://claude.ai/artifact/X6eebhYWCKkLx5FSpQ3Ubh （`ArtifactData` で読み書き）
 - 作業ブランチ: `studio-autopilot`（知見と完成品はここに積み上げる）
 - 道具: `studio/tools/`（bgm.py / render.mjs / master.py）
-- 知見: `studio/knowledge/playbook.md` ← **制作前に必ず読む**
+- 知見: `studio/knowledge/playbook.md` ← **制作前に必ず読む**（v2：8つの先行リポジトリの研究を反映済み）
+- 審査基準: `studio/knowledge/rubric.md`／ブリーフ雛形: `studio/knowledge/brief-template.md`／スタイル: `studio/knowledge/styles.md`
+- 音源ライブラリ: `studio/music-library/catalog.json`（ユーザー制作の SUNO 曲。解析済みの拍・推奨カット付き）
 - 設定: `studio/config.json`（Drive フォルダID、公開先など）
 
 ## 0. 準備（毎回）
@@ -37,17 +39,28 @@ pip install -q -r studio/tools/requirements.txt
   4. 何もなければ R&D（道具・音色・テンプレートの改良）をして報告書を書く
 - 計画の `notes`（ユーザーの指示・フィードバック）は**最優先の仕様**として扱う。完成済み作品へのフィードバックは改訂版の新計画（`P0xx-v2`）を作って `queued` にする。
 
+## 1.5 学習（毎回・最初に）
+
+- Drive「05_学習資料」（`config.json` の `drive_folders.learning`）と「自作音源」フォルダ（`drive_folders.music`）に新しいファイルがあれば、制作より先に吸収する。
+  - 資料: 読んで要点を `playbook.md` に反映し、報告書（`planId:"R&D"`）に残す。リポジトリURLなら clone して読む（実行はしない）。
+  - 音源: 10MB 以下は Drive コネクタ、超えるものは `https://drive.usercontent.google.com/download?id=<ID>&export=download&confirm=t` で取得 → `tools/analyze_audio.py` → `music-library/catalog.json` に追記。
+
 ## 2. テスト（phase: testing）
 
 `plans/<id>` を `status:"testing"` にし、ログを追記する（ログは毎フェーズ必ず書く）。
-- `studio/projects/<id>-<slug>/brief.md` に企画書を書く: 目的・視聴者・使用場所・尺/解像度・構成表（秒単位）・BGM設計（BPM/キー/構成）・合格ライン。
-- 小さく試す: 動画なら要所の静止画（`render.mjs --still`）と BGM 単体、HP なら1セクション、を作り、合格ラインと playbook のチェックリストで自己評価する。
-- 問題が出たら直してからでないと制作に進まない。
+- `studio/projects/<id>-<slug>/brief.md` を `knowledge/brief-template.md` に沿って書く。**トリートメントを3案書いて1つ選ぶ**。スタイルは `styles.md` の用途別推奨から選ぶ。前作の焼き直しは禁止（構成・冒頭・看板ショット・カメラ経路・音楽の形・結末のうち4つ以上を変える）。
+- 音を決める: ライブラリ曲（`catalog.json` の用途・タグで選び、小節頭で切り出す）か合成 BGM（尺ちょうどが必要なとき）。**拍は表示 BPM で計算せず `beats`/`downbeats` の実測時刻を使う**。
+- `timeline.json`（拍・小節・キュー・テロップ）を最上流に置き、絵・音・SE・テロップが同じ値を読む。カット時刻はフレームに丸め、入りの動きは1フレーム早く始める。
+- 拍グリッド上の**リード表**（観客が理解すべきことを1ショット2〜3個まで）を作る。テロップ表示は max(1.8秒, 字数÷8秒＋0.6秒) 以上。
+- **キーフレーム静止画6〜10枚** → **一番難しい2〜4秒だけ動画化**して確認。問題が出たら直してからでないと全尺に進まない。
 
 ## 3. 制作（phase: producing）— プロ品質まで繰り返す
 
-1テイク = 制作 → QC → 自己レビュー → 修正。`iterations` を増やしてログに「何を見て、何を直したか」を残す。
-- 動画: `render.mjs` で全編 → `master.py` で音と合体・-14 LUFS・QC → `*.sheet.jpg` と要所の静止画を **Read で目視**。
+1テイク = 制作 → QC → 審査 → 1ラウンドにまとめて修正。`iterations` を増やしてログに「何を見て、何を直したか」を残す。
+- 動画: `render.mjs --workers 3`（速い区間は `--blur 4`）で全編 → `master.py` で音と合体・-14 LUFS・QC → `review.py` で拍ごとのシート・カット前後のストリップ・音と絵のずれ(ms)を出し、**Read で目視**。
+- **審査は別エージェント**（Agent ツール）に任せる: 渡すのは mp4 のレビューシート画像・report.json・brief の抜粋・`rubric.md` だけ（作り手の説明は渡さない）。JSON で7軸スコアと時刻付きの修正5〜10件を返させる。**合格は7軸すべて7以上・平均7.5以上・DIRECTOR ゲート全部 yes**。不合格なら修正を1ラウンドにまとめて直し、再審査。
+- 演出の必須: 0.5秒以内のフック（フレーム0で絵が成立）、尺の60〜75%にヒーローモーメント、エンド画0.8〜1.2秒ホールド、一度に1つだけ見せる、転換は画面内の要素に運ばせる（既定のクロスフェード禁止）、禁止表現（汎用パーティクル爆発・汎用グロー・レンズフレア・偽の数値）を使わない。
+- モーション: `tools/motion.js` を使う（閉形式ばね・拍の0.05秒前に動き出して拍で着地・2〜4フレームのずらし）。`renderAt(t)` は t の純関数（Math.random・Date.now 禁止）。
 - BGM: `bgm.py` → 帯域バランス（低域-中域差 ≤ +6dB）、スペクトログラム目視、ラウドネス。
 - HP: Playwright でスマホ(390px)/PC(1440px) のスクショを目視、Lighthouse 相当の確認（画像サイズ、alt、見出し構造、meta/OGP）。
 - 合格ラインをすべて満たすまで繰り返す（最大5テイク）。満たせない項目は報告書に正直に書く。
@@ -56,9 +69,10 @@ pip install -q -r studio/tools/requirements.txt
 ## 4. 公開（phase: publishing）
 
 使える公開先にすべて出す。使えないもの（未連携）は飛ばしてログに書く。
+0. 書き出しは BT.709 タグ付き・-14 LUFS/TP -1.2（`render.mjs`・`master.py` の既定）。
 1. 管理アプリ: `Artifact` の `asset: true` で mp4/jpg/png をアップロード（各 20MB 以下。音声は AAC の .mp4 にする）→ `works/<Wxxx>` を作成（`videoAsset`/`posterAsset`/`audioAsset`/`specs`/`music`/`links`）。
 2. GitHub: `studio/works/<id>/` に完成品を置いてコミット・push（`studio-autopilot` ブランチ）。
-3. Google Drive: `config.json` の `drive_folder_id` があれば、`mcp__Google_Drive__create_file` で完成品とレポートを保存。
+3. Google Drive（「Claude専用 開発部」、ID は `config.json` の `drive_folders`）: 報告書は `01_計画と報告書`、ナレッジ更新は `02_ナレッジ・スキル` に Google ドキュメント（`contentMimeType: text/markdown`）で保存。完成品は `03_完成品` に作品ページ（概要・仕様・管理アプリ/GitHub のリンク）を置く。コネクタのアップロードは本文を会話に通すため、大きな動画ファイルは載せない（リンクで代える）。定期実行のセッションに Drive コネクタが無いときは飛ばしてログに書く。
 4. Cloudflare Pages: 環境変数 `CLOUDFLARE_API_TOKEN` と `CLOUDFLARE_ACCOUNT_ID` があれば `npx wrangler pages deploy`（HP サンプル・ポートフォリオ）。
 5. X: `X_API_KEY` ほか4つの環境変数と `settings.xPosting !== false` のときだけ投稿（下のガードレール参照）。
 
