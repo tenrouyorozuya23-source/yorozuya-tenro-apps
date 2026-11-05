@@ -83,11 +83,16 @@ def spectrogram(x, meta, out, title):
     plt.close(fig)
 
 
-def limit(x, ceil_db=-1.8, look=0.004, rel=0.09, loop=False):
+def limit(x, ceil_db=-2.4, look=0.004, rel=0.09, loop=False):
     """先読みピークリミッター。ceil を超える瞬間だけゲインを下げ、release でゆっくり戻す"""
     src = np.concatenate([x, x, x]) if loop else x   # ループは3周つないで真ん中を使う（両端の処理の影響を避ける）
     c = 10 ** (ceil_db / 20)
-    pk = np.abs(src).max(1)
+    # トゥルーピークで判定する：4 倍にオーバーサンプルしてサンプル間のピークも拾う（倍音の多い音色で 2〜3dB 跳ねるため）
+    from scipy.signal import resample_poly
+    up = resample_poly(src, 4, 1, axis=0)
+    pk = np.abs(up).max(1)[: len(src) * 4].reshape(-1, 4).max(1)
+    if len(pk) < len(src):
+        pk = np.pad(pk, (0, len(src) - len(pk)), mode="edge")
     need = np.minimum(1.0, c / (pk + 1e-12))
     la = int(look * SR)
     from scipy.ndimage import minimum_filter1d
@@ -100,7 +105,9 @@ def limit(x, ceil_db=-1.8, look=0.004, rel=0.09, loop=False):
     k = np.ones(la) / la
     out = np.convolve(out, k, mode="same")
     y = src * np.minimum(out, need * 0 + 1)[:, None]
-    y = np.clip(y, -c, c)
+    k = 0.8 * c                          # 天井の手前からなめらかに寄せる（ハードクリップはサンプル間ピークを生む）
+    ay = np.abs(y)
+    y = np.where(ay > k, np.sign(y) * (k + (c - k) * np.tanh((ay - k) / (c - k))), y)
     return y[len(x):2 * len(x)] if loop else y
 
 
@@ -146,7 +153,7 @@ def main():
         sf.write(tmp, st, SR, subtype="FLOAT")
         i, tp = measure(tmp)
         lim_db = 0.0
-        for _ in range(5):                 # ゲインで -14 に合わせ、超えたピークはリミッターで抑える（±0.2 LUFS・TP -1.2 以下まで）
+        for _ in range(8):                 # ゲインで -14 に合わせ、超えたピークはリミッターで抑える（±0.2 LUFS・TP -1.2 以下まで）
             st = st * 10 ** ((target - i) / 20)
             before = np.abs(st).max()
             st = limit(st, loop=bool(song.get("loop")))

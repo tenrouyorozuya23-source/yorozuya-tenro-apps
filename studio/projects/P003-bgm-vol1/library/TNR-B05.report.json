@@ -1,0 +1,86 @@
+{
+ "id": "TNR-B05",
+ "title": "Afterglow（Future bass）",
+ "versions": {
+  "30s": {
+   "sec": 30.0,
+   "bpm": 160,
+   "fps_beat_exact": [
+    24,
+    48
+   ],
+   "silence": [
+    [
+     11.625,
+     12.0
+    ],
+    [
+     20.625,
+     21.0
+    ]
+   ],
+   "lufs": -14.0,
+   "tp": -2.2,
+   "low_minus_mid_db": 3.49,
+   "low_shelf_db": -3.9,
+   "limiter_db": 2.2,
+   "stereo_corr": 0.753
+  },
+  "loop": {
+   "sec": 12.0,
+   "bpm": 160,
+   "fps_beat_exact": [
+    24,
+    48
+   ],
+   "silence": [],
+   "lufs": -14.0,
+   "tp": -2.2,
+   "low_minus_mid_db": 3.96,
+   "low_shelf_db": -5.3,
+   "limiter_db": 0.5,
+   "stereo_corr": 0.812,
+   "seam_ratio": 0.161
+  },
+  "15s": {
+   "sec": 15.0,
+   "bpm": 160,
+   "fps_beat_exact": [
+    24,
+    48
+   ],
+   "silence": [
+    [
+     2.625,
+     3.0
+    ]
+   ],
+   "lufs": -14.1,
+   "tp": -2.2,
+   "low_minus_mid_db": 3.88,
+   "low_shelf_db": -4.8,
+   "limiter_db": 1.0,
+   "stereo_corr": 0.786
+  },
+  "6s": {
+   "sec": 6.0,
+   "bpm": 160,
+   "fps_beat_exact": [
+    24,
+    48
+   ],
+   "silence": [
+    [
+     4.125,
+     4.5
+    ]
+   ],
+   "lufs": -14.2,
+   "tp": -2.3,
+   "low_minus_mid_db": 3.59,
+   "low_shelf_db": -6.6,
+   "limiter_db": 1.9,
+   "stereo_corr": 0.776
+  }
+ }
+}

@@ -559,7 +559,9 @@ def build(song):
                     continue  # キックとぶつけない（裏打ちベース）
                 m = bass_m + (12 if i == 7 else 0)
                 music.add(tpos(b, bt), bass_note(m, beat * 0.45, bright), 0, mix["bass"])
-        if "sub" in L:
+        if "sub" in L and song.get("sub_style") == "harm":    # 倍音入りのサブ（スマホでも聞こえる）
+            music.add(b * bar, bass_note(bass_m, bar * 0.98, 0.3), 0, mix["sub"])
+        elif "sub" in L:
             music.add(b * bar, sub_note(bass_m - 12 if bass_m > 40 else bass_m, bar * 0.98), 0, mix["sub"])
         if "pad" in L:
             pc = pad_chord(chord, bar, bright)
@@ -657,8 +659,21 @@ def build(song):
     music.buf *= sc[:, None]
     ir = make_ir(song.get("reverb_sec", 2.2))
     rv = song.get("reverb", 0.25)
-    mixbus = drums.buf + reverb(drums.buf * 0.25, rv * 0.5, ir) - drums.buf * 0.25 \
-        + reverb(music.buf, rv, ir) + reverb(fx.buf, rv * 1.3, ir)
+    def bus(d, m, f):
+        return d + reverb(d * 0.25, rv * 0.5, ir) - d * 0.25 + reverb(m, rv, ir) + reverb(f, rv * 1.3, ir)
+    sil_s = sorted([[(b0 * bar + bt0 * beat), (b0 * bar + bt0 * beat + nb * beat)] for b0, bt0, nb in song.get("silence", [])])
+    if sil_s and not song.get("loop"):
+        # 無音で区切った区間ごとに残響を掛け、区間の終わり（次の無音の始まり）で切る → 暗転明けに前の残響が戻らない
+        edges = [0.0] + [x for pr in sil_s for x in pr] + [N / SR]
+        mixbus = np.zeros((N, 2))
+        for k in range(0, len(edges), 2):
+            a0, a1 = int(edges[k] * SR), int(edges[k + 1] * SR)
+            m = np.zeros((N, 1)); m[a0:a1] = 1
+            part = bus(drums.buf * m, music.buf * m, fx.buf * m)
+            part[a1:] = 0 if k + 2 < len(edges) else part[a1:]
+            mixbus += part
+    else:
+        mixbus = bus(drums.buf, music.buf, fx.buf)
     # master: HP 30Hz, ゆるいサチュレーション, ノーマライズ
     if any("vinyl" in s["layers"] for s in sections):
         vn = vinyl(N); mixbus = mixbus + np.stack([vn, vn * 0.9], 1) * mix.get("vinyl", 1.0)

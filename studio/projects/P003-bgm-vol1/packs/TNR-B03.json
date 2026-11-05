@@ -6,7 +6,7 @@
   "bpm": 80,
   "key": "D",
   "seed": 33,
-  "brightness": 0.45,
+  "brightness": 0.6,
   "reverb": 0.5,
   "reverb_sec": 3.4,
   "drive": 0.15,
@@ -34,11 +34,11 @@
    "bell": 0.3,
    "impact": 0.6,
    "riser": 0.35,
-   "ostinato": 0.35,
+   "ostinato": 0.3,
    "braam": 0.5
   },
   "end_chord": "Dm",
-  "pre_end_chord": "A"
+  "pre_end_chord": "Bb"
  },
  "versions": {
   "30s": {
@@ -48,10 +48,20 @@
    "sections": [
     {
      "from": 0,
+     "to": 1,
+     "layers": [
+      "swell",
+      "sub",
+      "bell"
+     ]
+    },
+    {
+     "from": 1,
      "to": 3,
      "layers": [
       "swell",
-      "sub"
+      "sub",
+      "ostinato"
      ]
     },
     {
@@ -85,6 +95,12 @@
     }
    ],
    "melody": [
+    [
+     0,
+     0,
+     "A5",
+     3
+    ],
     [
      3,
      0,
@@ -130,6 +146,12 @@
    ],
    "cues": [
     {
+     "bar": 0,
+     "beat": 0,
+     "type": "chime",
+     "note": 81
+    },
+    {
      "bar": 6,
      "beat": 3,
      "type": "riser",
@@ -154,6 +176,11 @@
    ],
    "silence": [
     [
+     2,
+     3,
+     1
+    ],
+    [
      6,
      3,
      1
@@ -162,11 +189,11 @@
    "automation": [
     [
      0,
-     -8
+     -4
     ],
     [
      20.2,
-     -2
+     -1
     ],
     [
      21,
@@ -180,7 +207,10 @@
      30,
      0
     ]
-   ]
+   ],
+   "chord_override": {
+    "7": "Dm"
+   }
   },
   "loop": {
    "loop": true,
@@ -221,7 +251,7 @@
     [
      7,
      0,
-     "D5",
+     "C#5",
      3
     ]
    ]
@@ -309,7 +339,11 @@
      3,
      1
     ]
-   ]
+   ],
+   "chord_override": {
+    "2": "Dm"
+   },
+   "pre_end_chord": "Bb"
   },
   "6s": {
    "length": 6.0,
