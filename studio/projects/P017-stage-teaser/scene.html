@@ -127,10 +127,10 @@ window.renderAt=t=>{
   const cu=ease.inOutSine(prog(t,T.curtain,2.6));
   curtain.position.y=cu*8.6;
   // ホリゾント：裾の隙間から青が差す
-  const cy=ease.outCubic(prog(t,T.curtain+.25,1.6))*(1-.7*ease.inOutSine(prog(t,T.hero,.8)));
+  const cy=ease.outCubic(prog(t,T.curtain-.12,1.5))*(1-.7*ease.inOutSine(prog(t,T.hero,.8)));
   cycMat.uniforms.k.value=cy; cycBounce.intensity=0;
   // トップスポット：拍で入る（1f 早く立ち上がり、拍で8割）
-  const sp=t<T.hero-1/30?0:1-Math.exp(-(t-(T.hero-1/30))*14);
+  const sp=t<T.hero-1/30?0:1-Math.exp(-(t-(T.hero-1/30))*48);
   top.intensity=3400*sp; B.set(t,sp); spDust.update(t,.3*sp);
   scene.environmentIntensity=0;
   // カメラ
