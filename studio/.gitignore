@@ -14,3 +14,4 @@ music-library/analysis/*.log
 projects/*/*.review/
 projects/*/k*.png
 projects/*/keys.jpg
+node_modules/

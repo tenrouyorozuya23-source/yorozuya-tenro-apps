@@ -12,6 +12,7 @@ description: 天狼スタジオの自動制作サイクル（計画→テスト�
 - 管理アプリ: https://claude.ai/artifact/X6eebhYWCKkLx5FSpQ3Ubh （`ArtifactData` で読み書き）
 - 作業ブランチ: `studio-autopilot`（知見と完成品はここに積み上げる）
 - 道具: `studio/tools/`（bgm.py / render.mjs / master.py）
+- **方向性: `studio/knowledge/direction.md` ← 最優先。顧客（舞台・音楽 → 映像美を求める企業）と見た目（Apple の製品LPのように洗練・簡潔・三次元的、イラスト調にしない）**
 - 知見: `studio/knowledge/playbook.md` ← **制作前に必ず読む**（v2：8つの先行リポジトリの研究を反映済み）
 - 審査基準: `studio/knowledge/rubric.md`／ブリーフ雛形: `studio/knowledge/brief-template.md`／スタイル: `studio/knowledge/styles.md`
 - 音源ライブラリ: `studio/music-library/catalog.json`（ユーザー制作の SUNO 曲。解析済みの拍・推奨カット付き）
@@ -48,7 +49,7 @@ pip install -q -r studio/tools/requirements.txt
 ## 2. テスト（phase: testing）
 
 `plans/<id>` を `status:"testing"` にし、ログを追記する（ログは毎フェーズ必ず書く）。
-- `studio/projects/<id>-<slug>/brief.md` を `knowledge/brief-template.md` に沿って書く。**トリートメントを3案書いて1つ選ぶ**。スタイルは `styles.md` の用途別推奨から選ぶ。前作の焼き直しは禁止（構成・冒頭・看板ショット・カメラ経路・音楽の形・結末のうち4つ以上を変える）。
+- `studio/projects/<id>-<slug>/brief.md` を `knowledge/brief-template.md` に沿って書く。**トリートメントを3案書いて1つ選ぶ**。スタイルは既定で「天狼シネマ」（`styles.md` の 0'、three.js の 3D・照明で見せる）。フラット・線画・イラスト系はユーザーが明示したときだけ。前作の焼き直しは禁止（構成・冒頭・看板ショット・カメラ経路・音楽の形・結末のうち4つ以上を変える）。
 - 音を決める: ライブラリ曲（`catalog.json` の用途・タグで選び、小節頭で切り出す）か合成 BGM（尺ちょうどが必要なとき）。**拍は表示 BPM で計算せず `beats`/`downbeats` の実測時刻を使う**。
 - `timeline.json`（拍・小節・キュー・テロップ）を最上流に置き、絵・音・SE・テロップが同じ値を読む。カット時刻はフレームに丸め、入りの動きは1フレーム早く始める。
 - 拍グリッド上の**リード表**（観客が理解すべきことを1ショット2〜3個まで）を作る。テロップ表示は max(1.8秒, 字数÷8秒＋0.6秒) 以上。
