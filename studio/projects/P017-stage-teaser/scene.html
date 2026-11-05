@@ -5,11 +5,11 @@
 html,body{margin:0;width:1080px;height:1920px;overflow:hidden;background:#000}
 canvas{display:block;position:absolute;inset:0;z-index:0}
 #ov{position:absolute;inset:0;z-index:5;pointer-events:none;color:#F2EEE8}
-.cap{position:absolute;left:0;right:0;text-align:center;font:300 64px/1.3 "Noto Sans JP";letter-spacing:.06em;opacity:0}
-#c1,#c2{top:1250px}
-#title{top:470px;font:500 250px/1 "Shippori Mincho";letter-spacing:.04em;text-indent:.04em}
-#sub{top:770px;font:300 40px/1.4 "Noto Sans JP";letter-spacing:.22em;text-indent:.22em;color:#D9D3CA}
-#note{top:1380px;font:400 34px/1.5 "Noto Sans JP";letter-spacing:.12em;color:#B8B2AA}
+.cap{position:absolute;left:0;right:0;text-align:center;font:300 64px/1.3 "Noto Sans JP";letter-spacing:.04em;opacity:0}
+#c1,#c2{top:430px}
+#title{top:330px;font:500 250px/1 "Shippori Mincho";letter-spacing:.04em;text-indent:.04em}
+#sub{top:612px;font:300 42px/1.4 "Noto Sans JP";letter-spacing:.12em;text-indent:.12em;color:#D9D3CA}
+#note{top:690px;font:400 34px/1.5 "Noto Sans JP";letter-spacing:.06em;color:#B8B2AA}
 </style>
 <script type="importmap">{"imports":{"three":"/node_modules/three/build/three.module.js","three/addons/":"/node_modules/three/examples/jsm/"}}</script>
 </head><body>
@@ -17,13 +17,13 @@ canvas{display:block;position:absolute;inset:0;z-index:0}
   <div class="cap" id="c1">誰もいない劇場に</div>
   <div class="cap" id="c2">灯りがひとつ</div>
   <div class="cap" id="title">残響</div>
-  <div class="cap" id="sub">ZANKYO ── 二〇二七年 冬 上演</div>
+  <div class="cap" id="sub">ZANKYO — 二〇二七年 冬 上演</div>
   <div class="cap" id="note">架空の公演です｜天狼スタジオ 制作サンプル</div>
 </div>
 <script type="module">
 import * as C from '/tools/cine/cine.js';
 const {clamp,lerp,prog,ease}=C;
-const S=C.createStage({exposure:1.0,fov:38,envIntensity:0});
+const S=C.createStage({exposure:1.0,fov:38,envIntensity:0});if(S.bloom){S.bloom.radius=.25;S.bloom.threshold=.92;S.bloom.strength=.26;}
 const {THREE,scene,camera}=S;
 scene.fog=new THREE.FogExp2(0x000000,0.045);
 scene.background=new THREE.Color(0x000000);
@@ -38,7 +38,7 @@ const cg=new THREE.PlaneGeometry(CW,CH,480,24);
   p.setZ(i,pleat*(0.75+0.45*bottom));}
  cg.computeVertexNormals();}
 cg.translate(0,CH/2,0);
-const velvet=new THREE.MeshPhysicalMaterial({color:0x3a050b,roughness:.82,sheen:1,sheenColor:new THREE.Color(0xff5a64),sheenRoughness:.38,envMapIntensity:0});
+const velvet=new THREE.MeshPhysicalMaterial({color:0x3e0a10,roughness:.85,sheen:.4,sheenColor:new THREE.Color(0xc0606a),sheenRoughness:.45,envMapIntensity:0});
 const curtain=new THREE.Mesh(cg,velvet);curtain.position.set(0,0,0);curtain.receiveShadow=true;curtain.castShadow=false;scene.add(curtain);
 // 裾の房（重さを感じさせる厚い縁）
 const hem=new THREE.Mesh(new THREE.BoxGeometry(CW,.12,.26),new THREE.MeshPhysicalMaterial({color:0x3a050c,roughness:.7,sheen:1,sheenColor:new THREE.Color(0xff6a50)}));
@@ -55,10 +55,15 @@ const cyc=new THREE.Mesh(new THREE.PlaneGeometry(16,9),cycMat);cyc.position.set(
 const cycFill=new THREE.RectAreaLight?null:null;
 const cycBounce=new THREE.SpotLight(0x2a4cff,0,0,.9,1,2);cycBounce.position.set(0,.4,-6.6);cycBounce.target.position.set(0,0,2);scene.add(cycBounce,cycBounce.target);
 
+const hemLight=new THREE.SpotLight(0x2a3cb0,0,0,.5,1,2);hemLight.position.set(0,.05,-1.2);hemLight.target.position.set(0,.4,0);scene.add(hemLight,hemLight.target);
+const spill=new THREE.Mesh(new THREE.PlaneGeometry(16,6),new THREE.ShaderMaterial({transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,uniforms:{k:{value:0}},
+  vertexShader:`varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
+  fragmentShader:`uniform float k;varying vec2 vUv;void main(){float g=pow(vUv.y,3.);float sx=1.-pow(abs(vUv.x-.5)*2.,2.);gl_FragColor=vec4(vec3(.1,.18,.75)*g*sx*k*.35,1.);}`}));
+spill.rotation.x=-Math.PI/2;spill.position.set(0,.003,-4);scene.add(spill);
 // ───────── ゴーストライト（三脚・ポール・ケージ・裸電球）
-const GL=new THREE.Group();GL.position.set(.55,0,1.35);scene.add(GL);
+const GL=new THREE.Group();GL.position.set(0,0,1.35);scene.add(GL);
 const blk=new THREE.MeshPhysicalMaterial({color:0x111113,roughness:.45,metalness:.85});
-const zinc=C.chrome(.3);
+const zinc=C.chrome(.3);const cageMat=new THREE.MeshPhysicalMaterial({color:0x151517,metalness:1,roughness:.5});
 const add=(par,geo,mat,pos,rot)=>{const m=new THREE.Mesh(geo,mat);m.position.set(...pos);if(rot)m.rotation.set(...rot);m.castShadow=true;m.receiveShadow=true;par.add(m);return m};
 for(let i=0;i<3;i++){const a=i*2.094+.4;const leg=new THREE.Group();leg.rotation.y=a;GL.add(leg);
   add(leg,new THREE.CylinderGeometry(.012,.012,.62,16),blk,[.26,.27,0],[0,0,-1.0]);
@@ -73,34 +78,35 @@ const filMat=new THREE.MeshBasicMaterial({color:0xffd9a0});
 const fil=add(GL,new THREE.TorusGeometry(.016,.0025,8,48,Math.PI*1.4),filMat,[0,bulbY,0],[Math.PI/2,0,0]);fil.castShadow=false;
 // ケージ：縦の針金8本＋輪3本
 const cage=new THREE.Group();cage.position.y=bulbY;GL.add(cage);
-for(let i=0;i<8;i++){const a=i*Math.PI/4;const w=new THREE.Mesh(new THREE.TorusGeometry(.105,.0035,6,40,Math.PI),zinc);w.rotation.set(0,a,Math.PI/2);w.castShadow=true;cage.add(w);}
-for(const y of[-.06,0,.06]){const r=Math.sqrt(.105*.105-y*y);const ring=new THREE.Mesh(new THREE.TorusGeometry(r,.0035,6,48),zinc);ring.rotation.x=Math.PI/2;ring.position.y=y;ring.castShadow=true;cage.add(ring);}
+for(let i=0;i<8;i++){const a=i*Math.PI/4;const w=new THREE.Mesh(new THREE.TorusGeometry(.105,.0035,6,40,Math.PI),cageMat);w.rotation.set(0,a,Math.PI/2);w.castShadow=true;cage.add(w);}
+for(const y of[-.06,0,.06]){const r=Math.sqrt(.105*.105-y*y);const ring=new THREE.Mesh(new THREE.TorusGeometry(r,.0035,6,48),cageMat);ring.rotation.x=Math.PI/2;ring.position.y=y;ring.castShadow=true;cage.add(ring);}
 const lamp=new THREE.PointLight(0xffc27a,0,0,2);lamp.position.set(0,bulbY,0);lamp.castShadow=true;lamp.shadow.mapSize.set(1024,1024);lamp.shadow.radius=4;lamp.shadow.bias=-.002;GL.add(lamp);
 const halo=new THREE.Mesh(new THREE.SphereGeometry(.2,32,24),new THREE.ShaderMaterial({transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,uniforms:{k:{value:0}},
   vertexShader:`varying vec3 vN;varying vec3 vV;void main(){vec4 w=modelViewMatrix*vec4(position,1.);vV=normalize(-w.xyz);vN=normalize(normalMatrix*normal);gl_Position=projectionMatrix*w;}`,
   fragmentShader:`uniform float k;varying vec3 vN;varying vec3 vV;void main(){float f=pow(max(dot(vN,vV),0.),5.);gl_FragColor=vec4(vec3(1.,.72,.42)*f*k*.5,1.);}`}));
 halo.position.y=bulbY;GL.add(halo);
-const glDust=C.dust(scene,{center:[.55,1.9,1.35],radius:.9,height:1.6,count:60,seed:3,size:.007,color:0xffe0b0});
+const glDust=C.dust(scene,{center:[0,1.9,1.35],radius:.8,height:1.4,count:40,seed:3,size:.005,color:0xffe0b0});
 
 // ───────── トップスポット（中央・やや奥）＋光の筋
-const SP=[0,0,-2.2];
-const top=C.spot(scene,{pos:[0,7.6,-1.7],target:SP,color:0xffd2a0,intensity:0,angle:.15,penumbra:.45});
-const B=C.beam(scene,{from:[0,7.6,-1.7],to:SP,radius:1.12,color:0xffd2a0,density:.4});
-const spDust=C.dust(scene,{center:[0,3.6,-2.1],radius:.75,height:7,count:110,seed:17,size:.008});
+const SP=[0,0,1.35];
+const top=C.spot(scene,{pos:[0,7.8,.9],target:SP,color:0xffd2a0,intensity:0,angle:.15,penumbra:.45});
+const B=C.beam(scene,{from:[0,7.8,.9],to:SP,radius:1.12,color:0xffd2a0,density:.4});
+const spDust=C.dust(scene,{center:[0,3.6,1.2],radius:.75,height:7,count:110,seed:17,size:.008});
 
 // ───────── カメラ
 const V=(x,y,z)=>new THREE.Vector3(x,y,z);
 const camKeys=[ // t, pos, look, focusDist(look 対象)
-  [0.0,  V(1.35,1.72,3.3), V(.5,1.82,1.35)],
-  [2.322,V(1.3,1.72,3.15),  V(.5,1.82,1.35)],
-  [6.6,  V(.35,1.55,9.6),   V(0,2.45,0)],
-  [15.0, V(.25,1.48,8.4),   V(0,2.6,-1.2)],
+  [0.0,  V(.85,1.66,3.3), V(0,1.78,1.35)],
+  [2.322,V(.8,1.66,3.15),  V(0,1.78,1.35)],
+  [6.6,  V(.3,1.5,9.8),    V(0,2.35,0)],
+  [9.172,V(.25,1.48,9.6),  V(0,2.35,0)],
+  [15.0, V(.1,1.45,8.9),   V(0,2.75,.6)],
 ];
 function camAt(t){
   let i=0;while(i<camKeys.length-2&&t>camKeys[i+1][0])i++;
   const [t0,p0,l0]=camKeys[i],[t1,p1,l1]=camKeys[i+1];
   let u=clamp((t-t0)/(t1-t0));
-  u=i===1?ease.inOutCubic(u):i===2?ease.outCubic(u):u; // 引きは長いイーズ、終盤は等速に近いゆっくりしたプッシュ
+  u=i===1?ease.inOutCubic(u):i===2?ease.outCubic(u):i===3?ease.inOutSine(u):u; // 引きは長いイーズ、終盤は等速に近いゆっくりしたプッシュ
   return [p0.clone().lerp(p1,u),l0.clone().lerp(l1,u)];
 }
 
@@ -123,27 +129,33 @@ window.renderAt=t=>{
   filMat.color.setRGB(1*Math.min(1,g*1.2+.0),.85*g+.0,.6*g*g); fil.visible=g>.004; bulb.visible=true;
   glassMat.opacity=.12+.23*g;
   glDust.update(t,.32*g);
-  // 緞帳：暗転中に上がる
-  const cu=ease.inOutSine(prog(t,T.curtain,2.6));
-  curtain.position.y=cu*8.6;
-  // ホリゾント：裾の隙間から青が差す
+  // 緞帳：暗転中に上がる。裾は遅れて揺れる（フォロースルー）
+  const cuP=prog(t,T.curtain,1.6), cu=ease.inOutCubic(cuP);
+  curtain.position.y=cu*8.8;
+  const sw=t<T.curtain+.25?0:Math.exp(-(t-T.curtain-.25)*2.2)*Math.sin((t-T.curtain-.25)*7.5);
+  curtain.rotation.x=.02*sw*Math.min(1,cuP*3);
+  hemLight.intensity=0*ease.outCubic(prog(t,T.curtain-.05,.4))*(1-prog(t,T.curtain+1.6,.6));
+  // ホリゾント：裾の隙間から青が差す（ヒーローで下げてスポットを立たせる）
   const cy=ease.outCubic(prog(t,T.curtain-.12,1.5))*(1-.7*ease.inOutSine(prog(t,T.hero,.8)));
-  cycMat.uniforms.k.value=cy; cycBounce.intensity=0;
+  cycMat.uniforms.k.value=cy; cycBounce.intensity=0; spill.material.uniforms.k.value=cy;
   // トップスポット：拍で入る（1f 早く立ち上がり、拍で8割）
   const sp=t<T.hero-1/30?0:1-Math.exp(-(t-(T.hero-1/30))*48);
-  top.intensity=3400*sp; B.set(t,sp); spDust.update(t,.3*sp);
+  top.intensity=3400*sp; B.set(t,sp); spDust.update(t,.26*sp);
+  // 結末：消えた電球のフィラメントだけが残像のように灯る（冒頭と韻）
+  const re=ease.outCubic(prog(t,T.end,1.2));
+  if(t>=T.end){glassMat.emissiveIntensity=.9*.08*re*8; filMat.color.setRGB(1*re,.55*re,.25*re); fil.visible=re>.004; halo.material.uniforms.k.value=.22*.25*re; lamp.intensity=4.4*.05*re;}
   scene.environmentIntensity=0;
   // カメラ
   const [p,l]=camAt(t);camera.position.copy(p);camera.lookAt(l);
   if(S.bokeh){
-    const fNear=camera.position.distanceTo(V(.55,1.88,1.35)), fFar=camera.position.distanceTo(V(0,2.5,-1.5));
-    const r=ease.inOutSine(prog(t,3.2,3.2));
+    const fNear=camera.position.distanceTo(V(0,1.88,1.35)), fFar=camera.position.distanceTo(V(0,2.5,-1.5));
+    const r=ease.inOutSine(prog(t,3.2,3.2))*(1-ease.inOutSine(prog(t,T.end,1.0)));
     S.bokeh.uniforms.focus.value=lerp(fNear,fFar,r);
-    S.bokeh.uniforms.aperture.value=lerp(.0045,.0011,r);
+    S.bokeh.uniforms.aperture.value=t<T.end?lerp(.0045,.0011,r):lerp(.0011,.0022,ease.inOutSine(prog(t,T.end,1.0)));
   }
   // テロップ
   capFade($('c1'),t,2.322,4.55);capFade($('c2'),t,4.667,6.70);
-  capFade($('title'),t,T.title,99,30);capFade($('sub'),t,T.sub,99,12);capFade($('note'),t,T.end,99,8);
+  capFade($('title'),t,T.title,99,30);capFade($('sub'),t,T.sub,99,12);capFade($('note'),t,12.4,99,8);
   S.render();
 };
 </script></body></html>
