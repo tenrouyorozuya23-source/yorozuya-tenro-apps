@@ -1,6 +1,6 @@
 # yorozuya-tenro-apps
 
-**ユーザーへの返信・説明は常に日本語で書くこと。**
+**ユーザーへの返信・説明は常に日本語で書くこと。** チャットの返信、報告書、管理アプリの記載、Drive の資料、コミットメッセージ、定期実行のまとめも含め、例外なくすべて日本語にする（ユーザーの再度の依頼 2026-11-05）。
 
 合同会社萬屋天狼のアプリ集（chain-fx-simulator / particle-mist-simulator / stage-booking-pos-manager / stage-cut）と、freee会計アシスタントの資料を含むリポジトリ。
 
