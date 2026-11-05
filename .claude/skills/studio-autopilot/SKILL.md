@@ -14,6 +14,8 @@ description: 天狼スタジオの自動制作サイクル（計画→テスト�
 - 道具: `studio/tools/`（bgm.py / render.mjs / master.py）
 - **方向性: `studio/knowledge/direction.md` ← 最優先。顧客（舞台・音楽 → 映像美を求める企業）と見た目（Apple の製品LPのように洗練・簡潔・三次元的、イラスト調にしない）**
 - バーチャルプロダクション（グリーンバック撮影・合成・カメラ連動・モーキャプ）: `studio/knowledge/virtual-production-pipeline.md`（監督＝ユーザー、エンジニアリング＝Claude の分担）
+- リサーチ（制作前に該当するものを読む）: `studio/knowledge/research/apple-style-craft.md`（Apple 風 LP・製品映像の数値と型）、`research/stage-lighting-and-vp.md`（舞台照明の CG 再現・グリーンバック）、`research/market-performers.md`（顧客市場・価格帯・SNS の型）
+- **完成品100件カタログ**: `studio/knowledge/research/catalog-100.md`（10シリーズ×10本。管理アプリの計画 S01-01〜S10-10 に登録済み。シリーズ内はテンプレートを共通化して量産する）
 - 知見: `studio/knowledge/playbook.md` ← **制作前に必ず読む**（v2：8つの先行リポジトリの研究を反映済み）
 - 審査基準: `studio/knowledge/rubric.md`／ブリーフ雛形: `studio/knowledge/brief-template.md`／スタイル: `studio/knowledge/styles.md`
 - 音源ライブラリ: `studio/music-library/catalog.json`（ユーザー制作の SUNO 曲。解析済みの拍・推奨カット付き）
