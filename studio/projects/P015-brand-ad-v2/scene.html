@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8">
+<title>P015 萬屋天狼 ブランド広告 v2</title>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@800&family=Zen+Kaku+Gothic+New:wght@500;700&display=swap" rel="stylesheet">
+<style>
+/* 天狼ナイト: 夜藍の地、光るのは灯金と星だけ。文字は y260–1500 / x90–990 の安全域 */
+:root{--night:#0E1430;--indigo:#1B2350;--white:#F4EEDF;--grey:#6B7699;--gold:#F2B544;
+  --mincho:"Shippori Mincho B1","Hiragino Mincho ProN",serif;--goth:"Zen Kaku Gothic New","Hiragino Sans",sans-serif}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:1080px;height:1920px;overflow:hidden;background:var(--night);color:var(--white)}
+canvas{position:absolute;inset:0}
+.t{position:absolute;left:0;right:0;text-align:center;white-space:nowrap}
+.head{font-family:var(--mincho);font-weight:800;color:var(--white)}
+.sub{font-family:var(--goth);font-weight:500;color:var(--grey);letter-spacing:.24em}
+.ch{display:inline-block}
+#cta{position:absolute;left:50%;top:1356px;transform:translateX(-50%);padding:22px 56px;border:3px solid var(--gold);border-radius:999px;
+  font-family:var(--goth);font-weight:700;font-size:44px;letter-spacing:.1em;color:var(--gold);white-space:nowrap}
+</style></head><body>
+<canvas id="c" width="1080" height="1920"></canvas>
+<div class="t head" id="h1" style="top:1000px;font-size:104px;line-height:1.3"></div>
+<div class="t head" id="lab" style="top:1150px;font-size:96px"></div>
+<div class="t sub" id="labs" style="top:1290px;font-size:34px"></div>
+<div class="t head" id="logo" style="top:1010px;font-size:150px;letter-spacing:.08em"></div>
+<div class="t sub" id="roman" style="top:1206px;font-size:36px;letter-spacing:.62em;color:var(--white);opacity:.85">YOROZUYA TENRO</div>
+<div class="t sub" id="svc" style="top:1272px;font-size:32px;letter-spacing:.16em">映像制作 ｜ 音響・配信 ｜ Web制作</div>
+<div id="cta">ご相談・お見積り受付中</div>
+<script src="../../tools/motion.js"></script>
+<script>
+const W=1080,H=1920,FPS=30;
+const D=window.__DATA;                       // beats.json（TNR-M12 抜粋の実測拍）
+const DB=D.downbeats;                         // 0, 2.252, 4.505, 6.734, 8.986, 11.238, 13.514
+const fr=t=>Math.round(t*FPS)/FPS;            // カット時刻はフレームに丸める
+const B1=fr(DB[1]),B2=fr(DB[2]),B3=fr(DB[3]),HERO=fr(DB[4]),FIN=fr(DB[5]);
+const SIL0=10.85,SIL1=11.22,END=13.65;   // 曲の自然な終止（-25dB 落ち）で切る
+const ctx=document.getElementById('c').getContext('2d');
+const $=id=>document.getElementById(id);
+const C={night:'#0E1430',indigo:'#1B2350',white:'#F4EEDF',grey:'#6B7699',gold:'#F2B544'};
+const E=M.bezier(.65,0,.35,1);              // 天狼ナイトの線の曲線（角で減速）
+
+// ── テキスト（文字ごとの span）
+function setChars(el,text){el.innerHTML=M.chars(text).map(c=>`<span class="ch">${c===' '?'&nbsp;':c}</span>`).join('')}
+setChars($('h1'),'伝えたいを、\nぜんぶ形に'.replace('\n','<br>'));
+$('h1').innerHTML='<div id="h1a"></div><div id="h1b"></div>';setChars($('h1a'),'伝えたいを、');setChars($('h1b'),'ぜんぶ形に');
+setChars($('logo'),'萬屋天狼');
+const LABELS=[['撮影・映像編集','SHOOT & EDIT',B1],['音響・ライブ配信','SOUND & LIVE',B2],['Web制作・SNS運用','WEB & SOCIAL',B3],['ひとつの光で','',HERO]];
+
+// ── 世界座標の図形（各シーンは世界 y = k*1920 + 700 を中心に描く）
+function poly(pts){return pts}
+const SC=[0,1920,3840,5760];
+const sirius0={x:540,y:600};
+// 線の経路：区間ごとの [開始時刻, 終了時刻, 点列]（点列は世界座標）
+function rectPath(x,y,w,h){return [[x,y],[x+w,y],[x+w,y+h],[x,y+h],[x,y]]}
+function bracket(x,y,sx,sy,L){return [[x,y+L*sy],[x,y],[x+L*sx,y]]}
+const vfY=SC[1]+700, wvY=SC[2]+700, brY=SC[3]+700;
+const vf=[ // ファインダー（四隅のブラケット＋中央の十字）
+  bracket(150,vfY-300,1,1,90),bracket(930,vfY-300,-1,1,90),bracket(930,vfY+300,-1,-1,90),bracket(150,vfY+300,1,-1,90),
+  [[510,vfY],[570,vfY]],[[540,vfY-30],[540,vfY+30]]];
+const wvPts=[];for(let i=0;i<=120;i++){const x=150+i*6.5;wvPts.push([x,wvY-170+Math.sin(i*.33)*60*Math.sin(i*.0262*Math.PI*1.0)])}
+const br=[rectPath(130,brY-330,600,440),[[130,brY-270],[730,brY-270]],rectPath(170,brY-230,520,170),
+  rectPath(170,brY-40,160,120),rectPath(350,brY-40,160,120),rectPath(530,brY-40,160,120),
+  rectPath(700,brY-220,250,500),[[790,brY+240],[860,brY+240]],rectPath(730,brY-150,190,200)];
+// 経路を時間に割り当てる
+const PATHS=[
+  {t0:1.70,t1:B1+.05,pts:[[540,600],[540,1300],[150,vfY-210]],travel:true},
+  {t0:B1+.05,t1:B1+1.45,multi:vf},
+  {t0:B1+1.55,t1:B2+.05,pts:[[150,vfY+300],[540,vfY+600],[150,wvY-170]],travel:true},
+  {t0:B2+.05,t1:B2+1.20,pts:wvPts},
+  {t0:B2+1.55,t1:B3+.05,pts:[[930,wvY-170],[700,wvY+700],[130,brY-330]],travel:true},
+  {t0:B3+.05,t1:B3+1.60,multi:br},
+];
+const segLen=pts=>{let L=0;for(let i=1;i<pts.length;i++)L+=Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]);return L};
+function drawPartial(pts,u){ // 点列を長さ u(0..1) まで描き、先端座標を返す
+  const L=segLen(pts)*u;let acc=0;ctx.beginPath();ctx.moveTo(pts[0][0],pts[0][1]);let head=pts[0];
+  for(let i=1;i<pts.length;i++){const a=pts[i-1],b=pts[i],l=Math.hypot(b[0]-a[0],b[1]-a[1]);
+    if(acc+l>=L){const k=(L-acc)/l;head=[a[0]+(b[0]-a[0])*k,a[1]+(b[1]-a[1])*k];ctx.lineTo(head[0],head[1]);break}
+    ctx.lineTo(b[0],b[1]);acc+=l;head=b}
+  ctx.stroke();return head;
+}
+function glow(x,y,r,a=1,col='242,181,68'){ // 発光は灯金と星だけ
+  ctx.save();ctx.globalCompositeOperation='lighter';
+  const g=ctx.createRadialGradient(x,y,0,x,y,r);g.addColorStop(0,`rgba(255,250,235,${a})`);g.addColorStop(.18,`rgba(${col},${.7*a})`);g.addColorStop(1,`rgba(${col},0)`);
+  ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,r,0,7);ctx.fill();ctx.restore();
+}
+function star(x,y,s,a=1,rot=0){ // 天狼星：中心＋4本の短いスパイク（レンズフレアではない）
+  glow(x,y,s*3.2,a,'220,232,255');
+  ctx.save();ctx.translate(x,y);ctx.rotate(rot);ctx.globalAlpha=a;ctx.fillStyle=C.white;
+  for(let i=0;i<4;i++){ctx.rotate(Math.PI/2);ctx.beginPath();ctx.moveTo(0,-s*.07);ctx.lineTo(s*3.4,0);ctx.lineTo(0,s*.07);ctx.fill()}
+  ctx.beginPath();ctx.arc(0,0,s*.32,0,7);ctx.fill();ctx.restore();
+}
+// 背景の点（星空の壁紙にしない：40個だけ、灰青で発光なし）
+const R=M.rand(15);const dots=Array.from({length:40},()=>({x:R()*W,y:R()*H,r:R()*1.6+.6,a:R()*.25+.08}));
+
+const ZS0=0;
+// ── カメラ（世界→画面）。ホイップは小節頭で通過速度が最大になる
+function camera(t){
+  let cy=0,s=1,cx=0;
+  const whip=(tb,from,to)=>{const u=M.prog(t,tb-.24,.48);return M.lerp(from,to,M.ease.inOutExpo(u))};
+  if(t<B1-.24) cy=0; else if(t<B2-.24) cy=whip(B1,0,SC[1]); else if(t<B3-.24) cy=whip(B2,SC[1],SC[2]); else cy=whip(B3,SC[2],SC[3]);
+  // フックはスロープッシュ
+  if(t<B1) s=1+0.035*M.prog(t,0,B1);
+  // ヒーロー：プルバックで全体を見せる
+  const pb=M.bezier(.3,0,.2,1)(M.prog(t,HERO-1/30,.62));   // 拍の1フレーム前から、出だしが速い曲線で
+  if(t>=HERO){s=M.lerp(1,ZS,pb);cy=M.lerp(SC[3],0,pb);}
+  // 終盤は微速プッシュ
+  if(t>=FIN){s=ZS*(1+0.04*M.ease.outCubic(M.prog(t,FIN,END-FIN)));cy=0}   // エンド画も微速プッシュ
+  return {cy,s,cx};
+}
+const ZS=0.24; // プルバック時の倍率
+function toScreen(p,cam){ // 画面 = (540+(x-540)s, oy+(y-cy)s)。s=1 で oy=0、全景で oy=150
+  const k=M.clamp((1-cam.s)/(1-ZS));const oy=M.lerp(0,150,k);
+  return [540+(p[0]-540)*cam.s, oy+(p[1]-cam.cy)*cam.s];
+}
+// ヒーローの星座：各図形の中心 → 画面上の目標位置
+const CENTERS=[[540,600],[540,vfY],[540,wvY-60],[540,brY-30]];
+const TARGET=[[540,470],[290,680],[800,740],[560,900]];
+const LINKS=[[0,1],[1,3],[3,2],[2,0]];
+const POP=[HERO+.28,HERO+.56,HERO+.84];   // 8分音符で3つが星になる（chime と同時）
+
+function render(t){
+  ctx.fillStyle=C.night;ctx.fillRect(0,0,W,H);
+  const g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,'rgba(27,35,80,0)');g.addColorStop(1,'rgba(27,35,80,.85)');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  for(const d of dots){ctx.fillStyle=`rgba(107,118,153,${d.a})`;ctx.beginPath();ctx.arc(d.x,d.y,d.r,0,7);ctx.fill()}
+  const cam=camera(t);
+  const shrink=t>=HERO?M.ease.inOutCubic(M.prog(t,HERO+.2,.7)):0;   // 図形が星に縮む
+  const gather=t>=HERO?M.spring(t-(HERO+.85),{w:9}):0;               // 星が星座の位置へ
+  // ── 線の図形（世界座標→画面）
+  ctx.save();ctx.lineCap='round';ctx.lineJoin='round';
+  const drawnAlpha=k=>t>=HERO?(1-shrink)*.9:(k===activeScene(t)?.95:.35);
+  let head=null;
+  PATHS.forEach((P,pi)=>{
+    const u=E(M.prog(t,P.t0,P.t1-P.t0));if(u<=0)return;
+    const sceneK=pi<2?1:pi<4?2:3;
+    const list=P.multi?P.multi:[P.pts];
+    const total=list.reduce((a,p)=>a+segLen(p),0);
+    let acc=0;
+    for(const pts of list){
+      const L=segLen(pts),uu=M.clamp((u*total-acc)/L);acc+=L;if(uu<=0)break;
+      // ヒーロー中は図形を中心へ縮める
+      const c=CENTERS[sceneK];
+      const sp=pts.map(p=>toScreen([M.lerp(p[0],c[0],shrink),M.lerp(p[1],c[1],shrink)],cam));
+      ctx.strokeStyle=P.travel?`rgba(242,181,68,${t<P.t1+.3?.9:0})`:`rgba(244,238,223,${drawnAlpha(sceneK)})`;
+      ctx.lineWidth=(P.travel?3:4)*Math.max(cam.s,.5);
+      if(P.travel&&t>P.t1+.3)continue;
+      const h=drawPartial(sp,uu);if(uu<1)head=h;
+    }
+  });
+  ctx.restore();
+  if(head&&t<HERO) glow(head[0],head[1],46,1);           // 光の先端（灯金）
+  // 波形シーンのレベルメーター（拍で跳ねる）
+  if(t>=B2+.6&&t<HERO+.3){
+    const a=M.prog(t,B2+.6,.3)*(t>=HERO?1-shrink:1)*(activeScene(t)===2||t>=HERO?1:.35);
+    for(let i=0;i<16;i++){const x=180+i*46,hgt=40+170*Math.abs(Math.sin(i*1.9+Math.floor(M.beatAt(t)*2)))*(.45+.55*M.hit(t,7));
+      const p0=toScreen([M.lerp(x,540,shrink),M.lerp(wvY+190,wvY-60,shrink)],cam),p1=toScreen([M.lerp(x,540,shrink),M.lerp(wvY+190-hgt,wvY-60,shrink)],cam);
+      ctx.strokeStyle=`rgba(244,238,223,${.85*a})`;ctx.lineWidth=18*cam.s;ctx.beginPath();ctx.moveTo(p0[0],p0[1]);ctx.lineTo(p1[0],p1[1]);ctx.stroke();
+      ctx.fillStyle=`rgba(242,181,68,${a})`;ctx.fillRect(p1[0]-9*cam.s,p1[1]-10*cam.s,18*cam.s,6*cam.s)}
+  }
+  // ファインダーの REC（拍で点滅）
+  if(t>=B1+.9&&t<B2+.3){const p=toScreen([210,vfY-240],cam);if(Math.floor(M.beatAt(t))%2===0){ctx.fillStyle='#E0564F';ctx.beginPath();ctx.arc(p[0],p[1],13,0,7);ctx.fill()}
+    ctx.font='700 30px "Zen Kaku Gothic New"';ctx.fillStyle=C.white;ctx.fillText('REC',p[0]+26,p[1]+11)}
+  // ── 星（天狼星＋3つ）
+  const sPos=CENTERS.map((c,i)=>{const sc=toScreen(c,cam);return [M.lerp(sc[0],TARGET[i][0],gather),M.lerp(sc[1],TARGET[i][1],gather)]});
+  // 星座の線
+  if(t>=HERO+.95){
+    LINKS.forEach(([a,b],i)=>{const u=E(M.prog(t,HERO+.95+i*.16,.34));if(u<=0)return;
+      const A=sPos[a],Bp=sPos[b];ctx.strokeStyle=`rgba(242,181,68,${t>=FIN?.35:.85})`;ctx.lineWidth=3;
+      ctx.beginPath();ctx.moveTo(A[0],A[1]);ctx.lineTo(M.lerp(A[0],Bp[0],u),M.lerp(A[1],Bp[1],u));ctx.stroke()});
+  }
+  // 天狼星（フックから最後まで同じ光）
+  const s0=sPos[0];const tw=1+.08*Math.sin(t*5.3)+(t>=HERO?.35*M.hit(t,9):0)+(Math.abs(t-HERO)<1/30?.6:0);
+  let sz=34*tw*(t<HERO?1:M.lerp(1,.8,gather));
+  if(t>=SIL0&&t<SIL1) sz*=.9;                                 // 無音の一呼吸で少し沈む
+  sz*=1+.5*Math.exp(-Math.max(0,t-FIN)*5)*(t>=FIN?1:0);         // 最後の盛り上がりで脈打つ
+  if(t<HERO+.2||t>=HERO) star(s0[0],s0[1],sz,1,t*.08);
+  [1,2,3].forEach((k,i)=>{const pop=M.springU(t-POP[i],{w:22,zeta:.45});if(t<POP[i])return;star(sPos[k][0],sPos[k][1],14*pop*(1+(t>FIN?.22:.1)*Math.sin(t*(3.1+k*.7)+k*2)),1,k)});
+  // 最後：灯金のリングが天狼星から広がる（impact の可視化）
+  if(t>=FIN&&t<FIN+.7){const u=M.prog(t,FIN,.7);ctx.strokeStyle=`rgba(242,181,68,${(1-u)*.8})`;ctx.lineWidth=4;ctx.beginPath();ctx.arc(s0[0],s0[1],40+560*M.ease.outCubic(u),0,7);ctx.stroke()}
+  renderText(t);
+}
+function activeScene(t){return t<B1?0:t<B2?1:t<B3?2:3}
+
+function charIn(el,t,start,{each=.035,dur=.32,out=null}={}){
+  const spans=el.querySelectorAll('.ch');
+  spans.forEach((sp,i)=>{const u=M.spring(t-(start+i*each),{w:16});const o=out!=null?1-M.prog(t,out,.18):1;
+    sp.style.opacity=M.clamp(u*1.2)*o;sp.style.transform=`translateY(${(1-u)*38}px)`;sp.style.filter=u<.9?`blur(${(1-u)*6}px)`:'none'});
+}
+function renderText(t){
+  // フック：フレーム0で完成済み。ホイップ直前に上へ抜ける
+  const hOut=M.prog(t,1.92,.3);$('h1').style.opacity=1-hOut;$('h1').style.transform=`translateY(${-hOut*120}px) scale(${1+.035*M.prog(t,0,B1)})`;
+  $('h1').style.display=t<B1+.1?'block':'none';
+  // ラベル
+  let L=null;LABELS.forEach((l,i)=>{const end=i<3?LABELS[i+1][2]-.12:SIL0;if(t>=l[2]+.1&&t<end+.2)L=[...l,end]});
+  if(L){if($('lab').dataset.k!==L[0]){setChars($('lab'),L[0]);$('lab').dataset.k=L[0];$('labs').textContent=L[1]}
+    charIn($('lab'),t,L[2]+.1,{out:L[3]});const u=M.spring(t-(L[2]+.3),{w:12});$('labs').style.opacity=M.clamp(u)*(1-M.prog(t,L[3],.18));
+    $('lab').style.display='block';$('labs').style.display='block';$('lab').style.top=L[0]==='ひとつの光で'?'1380px':'1150px'}
+  else{$('lab').style.display='none';$('labs').style.display='none'}
+  // ロゴ（冒頭の見出しと同じ位置に着地）
+  const on=t>=FIN-1/30;['logo','roman','svc','cta'].forEach(id=>$(id).style.display=on?'block':'none');
+  if(on){
+    $('logo').querySelectorAll('.ch').forEach((sp,i)=>{const u=M.springU(t-(FIN-1/30+i*.05),{w:18,zeta:.55});sp.style.opacity=M.clamp((t-(FIN-1/30+i*.05))*20);sp.style.transform=`translateY(${(1-u)*-50}px) scale(${M.lerp(1.25,1,M.clamp(u))})`});
+    const r=M.spring(t-(FIN+.32),{w:10});$('roman').style.opacity=r*.85;$('roman').style.letterSpacing=M.lerp(.9,.62,r)+'em';
+    const s=M.spring(t-(FIN+.45),{w:10});$('svc').style.opacity=s;$('svc').style.transform=`translateY(${(1-s)*20}px)`;
+    const c=M.springU(t-(FIN+.56),{w:14,zeta:.5});$('cta').style.opacity=M.clamp((t-(FIN+.56))*6);$('cta').style.transform=`translateX(-50%) scale(${M.lerp(.86,1,c)})`;
+    const push=1+0.025*M.ease.outCubic(M.prog(t,FIN,END-FIN));['logo','roman','svc'].forEach(id=>{$(id).style.transformOrigin='540px 0';$(id).style.scale=push});
+    $('cta').style.boxShadow=`0 0 ${18+14*M.hit(t,4)}px rgba(242,181,68,.28)`;
+  }
+}
+window.__ready=Promise.all(['800 104px "Shippori Mincho B1"','500 34px "Zen Kaku Gothic New"','700 30px "Zen Kaku Gothic New"'].map(f=>document.fonts.load(f)));
+window.renderAt=t=>render(t);
+if(!window.__RENDER){fetch('beats.json').then(r=>r.json()).then(d=>{window.__DATA=d;const t0=performance.now();const L=()=>{render(((performance.now()-t0)/1000)%END);requestAnimationFrame(L)};L()})}
+</script></body></html>

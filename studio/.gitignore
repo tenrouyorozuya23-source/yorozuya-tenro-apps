@@ -11,3 +11,6 @@ projects/*/wave.png
 music-library/src/
 music-library/analysis/*.png
 music-library/analysis/*.log
+projects/*/*.review/
+projects/*/k*.png
+projects/*/keys.jpg
