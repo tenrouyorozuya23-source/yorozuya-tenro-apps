@@ -13,6 +13,7 @@ description: 天狼スタジオの自動制作サイクル（計画→テスト�
 - 作業ブランチ: `studio-autopilot`（知見と完成品はここに積み上げる）
 - 道具: `studio/tools/`（bgm.py / render.mjs / master.py）
 - **方向性: `studio/knowledge/direction.md` ← 最優先。顧客（舞台・音楽 → 映像美を求める企業）と見た目（Apple の製品LPのように洗練・簡潔・三次元的、イラスト調にしない）**
+- バーチャルプロダクション（グリーンバック撮影・合成・カメラ連動・モーキャプ）: `studio/knowledge/virtual-production-pipeline.md`（監督＝ユーザー、エンジニアリング＝Claude の分担）
 - 知見: `studio/knowledge/playbook.md` ← **制作前に必ず読む**（v2：8つの先行リポジトリの研究を反映済み）
 - 審査基準: `studio/knowledge/rubric.md`／ブリーフ雛形: `studio/knowledge/brief-template.md`／スタイル: `studio/knowledge/styles.md`
 - 音源ライブラリ: `studio/music-library/catalog.json`（ユーザー制作の SUNO 曲。解析済みの拍・推奨カット付き）
