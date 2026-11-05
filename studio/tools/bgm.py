@@ -21,6 +21,14 @@ song.json の主なキー（すべて任意。省略時は既定値）:
     reverb: 0-1, brightness: 0-1, drive: 0-1
     lofi: 0-1（バスのローパスと揺れ）, loop: true（末尾の残響を頭に回して継ぎ目なしのループにする）
     koto_pattern: [[beat, 和音の何番目, オクターブ], ...]  taiko_pattern: [[beat, 強さ], ...]
+    （2026-11-05 審査を受けて追加）
+    end_chord / pre_end_chord: 最後の小節・その前の小節の和音を上書き（主和音で終わるため）。chord_override: {"小節": "和音"}
+    silence: [[bar, beat, 拍数], ...] その区間をデジタルゼロにする（間・暗転）
+    snare_pattern: [拍,...]  bass_style: "legato"（bass_pattern: [[拍, 長さ拍], ...]）  pad_lp: パッドのローパス周波数
+    pump_every_beat: true（キックがなくても毎拍サイドチェイン）  chime_intervals: [0,7,12,17]
+    taiko_fill: {"every":4, "beats":[3,3.25,3.5,3.75], "g":[...]}  koto_patterns: [[...],[...]]（2小節ごとに交代）
+    automation: [[秒, dB], ...] 全体の音量の折れ線  layers 追加: chop（スーパーソーの刻み）, ostinato（低弦の8分）
+    cues 追加: braam
 """
 import json
 import sys
@@ -37,7 +45,7 @@ QUAL = {
     "": [0, 4, 7], "maj": [0, 4, 7], "m": [0, 3, 7], "7": [0, 4, 7, 10],
     "maj7": [0, 4, 7, 11], "m7": [0, 3, 7, 10], "sus2": [0, 2, 7], "sus4": [0, 5, 7],
     "add9": [0, 4, 7, 14], "madd9": [0, 3, 7, 14], "m9": [0, 3, 7, 10, 14],
-    "maj9": [0, 4, 7, 11, 14], "6": [0, 4, 7, 9], "m6": [0, 3, 7, 9], "dim": [0, 3, 6],
+    "maj9": [0, 4, 7, 11, 14], "6": [0, 4, 7, 9], "m6": [0, 3, 7, 9], "dim": [0, 3, 6], "5": [0, 7, 12],
 }
 
 
@@ -128,6 +136,8 @@ class Track:
 
     def add(self, start, mono, pan=0.0, gain=1.0):
         i = int(start * SR)
+        if i < 0:                      # 曲頭より前に始まる音（長いライザーなど）は、はみ出した部分を切り捨てる
+            mono = mono[-i:]; i = 0
         if i >= len(self.buf) or len(mono) == 0:
             return
         j = min(i + len(mono), len(self.buf))
@@ -336,11 +346,49 @@ def taiko(strength=1.0):
 
 
 def swell(ms, dur, bright=0.5):
-    """弦の合奏風のゆっくり膨らむ和音（シネマ用。pad より暗く遅い）"""
-    st = pad_chord(ms, dur, bright * 0.6)
-    n = len(st); t = np.arange(n) / SR
-    e = np.clip(t / (dur * 0.6), 0, 1) ** 1.6
-    return st * e[:, None] * 1.3
+    """弦の合奏風の和音（シネマ用。pad より暗い）。小節ごとに 0 から立ち上げ直さず、0.4 秒で前の和音と重ねて切り替える"""
+    return pad_chord(ms, dur, bright * 0.6) * 1.3
+
+
+def supersaw_chop(ms, dur):
+    """Future bass のスーパーソーの和音チョップ：7声デチューン、頭で -2 半音から 30ms でベンド"""
+    n = int((dur + 0.1) * SR)
+    t = np.arange(n) / SR
+    bendc = 2 ** (-2 / 12 * np.exp(-t / 0.012))
+    L = np.zeros(n); R = np.zeros(n)
+    for m in ms:
+        f0 = midi_hz(m)
+        for k in range(7):
+            det = (k - 3) / 3 * 0.15
+            f = f0 * 2 ** (det / 12) * bendc
+            ph = 2 * np.pi * np.cumsum(f) / SR + k * 1.3
+            v = 2 * ((ph / (2 * np.pi)) % 1) - 1
+            pan = (k - 3) / 3 * 0.8
+            L += v * (1 - pan); R += v * (1 + pan)
+    L, R = lp(L, 7000), lp(R, 7000)
+    L, R = hp(L, 180), hp(R, 180)
+    e = np.minimum(1, t / 0.003) * np.where(t < dur, 1, np.exp(-(t - dur) / 0.03))
+    return np.stack([L * e, R * e], 1) / (len(ms) * 7) * 0.9
+
+
+def string_note(m, dur):
+    """低弦の8分（ノコギリ波2声デチューン、LP 2.5kHz、アタック 8ms）"""
+    n = int((dur + 0.08) * SR)
+    t = np.arange(n) / SR
+    f = midi_hz(m)
+    x = saw(f * 2 ** (-0.08 / 12), n) + saw(f * 2 ** (0.08 / 12), n, 1.1)
+    x = lp(x, 2500)
+    e = np.minimum(1, t / 0.008) * np.where(t < dur, 1, np.exp(-(t - dur) / 0.03))
+    return x * e * 0.3
+
+
+def braam(m=38, dur=2.4):
+    """金管風の braam：低い5度、LP を 300→2kHz に 1.5 秒でスイープ"""
+    n = int(dur * SR)
+    t = np.arange(n) / SR
+    x = saw(midi_hz(m), n) + saw(midi_hz(m + 7), n, 0.7) + saw(midi_hz(m + 12), n, 1.9) * 0.5
+    x = sweep_lp(x, 300, 2000)
+    return np.tanh(x * 1.2) * np.minimum(1, t / 0.05) * np.exp(-t * 0.9) * 0.6
 
 
 def riser(dur):
@@ -360,9 +408,9 @@ def impact():
     return np.tanh((boom + nz) * 1.5) * 0.8
 
 
-def chime(m=84):
+def chime(m=84, iv=(0, 7, 12, 16)):
     out = np.zeros(int(2.5 * SR))
-    for k, mm in enumerate([m, m + 7, m + 12, m + 16]):
+    for k, mm in enumerate([m + i for i in iv]):
         b = fm_bell(mm, 1.2, 1.5)
         i = int(k * 0.06 * SR)
         out[i:i + len(b)] += b[: len(out) - i] * 0.6
@@ -405,6 +453,13 @@ def sidechain(n, kick_times, depth=0.6, rel=0.18):
 
 
 # ---------------------------------------------------------------- composer
+def mono_low(x, fc=120):
+    """120Hz 以下をモノにする（サイドだけハイパス）。スマホのモノ再生で低域が痩せない"""
+    mid = (x[:, 0] + x[:, 1]) / 2; side = (x[:, 0] - x[:, 1]) / 2
+    side = hp(side, fc, 2)
+    return np.stack([mid + side, mid - side], 1)
+
+
 def lofi_fx(x, lofi, wf):
     """Lo-fi のバス処理：ローパスとテープの揺れ"""
     n = len(x)
@@ -452,10 +507,19 @@ def build(song):
         sw = swing * beat * 0.5 if abs(frac - 0.5) < 1e-6 else 0
         return b * bar + bt * beat + sw
 
+    ov = {int(k): parse_chord(v) for k, v in song.get("chord_override", {}).items()}
+    if song.get("end_chord") and not song.get("loop"):
+        ov.setdefault(bars - 1, parse_chord(song["end_chord"]))
+    if song.get("pre_end_chord") and not song.get("loop") and bars >= 2:
+        ov.setdefault(bars - 2, parse_chord(song["pre_end_chord"]))
+
+    def chord_at(b):
+        return ov.get(b, prog[b % len(prog)])
+
     K = kick()
     for b in range(bars):
         L = layers_at(b)
-        root, q, bass_override = prog[b % len(prog)]
+        root, q, bass_override = chord_at(b)
         base = 48 + root  # C3 基準
         chord = [base + 12 + iv for iv in q]
         # 中音域に寄せたボイシング
@@ -468,7 +532,7 @@ def build(song):
                 drums.add(tt, K, 0, mix["kick"])
                 kick_times.append(tt)
         if "snare" in L:
-            for bt in [1, 3]:
+            for bt in song.get("snare_pattern", [1, 3]):
                 drums.add(tpos(b, bt), snare(), 0.05, mix["snare"])
         if "clap" in L:
             for bt in [1, 3]:
@@ -485,7 +549,10 @@ def build(song):
         if "openhat" in L:
             for bt in [0.5, 1.5, 2.5, 3.5]:
                 drums.add(tpos(b, bt), hat(True), -0.2, mix["openhat"])
-        if "bass" in L:
+        if "bass" in L and song.get("bass_style") == "legato":
+            for bt, ln in song.get("bass_pattern", [[0, 2.4], [2.5, 1.4]]):
+                music.add(tpos(b, bt), lp(bass_note(bass_m, ln * beat, bright * 0.4), 400), 0, mix["bass"])
+        elif "bass" in L:
             for i in range(8):
                 bt = i * 0.5
                 if i % 2 == 0 and "kick" in L:
@@ -495,7 +562,20 @@ def build(song):
         if "sub" in L:
             music.add(b * bar, sub_note(bass_m - 12 if bass_m > 40 else bass_m, bar * 0.98), 0, mix["sub"])
         if "pad" in L:
-            music.add_st(b * bar, pad_chord(chord, bar, bright), mix["pad"])
+            pc = pad_chord(chord, bar, bright)
+            if song.get("pad_lp"):
+                pc = np.stack([lp(pc[:, 0], song["pad_lp"]), lp(pc[:, 1], song["pad_lp"])], 1) * 1.15
+            music.add_st(b * bar, pc, mix["pad"])
+        if "chop" in L:
+            pat = song.get("chop_pattern", [0, 0.75, 1.5, 2.5, 3.0, 3.5])
+            vo = [m + 12 for m in chord]
+            for k, bt in enumerate(pat):
+                nxt = pat[k + 1] if k + 1 < len(pat) else 4
+                music.add_st(tpos(b, bt), supersaw_chop(vo, (nxt - bt) * beat * 0.8), mix.get("chop", 0.55))
+        if "ostinato" in L:
+            tones = [36 + root, 36 + root + q[1], 36 + root + q[2]]
+            for i, k in enumerate([0, 0, 1, 0, 2, 0, 1, 0]):
+                music.add(tpos(b, i * 0.5), string_note(tones[k] + 12, beat * 0.42), 0.2 if i % 2 else -0.2, mix.get("ostinato", 0.35))
         if "pluck" in L or "arp" in L:
             tones = sorted(chord + [chord[0] + 12, chord[1] + 12])
             order = song.get("arp_order", [0, 2, 1, 3, 2, 4, 3, 5])
@@ -518,13 +598,18 @@ def build(song):
                 drums.add(tpos(b, bt), rim(), 0.15, mix.get("rim", 0.45))
         if "koto" in L:
             tones = sorted(chord + [chord[0] + 12])
-            for bt, k, octv, *rest in song.get("koto_pattern", [[0, 0, 1], [1, 2, 1], [2, 1, 1], [3, 3, 1]]):
+            kps = song.get("koto_patterns") or [song.get("koto_pattern", [[0, 0, 1], [1, 2, 1], [2, 1, 1], [3, 3, 1]])]
+            for bt, k, octv, *rest in kps[(b // 2) % len(kps)]:
                 m = tones[int(k) % len(tones)] + 12 * octv
-                music.add(tpos(b, bt), koto_note(m, beat * 2, rest[0] if rest else 0), 0.25 if k % 2 else -0.25, mix.get("koto", 0.6))
+                music.add(tpos(b, bt), koto_note(m, beat * 2, rest[0] if rest else 0), 0.25 if k % 2 else -0.25, mix.get("koto", 0.6) * rng.uniform(0.85, 1.15))
         if "taiko" in L:
             for bt, g in song.get("taiko_pattern", [[0, 1.0], [2.5, 0.6]]):
                 tt = tpos(b, bt)
                 drums.add(tt, taiko(g), 0, mix.get("taiko", 0.8)); kick_times.append(tt)
+            tf = song.get("taiko_fill")
+            if tf and (b + 1) % tf.get("every", 4) == 0:
+                for bt, g in zip(tf["beats"], tf["g"]):
+                    drums.add(tpos(b, bt), taiko(g), 0, mix.get("taiko", 0.8))
         if "swell" in L:
             music.add_st(b * bar, swell(chord, bar, bright), mix.get("swell", 0.5))
     # melody
@@ -556,14 +641,19 @@ def build(song):
             fx.add(tt, impact(), 0, mix["impact"])
             kick_times.append(tt)
         elif ty == "chime":
-            fx.add(tt, chime(c.get("note", 84)), 0.1, mix["chime"])
+            fx.add(tt, chime(c.get("note", 84), song.get("chime_intervals", (0, 7, 12, 16))), 0.1, mix["chime"])
+        elif ty == "braam":
+            fx.add(tt, braam(c.get("note", 38)), 0, mix.get("braam", 0.5))
         elif ty == "stab":
-            root, q, _ = prog[int(c.get("bar", 0)) % len(prog)]
+            root, q, _ = chord_at(int(c.get("bar", 0)))
             for iv in q:
                 fx.add(tt, pluck_note(60 + root + iv, 1.0, 0.9), 0, mix["stab"])
                 fx.add(tt, fm_bell(72 + root + iv, 1.5, 1.2), 0.2, mix["stab"] * 0.6)
             fx.add(tt, K, 0, mix["kick"])
-    sc = sidechain(N, kick_times, song.get("sidechain", 0.55))
+    if song.get("pump_every_beat"):
+        sc = sidechain(N, [i * beat for i in range(int(bars * 4) + 1)], song.get("sidechain", 0.55), 0.25)
+    else:
+        sc = sidechain(N, kick_times, song.get("sidechain", 0.55))
     music.buf *= sc[:, None]
     ir = make_ir(song.get("reverb_sec", 2.2))
     rv = song.get("reverb", 0.25)
@@ -581,25 +671,40 @@ def build(song):
         if song.get("lofi"):            # Lo-fi も2周つないだ上でかける（揺れの周期はループ長の約数）
             Ls = bars * bar
             two = lofi_fx(two, song["lofi"], max(1, round(0.55 * Ls)) / Ls)
+        two = mono_low(two)
         mixbus = np.stack([hp(two[:, 0], 28), hp(two[:, 1], 28)], 1)[L0:]
     else:
         if song.get("lofi"):
             mixbus = lofi_fx(mixbus, song["lofi"], 0.55)
+        mixbus = mono_low(mixbus)
         mixbus = np.stack([hp(mixbus[:, 0], 28), hp(mixbus[:, 1], 28)], 1)
     drive = song.get("drive", 0.3)
     mixbus = np.tanh(mixbus * (1 + drive * 2)) / np.tanh(1 + drive * 2)
+    if song.get("automation"):
+        pts = song["automation"]; tt_ = np.arange(len(mixbus)) / SR
+        gdb = np.interp(tt_, [p[0] for p in pts], [p[1] for p in pts])
+        mixbus = mixbus * (10 ** (gdb / 20))[:, None]
+    sil = []
+    for b0, bt0, nb in song.get("silence", []):
+        t0 = b0 * bar + bt0 * beat; t1 = t0 + nb * beat; sil.append([round(t0, 4), round(t1, 4)])
     peak = np.max(np.abs(mixbus)) + 1e-9
     mixbus = mixbus / peak * 0.89
     # 末尾フェード
     if not song.get("loop"):
         fo = int(min(tail, 1.2) * SR)
         mixbus[-fo:] *= np.linspace(1, 0, fo)[:, None] ** 2
+    for t0, t1 in sil:                    # 意図した無音（間）：デジタルゼロ。前後 4ms で閉じる
+        i0, i1 = int(t0 * SR), int(t1 * SR); f = int(0.004 * SR)
+        mixbus[max(0, i0 - f):i0] *= np.linspace(1, 0, min(f, i0))[:, None]
+        mixbus[i0:i1] = 0
+        mixbus[i1:i1 + f] *= np.linspace(0, 1, len(mixbus[i1:i1 + f]))[:, None]
     beats = [round(i * beat, 4) for i in range(int(bars * 4) + 1)]
+    fps_ok = [f for f in (24, 25, 30, 48, 60) if abs(beat * f - round(beat * f)) < 1e-6]
     meta = {
         "bpm": bpm, "beat_sec": beat, "bar_sec": bar, "bars": bars,
         "music_end_sec": round(bars * bar, 4), "total_sec": round(total, 4),
         "beats": beats, "downbeats": beats[::4], "cues": cue_out,
-        "sections": sections,
+        "sections": sections, "silence": sil, "fps_beat_exact": fps_ok,
     }
     return mixbus, meta
 

@@ -9,7 +9,7 @@
   "brightness": 0.7,
   "reverb": 0.3,
   "drive": 0.3,
-  "sidechain": 0.75,
+  "sidechain": 0.9,
   "progression": [
    "Fmaj7",
    "G6",
@@ -28,8 +28,16 @@
    "sub": 0.5,
    "lead": 0.35,
    "stab": 0.45,
-   "hat": 0.35
-  }
+   "hat": 0.35,
+   "chop": 0.55
+  },
+  "end_chord": "Am9",
+  "pre_end_chord": "G6",
+  "pump_every_beat": true,
+  "snare_pattern": [
+   2
+  ],
+  "pad_lp": 6000
  },
  "versions": {
   "30s": {
@@ -57,30 +65,22 @@
     },
     {
      "from": 8,
-     "to": 16,
+     "to": 18,
      "layers": [
       "kick",
       "snare",
       "hat",
       "sub",
-      "pad",
-      "stab"
+      "chop",
+      "pad"
      ]
     },
     {
-     "from": 16,
-     "to": 19,
-     "layers": [
-      "pad",
-      "pluck",
-      "hat"
-     ]
-    },
-    {
-     "from": 19,
+     "from": 18,
      "to": 20,
      "layers": [
-      "pad"
+      "pad",
+      "pluck"
      ]
     }
    ],
@@ -138,12 +138,30 @@
      0,
      "A5",
      4
+    ],
+    [
+     16,
+     0,
+     "E5",
+     1
+    ],
+    [
+     16,
+     1,
+     "G5",
+     1
+    ],
+    [
+     16,
+     2,
+     "A5",
+     2
     ]
    ],
    "cues": [
     {
-     "bar": 8,
-     "beat": 0,
+     "bar": 7,
+     "beat": 3,
      "type": "riser",
      "len_beats": 8
     },
@@ -157,6 +175,13 @@
      "beat": 0,
      "type": "stab"
     }
+   ],
+   "silence": [
+    [
+     7,
+     3,
+     1
+    ]
    ]
   },
   "loop": {
@@ -172,8 +197,8 @@
       "snare",
       "hat",
       "sub",
-      "pad",
-      "stab"
+      "chop",
+      "pad"
      ]
     }
    ],
@@ -255,8 +280,8 @@
       "snare",
       "hat",
       "sub",
-      "pad",
-      "stab"
+      "chop",
+      "pad"
      ]
     },
     {
@@ -307,8 +332,8 @@
    ],
    "cues": [
     {
-     "bar": 2,
-     "beat": 0,
+     "bar": 1,
+     "beat": 3,
      "type": "riser",
      "len_beats": 8
     },
@@ -322,6 +347,13 @@
      "beat": 0,
      "type": "stab"
     }
+   ],
+   "silence": [
+    [
+     1,
+     3,
+     1
+    ]
    ]
   },
   "6s": {
@@ -336,8 +368,8 @@
       "kick",
       "snare",
       "sub",
-      "pad",
-      "stab"
+      "chop",
+      "pad"
      ]
     },
     {

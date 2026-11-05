@@ -11,7 +11,7 @@
   "reverb": 0.22,
   "drive": 0.2,
   "sidechain": 0.2,
-  "lofi": 0.55,
+  "lofi": 0.4,
   "progression": [
    "Fmaj9",
    "Em7",
@@ -41,14 +41,17 @@
    ]
   ],
   "mix": {
-   "kick": 0.75,
+   "kick": 0.36,
    "hat": 0.3,
    "rim": 0.5,
    "bass": 0.55,
-   "epiano": 0.6,
+   "epiano": 0.7,
    "vinyl": 1.0,
-   "bell": 0.25
-  }
+   "bell": 0.32
+  },
+  "bass_style": "legato",
+  "end_chord": "Fmaj9",
+  "pre_end_chord": "Cmaj7"
  },
  "versions": {
   "30s": {
@@ -61,7 +64,8 @@
      "to": 2,
      "layers": [
       "epiano",
-      "vinyl"
+      "vinyl",
+      "bell"
      ]
     },
     {
@@ -82,7 +86,127 @@
      "to": 10,
      "layers": [
       "epiano",
-      "vinyl"
+      "vinyl",
+      "bell"
+     ]
+    }
+   ],
+   "melody": [
+    [
+     2,
+     0,
+     "A5",
+     1.5
+    ],
+    [
+     2,
+     2,
+     "G5",
+     1
+    ],
+    [
+     3,
+     0,
+     "E5",
+     2
+    ],
+    [
+     4,
+     0,
+     "F5",
+     1
+    ],
+    [
+     4,
+     1,
+     "A5",
+     1
+    ],
+    [
+     4,
+     2,
+     "C6",
+     2
+    ],
+    [
+     5,
+     0,
+     "B5",
+     3
+    ],
+    [
+     5,
+     0,
+     "A5",
+     1.5
+    ],
+    [
+     5,
+     2,
+     "G5",
+     1
+    ],
+    [
+     6,
+     0,
+     "E5",
+     2
+    ],
+    [
+     7,
+     0,
+     "F5",
+     1
+    ],
+    [
+     7,
+     1,
+     "A5",
+     1
+    ],
+    [
+     7,
+     2,
+     "C6",
+     2
+    ],
+    [
+     8,
+     0,
+     "B5",
+     3
+    ]
+   ],
+   "cues": [
+    {
+     "bar": 2,
+     "beat": 0,
+     "type": "chime",
+     "note": 89
+    },
+    {
+     "bar": 9,
+     "beat": 0,
+     "type": "stab"
+    }
+   ]
+  },
+  "loop": {
+   "loop": true,
+   "bars": 8,
+   "tail_sec": 1.5,
+   "sections": [
+    {
+     "from": 0,
+     "to": 8,
+     "layers": [
+      "epiano",
+      "kick",
+      "rim",
+      "hat",
+      "bass",
+      "vinyl",
+      "bell"
      ]
     }
    ],
@@ -129,28 +253,6 @@
      "B5",
      3
     ]
-   ],
-   "mix": {
-    "bell": 0.22
-   }
-  },
-  "loop": {
-   "loop": true,
-   "bars": 8,
-   "tail_sec": 1.5,
-   "sections": [
-    {
-     "from": 0,
-     "to": 8,
-     "layers": [
-      "epiano",
-      "kick",
-      "rim",
-      "hat",
-      "bass",
-      "vinyl"
-     ]
-    }
    ]
   },
   "15s": {
@@ -163,7 +265,8 @@
      "to": 1,
      "layers": [
       "epiano",
-      "vinyl"
+      "vinyl",
+      "bell"
      ]
     },
     {
@@ -175,7 +278,8 @@
       "rim",
       "hat",
       "bass",
-      "vinyl"
+      "vinyl",
+      "bell"
      ]
     },
     {
@@ -183,8 +287,66 @@
      "to": 5,
      "layers": [
       "epiano",
-      "vinyl"
+      "vinyl",
+      "bell"
      ]
+    }
+   ],
+   "melody": [
+    [
+     1,
+     0,
+     "A5",
+     1.5
+    ],
+    [
+     1,
+     2,
+     "G5",
+     1
+    ],
+    [
+     2,
+     0,
+     "E5",
+     2
+    ],
+    [
+     3,
+     0,
+     "F5",
+     1
+    ],
+    [
+     3,
+     1,
+     "A5",
+     1
+    ],
+    [
+     3,
+     2,
+     "C6",
+     2
+    ],
+    [
+     4,
+     0,
+     "B5",
+     3
+    ]
+   ],
+   "cues": [
+    {
+     "bar": 1,
+     "beat": 0,
+     "type": "chime",
+     "note": 89
+    },
+    {
+     "bar": 4,
+     "beat": 0,
+     "type": "stab"
     }
    ]
   },
@@ -201,8 +363,36 @@
       "kick",
       "rim",
       "bass",
-      "vinyl"
+      "vinyl",
+      "bell"
      ]
+    }
+   ],
+   "melody": [
+    [
+     0,
+     0,
+     "A5",
+     1.5
+    ],
+    [
+     0,
+     2,
+     "G5",
+     1
+    ],
+    [
+     1,
+     0,
+     "F5",
+     2
+    ]
+   ],
+   "cues": [
+    {
+     "bar": 1,
+     "beat": 0,
+     "type": "stab"
     }
    ]
   }

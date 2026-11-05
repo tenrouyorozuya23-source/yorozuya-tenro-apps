@@ -9,7 +9,7 @@ pack.json:
      "versions": {"30s": {"length": 30.0, "bars": 15, "sections": [...], ...上書き},
                   "loop": {"loop": true, "bars": 8, ...}, "15s": {...}, "6s": {...}}}
     - 版ごとの値は base に上書きされる（melody/cues は版ごとに書く。省略時は base のもの）
-    - length を書いた版は、その秒数ちょうどに切る（足りなければ無音で埋める）。末尾 0.6 秒でフェード
+    - length を書いた版は、その秒数ちょうどに切る（足りなければ無音で埋める）。末尾 0.8 秒でフェード
     - loop 版は bgm.py の loop（末尾の残響を頭に回す）で、長さは bars × 小節ちょうど
 
 出力（OUTDIR/<id>_<版>.*）:
@@ -104,6 +104,17 @@ def limit(x, ceil_db=-1.8, look=0.004, rel=0.09, loop=False):
     return y[len(x):2 * len(x)] if loop else y
 
 
+def zero(st, sil):
+    """意図した無音を、帯域補正・リミッターの後にもう一度デジタルゼロにする（フィルタのにじみを消す）"""
+    f = int(0.004 * SR)
+    for t0, t1 in sil:
+        i0, i1 = int(t0 * SR), int(t1 * SR)
+        st[max(0, i0 - f):i0] *= np.linspace(1, 0, min(f, i0))[:, None]
+        st[i0:i1] = 0
+        st[i1:i1 + f] *= np.linspace(0, 1, len(st[i1:i1 + f]))[:, None]
+    return st
+
+
 def main():
     a = sys.argv[1:]
     pack = json.loads(Path(a[0]).read_text())
@@ -117,7 +128,7 @@ def main():
         if "length" in ov and not song.get("loop"):
             n = int(round(ov["length"] * SR))
             st = st[:n] if len(st) >= n else np.pad(st, ((0, n - len(st)), (0, 0)))
-            fo = int(0.6 * SR)
+            fo = int(0.8 * SR)
             st[-fo:] *= np.linspace(1, 0, fo)[:, None] ** 2
         # 帯域の自動補正：20–200Hz が 200–2000Hz より +4dB を超えるぶんだけ低域を下げる（スマホで聴き取れるように）
         eq_db = 0.0
@@ -135,17 +146,18 @@ def main():
         sf.write(tmp, st, SR, subtype="FLOAT")
         i, tp = measure(tmp)
         lim_db = 0.0
-        for _ in range(3):                 # ゲインで -14 に合わせ、超えたピークはリミッターで抑える
+        for _ in range(5):                 # ゲインで -14 に合わせ、超えたピークはリミッターで抑える（±0.2 LUFS・TP -1.2 以下まで）
             st = st * 10 ** ((target - i) / 20)
             before = np.abs(st).max()
             st = limit(st, loop=bool(song.get("loop")))
+            st = zero(st, meta.get("silence", []))
             lim_db = max(lim_db, round(20 * np.log10(before / (np.abs(st).max() + 1e-12)), 1))
             sf.write(tmp, st, SR, subtype="FLOAT")
             i, tp = measure(tmp)
-            if abs(i - target) <= 0.3 and tp <= -1.0:
+            if abs(i - target) <= 0.2 and tp <= -1.2:
                 break
-        if tp > -1.0:
-            st = st * 10 ** ((-1.2 - tp) / 20)
+        if tp > -1.2:
+            st = st * 10 ** ((-1.3 - tp) / 20)
         wav = outdir / f"{pid}_{name}.wav"
         sf.write(wav, st, SR, subtype="PCM_24")
         tmp.unlink()
@@ -153,7 +165,7 @@ def main():
         subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", str(wav), "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart",
                         str(outdir / f"{pid}_{name}.m4a")], check=True)
         (outdir / f"{pid}_{name}.beats.json").write_text(json.dumps(meta, ensure_ascii=False, indent=1))
-        rec = {"sec": round(len(st) / SR, 3), "bpm": song.get("bpm"), "lufs": i2, "tp": tp2,
+        rec = {"sec": round(len(st) / SR, 3), "bpm": song.get("bpm"), "fps_beat_exact": meta.get("fps_beat_exact"), "silence": meta.get("silence"), "lufs": i2, "tp": tp2,
                "low_minus_mid_db": bands(st), "low_shelf_db": round(eq_db, 1), "limiter_db": lim_db, "stereo_corr": corr(st)}
         if song.get("loop"):
             rec["seam_ratio"] = seam(st)
