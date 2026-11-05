@@ -98,9 +98,9 @@ const V=(x,y,z)=>new THREE.Vector3(x,y,z);
 const camKeys=[ // t, pos, look, focusDist(look 対象)
   [0.0,  V(.85,1.66,3.3), V(0,1.78,1.35)],
   [2.322,V(.8,1.66,3.15),  V(0,1.78,1.35)],
-  [6.6,  V(.3,1.5,9.8),    V(0,2.35,0)],
-  [9.172,V(.25,1.48,9.6),  V(0,2.35,0)],
-  [15.0, V(.1,1.45,8.9),   V(0,2.75,.6)],
+  [6.6,  V(.3,1.5,7.4),    V(0,2.2,0)],
+  [9.172,V(.25,1.48,8.7),  V(0,2.3,0)],
+  [15.0, V(.1,1.45,8.25),  V(0,2.38,.6)],
 ];
 function camAt(t){
   let i=0;while(i<camKeys.length-2&&t>camKeys[i+1][0])i++;
@@ -125,12 +125,12 @@ window.renderAt=t=>{
   if(t>=T.flick&&t<T.blackout){const k=(t-T.flick)/(T.blackout-T.flick);g=1-.35*Math.pow(Math.sin(k*Math.PI),2)*(fi%3===0?1:.6);}
   if(t>=T.blackout-1/30){g=Math.pow(1-prog(t,T.blackout-1/30,.28),3);}
   const breath=1+.015*Math.sin(t*2.1);
-  lamp.intensity=4.4*g*breath; glassMat.emissiveIntensity=.9*g; halo.material.uniforms.k.value=.22*g;
+  const wideBoost=1+1.6*ease.inOutSine(prog(t,2.322,3.5));lamp.intensity=4.4*g*breath*wideBoost; glassMat.emissiveIntensity=.9*g; halo.material.uniforms.k.value=.22*g;
   filMat.color.setRGB(1*Math.min(1,g*1.2+.0),.85*g+.0,.6*g*g); fil.visible=g>.004; bulb.visible=true;
   glassMat.opacity=.12+.23*g;
   glDust.update(t,.32*g);
   // 緞帳：暗転中に上がる。裾は遅れて揺れる（フォロースルー）
-  const cuP=prog(t,T.curtain,1.6), cu=ease.inOutCubic(cuP);
+  const cuP=prog(t,T.curtain,1.7), cu=ease.inOutSine(cuP);
   curtain.position.y=cu*8.8;
   const sw=t<T.curtain+.25?0:Math.exp(-(t-T.curtain-.25)*2.2)*Math.sin((t-T.curtain-.25)*7.5);
   curtain.rotation.x=.02*sw*Math.min(1,cuP*3);
