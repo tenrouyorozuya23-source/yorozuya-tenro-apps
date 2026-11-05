@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ja" class="preopen"><head><meta charset="utf-8">
+<html lang="ja"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>家族の絆｜BSD presents 舞台公演</title>
 <meta name="description" content="BSD presents 舞台「家族の絆」2026年12月4日（金）〜8日（火）全7公演 シアターグリーン BASE THEATER（池袋）。チケット予約受付中。">
@@ -101,6 +101,13 @@ section{padding-block:56px 8px}
 .day .t{display:block;font-family:var(--num);font-weight:600;font-size:1.25rem;line-height:1.2;letter-spacing:.02em;font-variant-numeric:tabular-nums}
 .day .o{display:block;color:var(--mute);font-size:.74rem;font-variant-numeric:tabular-nums}
 .cap{text-align:center;color:var(--mute);font-size:.85rem;margin:14px 0 0}
+/* 残席（GAS から読み込み） */
+.av{margin:6px auto 2px;display:grid;grid-template-columns:auto auto;gap:1px 8px;justify-content:center;font-size:.72rem;line-height:1.5}
+.av dt{color:var(--mute);text-align:right}
+.av dd{margin:0;text-align:left;color:var(--ink);font-weight:500}
+.av dd.few{color:var(--gold-l);font-weight:700}
+.av dd.full{color:#e48a80}
+.av dd.ok{color:var(--mute)}
 
 /* flyer */
 .flyers{display:grid;grid-template-columns:1fr 1fr;gap:18px;max-width:820px;margin:0 auto}
@@ -289,8 +296,8 @@ footer img{width:96px;opacity:.9;margin-bottom:6px}
 
 <section id="schedule">
   <div class="hd"><span class="en">Schedule</span><h2>公演スケジュール</h2></div>
-  <ul class="days"><li class="day"><div class="date"><span class="m">12.</span>4<span class="w">金</span></div><ul><li><span class="t">18:30</span><span class="o">開場 18:00</span></li></ul></li><li class="day sat"><div class="date"><span class="m">12.</span>5<span class="w">土</span></div><ul><li><span class="t">13:00</span><span class="o">開場 12:30</span></li><li><span class="t">18:30</span><span class="o">開場 18:00</span></li></ul></li><li class="day sun"><div class="date"><span class="m">12.</span>6<span class="w">日</span></div><ul><li><span class="t">13:00</span><span class="o">開場 12:30</span></li><li><span class="t">18:30</span><span class="o">開場 18:00</span></li></ul></li><li class="day"><div class="date"><span class="m">12.</span>7<span class="w">月</span></div><ul><li><span class="t">18:30</span><span class="o">開場 18:00</span></li></ul></li><li class="day"><div class="date"><span class="m">12.</span>8<span class="w">火</span></div><ul><li><span class="t">14:00</span><span class="o">開場 13:30</span></li></ul></li></ul>
-  <p class="cap">開場は開演の30分前／各回60席</p>
+  <ul class="days"><li class="day"><div class="date"><span class="m">12.</span>4<span class="w">金</span></div><ul><li data-show="12/4(金) 18:30"><span class="t">18:30</span><span class="o">開場 18:00</span><dl class="av" hidden></dl></li></ul></li><li class="day sat"><div class="date"><span class="m">12.</span>5<span class="w">土</span></div><ul><li data-show="12/5(土) 13:00"><span class="t">13:00</span><span class="o">開場 12:30</span><dl class="av" hidden></dl></li><li data-show="12/5(土) 18:30"><span class="t">18:30</span><span class="o">開場 18:00</span><dl class="av" hidden></dl></li></ul></li><li class="day sun"><div class="date"><span class="m">12.</span>6<span class="w">日</span></div><ul><li data-show="12/6(日) 13:00"><span class="t">13:00</span><span class="o">開場 12:30</span><dl class="av" hidden></dl></li><li data-show="12/6(日) 18:30"><span class="t">18:30</span><span class="o">開場 18:00</span><dl class="av" hidden></dl></li></ul></li><li class="day"><div class="date"><span class="m">12.</span>7<span class="w">月</span></div><ul><li data-show="12/7(月) 18:30"><span class="t">18:30</span><span class="o">開場 18:00</span><dl class="av" hidden></dl></li></ul></li><li class="day"><div class="date"><span class="m">12.</span>8<span class="w">火</span></div><ul><li data-show="12/8(火) 14:00"><span class="t">14:00</span><span class="o">開場 13:30</span><dl class="av" hidden></dl></li></ul></li></ul>
+  <p class="cap">開場は開演の30分前<span class="av-note" hidden>／残席は <span id="av-updated"></span> 時点</span></p>
 </section>
 
 <section id="flyer">
@@ -386,4 +393,26 @@ footer img{width:96px;opacity:.9;margin-bottom:6px}
   <div>お問い合わせ：運営事務局 <a href="mailto:info.tenrou.event@gmail.com">info.tenrou.event@gmail.com</a></div>
   <div>主催：BSD　制作：萬屋天狼</div>
 </footer>
+<script>
+/* 公演×席種の残席を予約システム（GAS）から読み込んで日程に表示する。読み込めなければ何も表示しない */
+(function(){
+  fetch("https://script.google.com/macros/s/AKfycbykKQ8mfdPuVXsM52TPlKU-IntZ9Z-b_gYOJvHwAVdh5f2T2OvmZDdnWUqq9HhEI7MB/exec?api=availability").then(function(r){ return r.json(); }).then(function(d){
+    if (!d || !d.shows) return;
+    d.shows.forEach(function(s){
+      var li = document.querySelector('[data-show="' + s.show + '"]');
+      if (!li) return;
+      var dl = li.querySelector(".av");
+      dl.innerHTML = s.seats.map(function(x){
+        var c = x.label === "満席" ? "full" : x.label === "余裕あり" ? "ok" : "few";
+        return "<dt>" + x.seat.replace("席", "") + "</dt><dd class='" + c + "'>" + x.label + "</dd>";
+      }).join("");
+      dl.hidden = false;
+    });
+    if (d.updated) {
+      document.getElementById("av-updated").textContent = d.updated;
+      document.querySelector(".av-note").hidden = false;
+    }
+  }).catch(function(){});
+})();
+</script>
 </body></html>

@@ -1352,6 +1352,9 @@ function setTriggers(form) {
   // フォーム送信トリガー
   ScriptApp.newTrigger("onFormSubmit").forForm(form).onFormSubmit().create();
 
+  // 1時間ごと：予約フォームの残席表示を更新
+  ScriptApp.newTrigger("updateFormAvailability").timeBased().everyHours(1).create();
+
   // 毎日22時：LINE通知
   ScriptApp.newTrigger("sendDailyLineNotification")
     .timeBased().atHour(CONFIG.notify.hour).everyDays(1).create();
@@ -1622,6 +1625,84 @@ function updateFormCastChoices() {
   form.getItems(FormApp.ItemType.LIST).forEach(function(item){
     if (item.getTitle() === "取り扱いキャスト") item.asListItem().setChoiceValues(choices);
   });
+}
+
+// ============================================================
+// 残席表示（予約フォーム・予約サイト）
+//   15席以上＝余裕あり／11〜14席＝残りわずか／10席以下＝残り○席／0＝満席
+// ============================================================
+function availabilityLabel(n) {
+  if (n <= 0)  return "満席";
+  if (n >= 15) return "余裕あり";
+  if (n >= 11) return "残りわずか";
+  return "残り" + n + "席";
+}
+
+// 公演ごと・席種ごとの残席（公演全体の残りと席種の上限の少ない方）
+function seatAvailability() {
+  var data = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("予約一覧").getDataRange().getValues();
+  var hdr = data[0].map(String);
+  var cShow = hdr.indexOf("公演日時"), cStatus = hdr.indexOf("ステータス"), cCount = hdr.indexOf("枚数"), cSeat = hdr.indexOf("席種");
+  return CONFIG.shows.map(function(show){
+    var used = 0, bySeat = {};
+    for (var i = 1; i < data.length; i++) {
+      if (!sameShow(data[i][cShow], show.dt) || !countsAsSeat(data[i][cStatus])) continue;
+      var n = toSeatCount(data[i][cCount]), seat = String(data[i][cSeat]);
+      used += n;
+      bySeat[seat] = (bySeat[seat] || 0) + n;
+    }
+    var left = showCapacity(show.dt) - used;
+    return {
+      show: show.dt,
+      seats: CONFIG.seatTypes.map(function(st){
+        var rem = Math.max(0, Math.min(left, seatCap(st.name, show.dt) - (bySeat[st.name] || 0)));
+        return { seat: st.name, remaining: rem, label: availabilityLabel(rem) };
+      })
+    };
+  });
+}
+
+// 予約サイトに返すデータ（1分キャッシュ）
+function availabilityJson() {
+  var cache = CacheService.getScriptCache();
+  var hit = cache.get("availability");
+  if (hit) return JSON.parse(hit);
+  var out = {
+    updated: Utilities.formatDate(new Date(), "Asia/Tokyo", "M/d HH:mm"),
+    shows: seatAvailability().map(function(s){
+      return { show: s.show, seats: s.seats.map(function(x){ return { seat: x.seat, label: x.label }; }) };
+    })
+  };
+  cache.put("availability", JSON.stringify(out), 60);
+  return out;
+}
+
+function availabilityText() {
+  return "【残席状況】" + Utilities.formatDate(new Date(), "Asia/Tokyo", "M/d HH:mm") + " 時点\n" +
+    seatAvailability().map(function(s){
+      return "・" + s.show + "　" + s.seats.map(function(x){ return x.seat + " " + x.label; }).join("／");
+    }).join("\n") +
+    "\n※満席の席種へのお申し込みは、キャンセル待ち（仮予約）での受付となります。";
+}
+
+// 予約フォームの「ご希望の公演日時」の説明欄に残席を表示する
+function updateFormAvailability() {
+  var form = FormApp.openById(PropertiesService.getScriptProperties().getProperty("FORM_ID"));
+  form.getItems(FormApp.ItemType.LIST).forEach(function(item){
+    if (item.getTitle() === "ご希望の公演日時") item.setHelpText(availabilityText());
+  });
+  CacheService.getScriptCache().remove("availability");
+}
+
+// 更新用（1回だけ実行）：残席表示を始める。フォームに残席を出し、1時間ごとの自動更新を設定する
+function setup_availability() {
+  ScriptApp.getProjectTriggers().forEach(function(t){
+    if (t.getHandlerFunction() === "updateFormAvailability") ScriptApp.deleteTrigger(t);
+  });
+  ScriptApp.newTrigger("updateFormAvailability").timeBased().everyHours(1).create();
+  updateFormAvailability();
+  Logger.log("✅ 予約フォームに残席を表示しました（1時間ごと・予約やキャンセルのたびに更新）");
+  Logger.log(availabilityText());
 }
 
 // 更新用：本予約・キャンセル待ちの仕組みを入れたあと1回だけ実行
@@ -2570,6 +2651,12 @@ function getWebAppUrl() { return CONFIG.webAppUrl || ScriptApp.getService().getU
 function doGet(e) {
   var page = e && e.parameter && e.parameter.page ? e.parameter.page : "";
 
+  // 予約サイト用：公演×席種の残席（JSON）。個人情報は含めない
+  if (e && e.parameter && e.parameter.api === "availability") {
+    return ContentService.createTextOutput(JSON.stringify(availabilityJson()))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
   // レジ画面
   if (page === "register") {
     return HtmlService.createHtmlOutputFromFile("register")
@@ -3167,6 +3254,9 @@ function updateRemainingSeats() {
     updated++;
   }
 
+  // 予約フォームの残席表示も更新（失敗しても残席の更新は止めない）
+  try { updateFormAvailability(); } catch (err) { Logger.log("フォームの残席表示の更新エラー: " + err.message); }
+
   return updated + "件の公演の残席を更新しました";
 }
 
@@ -3244,6 +3334,8 @@ var CONTROL_OPS = [
     run: function(){ return updateRemainingSeats(); } },
   { func: "promoteWaitlist",           name: "キャンセル待ちを繰り上げ",   desc: "空席があれば、キャンセル待ち（仮予約）を申込順に本予約へ繰り上げ、ご予約確定メールを送ります（キャンセル確定時は自動で実行）",
     run: function(){ return promoteWaitlist(); } },
+  { func: "updateFormAvailability",    name: "フォームの残席表示を更新",   desc: "予約フォームの「ご希望の公演日時」に表示している残席を今すぐ最新にします（通常は予約・キャンセルのたびと1時間ごとに自動更新）",
+    run: function(){ updateFormAvailability(); return "残席表示を更新しました"; } },
   { func: "openReservations",          name: "予約受付を今すぐ開始",       desc: "予約フォームを開きます（通常は " + CONFIG.reservationOpenLabel + " に自動で開きます）",
     run: function(){ return openReservations(); } },
   { func: "updateAttendanceSheets",    name: "受付表を更新する",           desc: "各公演の受付表シートとキャスト別の集計を最新化します",
