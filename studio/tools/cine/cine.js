@@ -100,7 +100,7 @@ export function beam(scene, { from = [0, 6, 1], to = [0, 0, 0], radius = 1.35, c
         float edge = pow(abs(dot(vN, vView)), 2.2);   // 輪郭は薄く、正面の厚み方向だけ濃い（体積があるように見せる）          // 円錐の縁は薄く、中心方向は濃く
         float fall = (1.-y*0.55) * smoothstep(0.0, 0.08, y); // 光源の根元を少し抜き、床に向けて減衰
         // ハゼの筋：軸方向に引き伸ばした fbm（4オクターブ）で、縦に流れる筋と粒立ちを作る
-        vec3 q = vec3(vPos.x*5.5, vPos.y*0.9 - time*0.05, vPos.z*5.5);
+        vec3 q = vec3(vPos.x*5.5, vPos.y*0.9 - time*0.15, vPos.z*5.5);
         float n = 0.5*noise(q) + 0.25*noise(q*2.03 + 7.1) + 0.15*noise(q*4.01 - vec3(0.,time*0.08,0.)) + 0.1*noise(q*8.1 + 3.3);
         n = 0.35 + 0.65*n + 0.35*noise(vPos*1.3 + vec3(0., time*0.12, time*0.05));
         float a = density * strength * edge * fall * (0.15 + 1.35*n*n);
