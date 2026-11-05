@@ -10,3 +10,4 @@ projects/*/spec.png
 projects/*/wave.png
 music-library/src/
 music-library/analysis/*.png
+music-library/analysis/*.log
