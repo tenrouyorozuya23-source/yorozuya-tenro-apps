@@ -69,7 +69,10 @@ a{color:inherit}
 /* 3. 固定して進める連番 */
 .reveal{position:relative;height:500vh;background:#000}
 .reveal .stage{position:sticky;top:0;height:100vh;height:100svh;overflow:hidden;display:grid;place-items:center}
-.reveal canvas{-webkit-mask-image:radial-gradient(closest-side,#000 90%,transparent 100%);mask-image:radial-gradient(closest-side,#000 90%,transparent 100%);width:min(100vw,100vh);height:min(100vw,100vh);width:min(100vw,100svh);height:min(100vw,100svh)}
+.reveal canvas{width:max(100vw,100vh);height:max(100vw,100vh);width:max(100vw,100svh);height:max(100vw,100svh);flex:none;-webkit-mask-image:linear-gradient(to right,transparent,#000 22%,#000 78%,transparent);mask-image:linear-gradient(to right,transparent,#000 22%,#000 78%,transparent)}
+@media (max-aspect-ratio:1/1){.reveal canvas{-webkit-mask-image:none;mask-image:none}}
+.reveal .stage::after{content:"";position:absolute;inset:auto 0 0;height:34%;background:linear-gradient(to bottom,rgba(0,0,0,0),rgba(0,0,0,.88));pointer-events:none}
+.reveal .cap{z-index:1}
 .reveal .cap{position:absolute;left:0;right:0;bottom:clamp(40px,9vh,96px);text-align:center;padding:0 24px;font:600 clamp(24px,3vw,40px)/1.3 "Noto Sans JP";opacity:0;transition:opacity .5s var(--ease)}
 .reveal .cap.on{opacity:1}
 .reveal .cap small{display:block;margin-top:8px;font:400 clamp(15px,1.5vw,19px)/1.6 "Noto Sans JP";color:var(--sub)}
