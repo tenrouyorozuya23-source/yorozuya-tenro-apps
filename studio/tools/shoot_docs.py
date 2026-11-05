@@ -69,6 +69,10 @@ GLOSSARY = {
     "キャプチャ機器": "カメラの映像をパソコンに入れる小さな変換器",
     "K（ケルビン）": "光の色。5600K＝昼の光の白、3200K＝電球のオレンジ寄り",
     "ソフトボックス": "ライトの前に付けて光を柔らかくする布の箱",
+    "HDMI": "カメラとパソコン（キャプチャ機器）をつなぐ線",
+    "シャッター・F・ISO": "カメラの明るさを決める3つの数字。この書類の数字から始めて、顔が白く飛ぶなら ISO を下げる",
+    "4K・30コマ": "画質の細かさと、1秒に何枚撮るか",
+    "板付き": "最初から立ち位置に立った状態で始めること（舞台の言葉）",
 }
 METHOD = {
     "A": ("固定カメラで撮りながら、その場で合成", {
@@ -90,6 +94,8 @@ METHOD = {
 
 
 def checks_for(d):
+    if d.get("checks"):                    # 案件ごとに全部を書いた場合はそれを使う（順番も案件どおり）
+        return {k: [tuple(x) for x in v] for k, v in d["checks"].items()}
     out = {k: list(v) for k, v in CHECKS.items()}
     for k, v in METHOD.get(d.get("method", "A"), ("", {}))[1].items():
         out[k] = out[k][:1] + v + out[k][1:]
@@ -128,7 +134,12 @@ def build(d):
 <p>長さ {E(s_.get('length',''))} ・ カメラ {E(s_.get('camera',''))} ・ 目安 {s_.get('takes', 2)} テイク</p><p>点けるライト：{E(ls)}</p>{cue}
 <p class="ok">OK の条件：{E(s_.get('ok',''))}</p>
 <div class="row"><label class="done"><input type="checkbox" data-k="shot-{E(s_['id'])}"> 撮れた</label><label class="take">OK のテイク番号 <input type="text" inputmode="numeric" data-k="take-{E(s_['id'])}" size="4"></label></div></li>"""
-    sec.append(f'''<section id="shots"><h2>撮る順</h2><ol class="shots">{''.join(shot(x) for x in d.get("shots", []))}</ol></section>''')
+    def item(x):
+        if "between" in x:   # シーンの間の作業（画角を変える等）
+            rows = "".join(f'<li><label><input type="checkbox" data-k="btw-{E(x["key"])}-{j}"><span><em>{E(who.get(r, r))}</em>{E(t)}</span></label></li>' for j, (r, t) in enumerate(x["between"]))
+            return f'<li class="between"><h3>シーンの間</h3><ul class="check">{rows}</ul></li>'
+        return shot(x)
+    sec.append(f'''<section id="shots"><h2>撮る順</h2><ol class="shots">{''.join(item(x) for x in d.get("shots", []))}</ol></section>''')
     sec.append(clist("撤収"))
     if d.get("notes"):
         sec.append(f'''<section id="notes"><h2>安全と注意</h2><ul class="plain">{''.join(f'<li>{E(n)}</li>' for n in d["notes"])}</ul></section>''')
@@ -162,6 +173,8 @@ section{{padding-block:20px;border-bottom:1px solid var(--line)}}h2{{margin:0 0 
 .row{{display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center;margin-top:8px}}.done{{display:flex;gap:8px;align-items:center;font-weight:600}}
 .take input{{font:inherit;width:4em;padding:4px 6px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink)}}
 .plain li::before{{content:"・"}}
+.shots .between{{background:transparent;border-style:dashed}}
+#reset{{padding-block:48px}}
 #clear{{font:inherit;padding:10px 14px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--ink)}}
 </style></head><body>
 <header><h1>{E(d.get("title",""))}</h1><p class="meta">{E(d.get("date",""))} ・ {E(d.get("place",""))} ・ 集合 {E(d.get("call_time",""))} ・ 撤収完了 {E(d.get("wrap_time",""))}<br>撮り方：{E(mname)}{(" ・ " + E(d["client"])) if d.get("client") else ""}</p></header>
@@ -174,7 +187,9 @@ const save=()=>{{try{{localStorage.setItem(key,JSON.stringify(st))}}catch(e){{}}
 document.querySelectorAll('input[data-k]').forEach(c=>{{const k=c.dataset.k;
   if(c.type==='checkbox'){{c.checked=!!st[k];c.addEventListener('change',()=>{{st[k]=c.checked;save()}})}}
   else{{c.value=st[k]||'';c.addEventListener('input',()=>{{st[k]=c.value;save()}})}}}});
-document.getElementById('clear').addEventListener('click',()=>{{st={{}};save();document.querySelectorAll('input[data-k]').forEach(c=>{{if(c.type==='checkbox')c.checked=false;else c.value=''}})}});
+const clr=document.getElementById('clear');let armed=false;
+clr.addEventListener('click',()=>{{if(!armed){{armed=true;clr.textContent='本当に消す場合は、もう一度押してください';setTimeout(()=>{{armed=false;clr.textContent='チェックと記入を全部消す（リハーサルの後に）'}},4000);return}}
+  st={{}};save();document.querySelectorAll('input[data-k]').forEach(c=>{{if(c.type==='checkbox')c.checked=false;else c.value=''}});armed=false;clr.textContent='消しました'}});
 </script></body></html>'''
 
 
