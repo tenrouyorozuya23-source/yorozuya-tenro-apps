@@ -1,9 +1,20 @@
 {
   "dashboard_url": "https://claude.ai/artifact/X6eebhYWCKkLx5FSpQ3Ubh",
   "branch": "studio-autopilot",
-  "drive_folder_id": null,
-  "drive_folder_note": "ユーザーが作業フォルダのURLを共有したら、ここにフォルダIDを入れる",
+  "drive_folder_id": "1LovB06kiOWWTumtHREpE9oc1p7zj7E0m",
+  "drive_folder_note": "Google Drive「Claude専用 開発部」。ユーザー指定の開発作業場（2026-11-05）",
   "cloudflare_pages_project": null,
   "x_daily_post_limit": 3,
-  "next_ids": {"plan": 14, "work": 2, "report": 2}
+  "next_ids": {
+    "plan": 15,
+    "work": 2,
+    "report": 2
+  },
+  "drive_folders": {
+    "reports": "1_0G83Zupkdm8jeNKMmqa_qyY32nZPIYb",
+    "knowledge": "1vc6qj1VJbtvLO5_TiNHSJMwnLT4dzQ0h",
+    "works": "1uLr0mxxzGOIlu1g80smYnjp8n4mWmMVs",
+    "materials": "1wFGtngDPikBZ6EkI3PIrwQpldvaM0sLh",
+    "learning": "1e4jzRO7Ece16ZQvss_U2TA70ROyxXAQH"
+  }
 }
