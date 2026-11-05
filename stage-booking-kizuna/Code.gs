@@ -16,10 +16,11 @@ var CONFIG = {
   creditRate: 0.0326,
 
   // 席種設定（販売有無・単価はスプシの公演マスタで変更可）
+  //   cap＝1公演あたりの販売上限。超えた新規申込はキャンセル待ち（仮予約）になる（既存の予約はそのまま）
   seatTypes: [
-    { name: "SS席", price: 7000, enabled: true, note: "最前列確保／非売品・役者ブロマイド付" },
-    { name: "S席",  price: 6000, enabled: true, note: "2列目確保" },
-    { name: "A席",  price: 5000, enabled: true, note: "3列目以降" }
+    { name: "SS席", price: 7000, enabled: true, cap: 10, note: "最前列確保／非売品・役者ブロマイド付" },
+    { name: "S席",  price: 6000, enabled: true, cap: 10, note: "2列目確保" },
+    { name: "A席",  price: 5000, enabled: true, cap: 35, note: "3列目以降" }
   ],
 
   // 特別チケット（なし）
@@ -30,8 +31,10 @@ var CONFIG = {
 
   // 全7公演・各60席（dt は開演時刻。フォームの選択肢・受付シート名に使われる）
   shows: [
-    { dt: "12/4(金) 18:30", cap: 60 },
-    { dt: "12/5(土) 13:00", cap: 60 },
+    // seatCaps＝この公演だけの席種の上限（CONFIG.seatTypes の cap より優先）
+    //   12/4 18:30：S席は既存1席で満席扱い ／ 12/5 13:00：S席は既存2席＋残り2席（2026/11/05 指示）
+    { dt: "12/4(金) 18:30", cap: 60, seatCaps: { "S席": 1 } },
+    { dt: "12/5(土) 13:00", cap: 60, seatCaps: { "S席": 4 } },
     { dt: "12/5(土) 18:30", cap: 60 },
     { dt: "12/6(日) 13:00", cap: 60 },
     { dt: "12/6(日) 18:30", cap: 60 },
@@ -65,7 +68,9 @@ var CONFIG = {
         { name: "天咲ヒカル",   mail: "" },
         { name: "森本真由",     mail: "" },
         { name: "泉谷アキヒロ", mail: "" },
-        { name: "幸村宥弐",     mail: "" }
+        // 幸村宥弐は主催（BSD）のため、予約フォーム・予約一覧・LINE では「BSD」（個人の予約＝団体予約）。
+        // 物販は役者本人の商品なので goodsName の名前で作る。サイト・フライヤーの出演者欄は幸村宥弐のまま
+        { name: "BSD",          mail: "", goodsName: "幸村宥弐" }
       ]
     }
   ],
@@ -156,7 +161,7 @@ function buildCastGoods() {
         var item = CONFIG.goodsItems[pi];
         goods.push({
           id:    item.code + "-" + (no < 10 ? "0" : "") + no,
-          name:  casts[ci].name + "_" + item.name,
+          name:  (casts[ci].goodsName || casts[ci].name) + "_" + item.name,
           price: item.price,
           note:  item.note || ""
         });
@@ -1073,11 +1078,12 @@ function setupSalesManagementSheet(ss) {
 }
 
 // フォームの説明文・送信後メッセージ
-var FORM_CONFIRMATION = "ご予約ありがとうございます！\nご入力のメールアドレスに「ご予約確定」のメールをお送りしました。\n満席の公演はキャンセル待ち（仮予約）での受付となり、その旨のメールをお送りしています。";
+var FORM_CONFIRMATION = "ご予約ありがとうございます！\nご入力のメールアドレスに「ご予約確定」のメールをお送りしました。\n満席の公演・席種はキャンセル待ち（仮予約）での受付となり、その旨のメールをお送りしています。";
 
 function formSeatText() {
   return CONFIG.seatTypes.map(function(st){
-    return "・" + st.name + "　¥" + String(st.price).replace(/\B(?=(\d{3})+(?!\d))/g, ",") + (st.note ? "　" + st.note : "");
+    return "・" + st.name + "　¥" + String(st.price).replace(/\B(?=(\d{3})+(?!\d))/g, ",") + (st.note ? "　" + st.note : "") +
+      (st.cap ? "（各回" + st.cap + "席）" : "");
   }).join("\n");
 }
 
@@ -1087,7 +1093,7 @@ function formDescriptionText() {
     "【チケット】\n" + formSeatText() + "\n\n" +
     "【お支払い】\n" + CONFIG.payment.ticket + "\n" + CONFIG.payment.goods + "\n\n" +
     "【ご予約について】\n送信と同時にご予約が確定し、「ご予約確定」のメールが届きます。\n" +
-    "満席の公演はキャンセル待ち（仮予約）での受付となり、お席が空き次第、ご予約確定のメールをお送りします。" +
+    "満席の公演・席種はキャンセル待ち（仮予約）での受付となり、お席が空き次第、ご予約確定のメールをお送りします。" +
     (isReservationOpen() ? "" : "\n\n【予約受付開始】" + CONFIG.reservationOpenLabel + "〜");
 }
 
@@ -1346,6 +1352,12 @@ function setTriggers(form) {
   // フォーム送信トリガー
   ScriptApp.newTrigger("onFormSubmit").forForm(form).onFormSubmit().create();
 
+  // 5分ごと：GitHub の main を確認して自動反映
+  ScriptApp.newTrigger("autoDeployTick").timeBased().everyMinutes(5).create();
+
+  // 1時間ごと：予約フォームの残席表示を更新
+  ScriptApp.newTrigger("updateFormAvailability").timeBased().everyHours(1).create();
+
   // 毎日22時：LINE通知
   ScriptApp.newTrigger("sendDailyLineNotification")
     .timeBased().atHour(CONFIG.notify.hour).everyDays(1).create();
@@ -1433,7 +1445,7 @@ function onFormSubmit(e) {
   var waitlisted = false;
   try {
     waitlisted = showDt && seatType !== "全通券" &&
-      remainingSeatsFor(sheet, showDt, targetRow) < (Number(seatCount) || 1);
+      remainingSeatsFor(sheet, showDt, targetRow, seatType) < (Number(seatCount) || 1);
     if (colMap.status) sheet.getRange(targetRow, colMap.status).setValue(waitlisted ? STATUS_WAIT : STATUS_CONFIRMED);
     SpreadsheetApp.flush();
   } finally {
@@ -1495,18 +1507,34 @@ function showCapacity(showDt) {
   return 0;
 }
 
+// 席種ごとの販売上限（公演の seatCaps → CONFIG.seatTypes の cap の順。未設定なら上限なし）
+function seatCap(seatType, showDt) {
+  for (var j = 0; showDt && j < CONFIG.shows.length; j++) {
+    var sc = CONFIG.shows[j].seatCaps;
+    if (sc && sameShow(CONFIG.shows[j].dt, showDt) && sc[String(seatType)] !== undefined) return sc[String(seatType)];
+  }
+  for (var i = 0; i < CONFIG.seatTypes.length; i++) {
+    if (CONFIG.seatTypes[i].name === String(seatType || "")) return CONFIG.seatTypes[i].cap || Infinity;
+  }
+  return Infinity;
+}
+
 // 残席（excludeRow の行は数えない。1始まりの行番号）
-function remainingSeatsFor(sheet, showDt, excludeRow) {
+//   seatType を渡すと、公演全体の残席と、その席種の残り（上限 − 予約済み）の少ない方を返す
+function remainingSeatsFor(sheet, showDt, excludeRow, seatType) {
   var data = sheet.getDataRange().getValues();
   var hdr = data[0].map(String);
-  var cShow = hdr.indexOf("公演日時"), cStatus = hdr.indexOf("ステータス"), cCount = hdr.indexOf("枚数");
-  var used = 0;
+  var cShow = hdr.indexOf("公演日時"), cStatus = hdr.indexOf("ステータス"), cCount = hdr.indexOf("枚数"), cSeat = hdr.indexOf("席種");
+  var used = 0, usedSeat = 0;
   for (var i = 1; i < data.length; i++) {
     if (i + 1 === excludeRow) continue;
     if (!sameShow(data[i][cShow], showDt) || !countsAsSeat(data[i][cStatus])) continue;
-    used += toSeatCount(data[i][cCount]);
+    var n = toSeatCount(data[i][cCount]);
+    used += n;
+    if (seatType && String(data[i][cSeat]) === String(seatType)) usedSeat += n;
   }
-  return showCapacity(showDt) - used;
+  var left = showCapacity(showDt) - used;
+  return seatType ? Math.min(left, seatCap(seatType, showDt) - usedSeat) : left;
 }
 
 // キャンセル待ちを申込順に繰り上げる（空きに収まる予約だけ本予約にしてメールを送る）
@@ -1527,19 +1555,25 @@ function promoteWaitlist(showDt) {
     };
     var shows = showDt ? [showDt] : CONFIG.shows.map(function(s){ return s.dt; });
     shows.forEach(function(dt){
-      var used = 0, waits = [];
+      var used = 0, usedBySeat = {}, waits = [];
       for (var i = 1; i < data.length; i++) {
         if (!sameShow(data[i][c.show], dt)) continue;
         var st = String(data[i][c.status] || "");
         if (st === STATUS_WAIT) waits.push(i);
-        else if (countsAsSeat(st)) used += toSeatCount(data[i][c.count]);
+        else if (countsAsSeat(st)) {
+          var k = toSeatCount(data[i][c.count]), seat = String(data[i][c.seat]);
+          used += k;
+          usedBySeat[seat] = (usedBySeat[seat] || 0) + k;
+        }
       }
       var left = showCapacity(dt) - used;
       waits.sort(function(a, b){ return new Date(data[a][c.ts]) - new Date(data[b][c.ts]); });
       waits.forEach(function(i){
-        var n = toSeatCount(data[i][c.count]);
-        if (n > left) return;
+        var n = toSeatCount(data[i][c.count]), seat = String(data[i][c.seat]);
+        // 公演全体と席種の上限の両方に収まるときだけ繰り上げる
+        if (n > left || (usedBySeat[seat] || 0) + n > seatCap(seat, dt)) return;
         left -= n;
+        usedBySeat[seat] = (usedBySeat[seat] || 0) + n;
         sheet.getRange(i + 1, c.status + 1).setValue(STATUS_CONFIRMED);
         data[i][c.status] = STATUS_CONFIRMED;
         try {
@@ -1561,6 +1595,256 @@ function promoteWaitlist(showDt) {
   var msg = promoted.length ? promoted.join("・") + " をキャンセル待ちから本予約に繰り上げました" : "繰り上げできるキャンセル待ちはありません";
   Logger.log("✅ " + msg);
   return msg;
+}
+
+// 更新用（1回だけ実行）：幸村宥弐の予約名義を「BSD」に変える
+//   キャスト設定・LINEユーザー・予約一覧の名前を置き換え、予約フォームの「取り扱いキャスト」の選択肢と個別URLを作り直す
+//   LINE登録（UserID）・メールアドレス・既存の予約はそのまま引き継ぐ
+function update_renameToBSD() {
+  var OLD = "幸村宥弐", NEW = "BSD";
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var group = CONFIG.groups[0].name;
+  var replaced = 0;
+  [["キャスト設定", 1, OLD, NEW], ["LINEユーザー", 2, OLD, NEW],
+   ["予約一覧", 2, OLD + " 【" + group + "】", NEW + " 【" + group + "】"]].forEach(function(t){
+    var sh = ss.getSheetByName(t[0]);
+    if (!sh || sh.getLastRow() < 2) return;
+    var rng = sh.getRange(2, t[1], sh.getLastRow() - 1, 1);
+    var vals = rng.getValues();
+    vals.forEach(function(v){ if (String(v[0]).trim() === t[2]) { v[0] = t[3]; replaced++; } });
+    rng.setValues(vals);
+  });
+  updateFormCastChoices();
+  Logger.log("✅ " + syncCastSheet());
+  buildControlPanel();
+  Logger.log("✅ 幸村宥弐 → BSD に " + replaced + " か所置き換え、フォームの選択肢と個別URLを更新しました");
+}
+
+// 予約フォームの「取り扱いキャスト」の選択肢を CONFIG のキャストで作り直す
+function updateFormCastChoices() {
+  var form = FormApp.openById(PropertiesService.getScriptProperties().getProperty("FORM_ID"));
+  var choices = [];
+  CONFIG.groups.forEach(function(g){ g.casts.forEach(function(c){ choices.push(c.name + " 【" + g.name + "】"); }); });
+  form.getItems(FormApp.ItemType.LIST).forEach(function(item){
+    if (item.getTitle() === "取り扱いキャスト") item.asListItem().setChoiceValues(choices);
+  });
+}
+
+// ============================================================
+// 残席表示（予約フォーム・予約サイト）
+//   15席以上＝余裕あり／11〜14席＝残りわずか／10席以下＝残り○席／0＝満席
+// ============================================================
+function availabilityLabel(n) {
+  if (n <= 0)  return "満席";
+  if (n >= 15) return "余裕あり";
+  if (n >= 11) return "残りわずか";
+  return "残り" + n + "席";
+}
+
+// 公演ごと・席種ごとの残席（公演全体の残りと席種の上限の少ない方）
+function seatAvailability() {
+  var data = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("予約一覧").getDataRange().getValues();
+  var hdr = data[0].map(String);
+  var cShow = hdr.indexOf("公演日時"), cStatus = hdr.indexOf("ステータス"), cCount = hdr.indexOf("枚数"), cSeat = hdr.indexOf("席種");
+  return CONFIG.shows.map(function(show){
+    var used = 0, bySeat = {};
+    for (var i = 1; i < data.length; i++) {
+      if (!sameShow(data[i][cShow], show.dt) || !countsAsSeat(data[i][cStatus])) continue;
+      var n = toSeatCount(data[i][cCount]), seat = String(data[i][cSeat]);
+      used += n;
+      bySeat[seat] = (bySeat[seat] || 0) + n;
+    }
+    var left = showCapacity(show.dt) - used;
+    return {
+      show: show.dt,
+      seats: CONFIG.seatTypes.map(function(st){
+        var rem = Math.max(0, Math.min(left, seatCap(st.name, show.dt) - (bySeat[st.name] || 0)));
+        return { seat: st.name, remaining: rem, label: availabilityLabel(rem) };
+      })
+    };
+  });
+}
+
+// 予約サイトに返すデータ（1分キャッシュ）
+function availabilityJson() {
+  var cache = CacheService.getScriptCache();
+  var hit = cache.get("availability");
+  if (hit) return JSON.parse(hit);
+  var out = {
+    updated: Utilities.formatDate(new Date(), "Asia/Tokyo", "M/d HH:mm"),
+    shows: seatAvailability().map(function(s){
+      return { show: s.show, seats: s.seats.map(function(x){ return { seat: x.seat, label: x.label }; }) };
+    })
+  };
+  cache.put("availability", JSON.stringify(out), 60);
+  return out;
+}
+
+function availabilityText() {
+  return "【残席状況】" + Utilities.formatDate(new Date(), "Asia/Tokyo", "M/d HH:mm") + " 時点\n" +
+    seatAvailability().map(function(s){
+      return "・" + s.show + "　" + s.seats.map(function(x){ return x.seat + " " + x.label; }).join("／");
+    }).join("\n") +
+    "\n※満席の席種へのお申し込みは、キャンセル待ち（仮予約）での受付となります。";
+}
+
+// 予約フォームの「ご希望の公演日時」の説明欄に残席を表示する
+function updateFormAvailability() {
+  var form = FormApp.openById(PropertiesService.getScriptProperties().getProperty("FORM_ID"));
+  form.getItems(FormApp.ItemType.LIST).forEach(function(item){
+    if (item.getTitle() === "ご希望の公演日時") item.setHelpText(availabilityText());
+  });
+  CacheService.getScriptCache().remove("availability");
+}
+
+// 更新用（1回だけ実行）：残席表示を始める。フォームに残席を出し、1時間ごとの自動更新を設定する
+function setup_availability() {
+  ScriptApp.getProjectTriggers().forEach(function(t){
+    if (t.getHandlerFunction() === "updateFormAvailability") ScriptApp.deleteTrigger(t);
+  });
+  ScriptApp.newTrigger("updateFormAvailability").timeBased().everyHours(1).create();
+  updateFormAvailability();
+  Logger.log("✅ 予約フォームに残席を表示しました（1時間ごと・予約やキャンセルのたびに更新）");
+  Logger.log(availabilityText());
+}
+
+// ============================================================
+// GitHub からの自動反映・自動デプロイ（このスクリプトが自分自身を更新する）
+//   5分ごとに GitHub の main の Code.gs・HTML を確認し、変わっていれば
+//   ① Apps Script API でこのプロジェクトのファイルを書き換え ② 版を作り ③ Webアプリのデプロイを新しい版に差し替え（URLは同じ）
+//   ④ 新しいコードで ?api=migrate を呼んで、未実行の更新処理（MIGRATIONS）を実行する
+//   初回：appsscript.json に oauthScopes（script.projects・script.deployments ほか）を入れ、setup_selfDeploy() を1回実行
+// ============================================================
+var SELF_DEPLOY = {
+  repo:   "tenrouyorozuya23-source/yorozuya-tenro-apps",
+  branch: "main",
+  dir:    "stage-booking-kizuna",
+  html:   ["index", "checkin", "register"]
+};
+
+function webAppDeploymentId() {
+  return CONFIG.webAppUrl.match(/\/s\/([^\/]+)\/exec/)[1];
+}
+
+function scriptApi(method, path, body) {
+  var res = UrlFetchApp.fetch("https://script.googleapis.com/v1/projects/" + ScriptApp.getScriptId() + path, {
+    method: method,
+    contentType: "application/json",
+    headers: { Authorization: "Bearer " + ScriptApp.getOAuthToken() },
+    payload: body ? JSON.stringify(body) : undefined,
+    muteHttpExceptions: true
+  });
+  var code = res.getResponseCode(), text = res.getContentText();
+  if (code >= 300) throw new Error("Apps Script API " + method.toUpperCase() + " " + path + " → " + code + ": " + text.slice(0, 500));
+  return text ? JSON.parse(text) : {};
+}
+
+// GitHub（公開リポジトリ）から Code.gs と HTML を取る
+function fetchSourcesFromGitHub() {
+  var base = "https://raw.githubusercontent.com/" + SELF_DEPLOY.repo + "/" + SELF_DEPLOY.branch + "/" + SELF_DEPLOY.dir + "/";
+  var get = function(name) {
+    var res = UrlFetchApp.fetch(base + encodeURIComponent(name) + "?t=" + Date.now(), { muteHttpExceptions: true });
+    if (res.getResponseCode() !== 200) throw new Error("GitHub から " + name + " を取得できません（" + res.getResponseCode() + "）");
+    return res.getContentText("UTF-8");
+  };
+  var out = { code: get("Code.gs"), html: {} };
+  SELF_DEPLOY.html.forEach(function(n){ out.html[n] = get(n + ".html"); });
+  // 壊れたファイルや自動反映の仕組みが無いコードで上書きしないための確認
+  if (out.code.indexOf("var CONFIG = {") === -1 || out.code.indexOf("function selfDeployFromGitHub") === -1) {
+    throw new Error("GitHub の Code.gs が想定と違うため反映を止めました");
+  }
+  return out;
+}
+
+// トリガー・操作パネルから呼ぶ。force=true なら変更が無くても反映する
+function selfDeployFromGitHub(force) {
+  var lock = LockService.getScriptLock();
+  if (!lock.tryLock(10000)) return "別の更新が実行中です";
+  try {
+    var props = PropertiesService.getScriptProperties();
+    var src = fetchSourcesFromGitHub();
+    var hash = Utilities.base64Encode(Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, JSON.stringify(src), Utilities.Charset.UTF_8));
+    if (force !== true && hash === props.getProperty("SELF_DEPLOY_HASH")) return "変更はありません";
+
+    // ① ファイルを書き換え（appsscript.json など、ほかのファイルはそのまま）
+    var files = scriptApi("get", "/content").files;
+    var codeFile = files.filter(function(f){ return f.type === "SERVER_JS" && f.source.indexOf("var CONFIG = {") !== -1; })[0];
+    if (!codeFile) throw new Error("CONFIG を定義しているファイルが見つかりません");
+    codeFile.source = src.code;
+    SELF_DEPLOY.html.forEach(function(n){
+      var f = files.filter(function(x){ return x.type === "HTML" && x.name === n; })[0];
+      if (f) f.source = src.html[n];
+      else files.push({ name: n, type: "HTML", source: src.html[n] });
+    });
+    scriptApi("put", "/content", { files: files });
+
+    // ②③ 版を作って Webアプリのデプロイを差し替え
+    var stamp = Utilities.formatDate(new Date(), "Asia/Tokyo", "yyyy/MM/dd HH:mm");
+    var version = scriptApi("post", "/versions", { description: "GitHub自動反映 " + stamp });
+    scriptApi("put", "/deployments/" + webAppDeploymentId(), { deploymentConfig: {
+      scriptId: ScriptApp.getScriptId(), versionNumber: version.versionNumber,
+      manifestFileName: "appsscript", description: "GitHub自動反映 " + stamp
+    }});
+    props.setProperty("SELF_DEPLOY_HASH", hash);
+
+    // ④ 新しいコードで未実行の更新処理を実行
+    var mig = UrlFetchApp.fetch(CONFIG.webAppUrl + "?api=migrate", { muteHttpExceptions: true }).getContentText();
+    var msg = "版 " + version.versionNumber + " を反映・デプロイしました／更新処理: " + mig.slice(0, 300);
+    Logger.log("✅ " + msg);
+    return msg;
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+// 5分ごとのトリガーから呼ばれる（エラーはログだけ残す）
+function autoDeployTick() {
+  try { Logger.log(selfDeployFromGitHub(false)); } catch (err) { Logger.log("自動反映エラー: " + err.message); }
+}
+
+// 初回だけ実行：Apps Script API が使えるか確認し、5分ごとの自動反映を始める
+function setup_selfDeploy() {
+  scriptApi("get", "");  // ここで失敗する場合は README「自動反映」の確認項目を見る
+  ScriptApp.getProjectTriggers().forEach(function(t){
+    if (t.getHandlerFunction() === "autoDeployTick") ScriptApp.deleteTrigger(t);
+  });
+  ScriptApp.newTrigger("autoDeployTick").timeBased().everyMinutes(5).create();
+  Logger.log("✅ Apps Script API に接続できました。5分ごとに GitHub の main を確認して自動で反映します");
+  Logger.log(selfDeployFromGitHub(true));
+}
+
+// ============================================================
+// 更新処理（自動反映のあとに ?api=migrate で実行される）
+//   ここに並べた処理のうち、まだ実行していないものを上から1回ずつ実行する（実行済みはスクリプト プロパティに記録）。
+//   新しい「1回だけ実行」の処理を作ったら、関数を書いてここに id を足す（id は変えない）。
+// ============================================================
+var MIGRATIONS = [
+  { id: "2026-11-05-seat-caps-and-availability", run: function(){ fix_formText(); setup_availability(); } }
+];
+
+function runMigrations() {
+  var lock = LockService.getScriptLock();
+  if (!lock.tryLock(30000)) return { ok: false, error: "別の更新処理が実行中です" };
+  var props = PropertiesService.getScriptProperties();
+  var done = JSON.parse(props.getProperty("MIGRATIONS_DONE") || "[]");
+  var ran = [];
+  try {
+    for (var i = 0; i < MIGRATIONS.length; i++) {
+      var m = MIGRATIONS[i];
+      if (done.indexOf(m.id) !== -1) continue;
+      m.run();
+      done.push(m.id);
+      props.setProperty("MIGRATIONS_DONE", JSON.stringify(done));
+      ran.push(m.id);
+      Logger.log("✅ 更新処理を実行しました: " + m.id);
+    }
+    return { ok: true, ran: ran };
+  } catch (err) {
+    Logger.log("更新処理のエラー: " + err.message);
+    return { ok: false, ran: ran, error: String(err.message || err) };
+  } finally {
+    lock.releaseLock();
+  }
 }
 
 // 更新用：本予約・キャンセル待ちの仕組みを入れたあと1回だけ実行
@@ -2509,6 +2793,18 @@ function getWebAppUrl() { return CONFIG.webAppUrl || ScriptApp.getService().getU
 function doGet(e) {
   var page = e && e.parameter && e.parameter.page ? e.parameter.page : "";
 
+  // 自動デプロイ（GitHub Actions）の後に呼ばれる：未実行の更新処理を実行する
+  if (e && e.parameter && e.parameter.api === "migrate") {
+    return ContentService.createTextOutput(JSON.stringify(runMigrations()))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
+  // 予約サイト用：公演×席種の残席（JSON）。個人情報は含めない
+  if (e && e.parameter && e.parameter.api === "availability") {
+    return ContentService.createTextOutput(JSON.stringify(availabilityJson()))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
   // レジ画面
   if (page === "register") {
     return HtmlService.createHtmlOutputFromFile("register")
@@ -3106,6 +3402,9 @@ function updateRemainingSeats() {
     updated++;
   }
 
+  // 予約フォームの残席表示も更新（失敗しても残席の更新は止めない）
+  try { updateFormAvailability(); } catch (err) { Logger.log("フォームの残席表示の更新エラー: " + err.message); }
+
   return updated + "件の公演の残席を更新しました";
 }
 
@@ -3183,6 +3482,10 @@ var CONTROL_OPS = [
     run: function(){ return updateRemainingSeats(); } },
   { func: "promoteWaitlist",           name: "キャンセル待ちを繰り上げ",   desc: "空席があれば、キャンセル待ち（仮予約）を申込順に本予約へ繰り上げ、ご予約確定メールを送ります（キャンセル確定時は自動で実行）",
     run: function(){ return promoteWaitlist(); } },
+  { func: "selfDeployFromGitHub",      name: "GitHubから今すぐ反映",       desc: "GitHub の main の Code.gs・HTML をこのスクリプトに反映し、Webアプリを新しい版でデプロイします（通常は5分ごとに自動）",
+    run: function(){ return selfDeployFromGitHub(true); } },
+  { func: "updateFormAvailability",    name: "フォームの残席表示を更新",   desc: "予約フォームの「ご希望の公演日時」に表示している残席を今すぐ最新にします（通常は予約・キャンセルのたびと1時間ごとに自動更新）",
+    run: function(){ updateFormAvailability(); return "残席表示を更新しました"; } },
   { func: "openReservations",          name: "予約受付を今すぐ開始",       desc: "予約フォームを開きます（通常は " + CONFIG.reservationOpenLabel + " に自動で開きます）",
     run: function(){ return openReservations(); } },
   { func: "updateAttendanceSheets",    name: "受付表を更新する",           desc: "各公演の受付表シートとキャスト別の集計を最新化します",
@@ -3996,7 +4299,7 @@ function sendWaitlistMail(r) {
   var body =
     r.name + " 様\n\n" +
     "この度は「" + CONFIG.title + "」にお申し込みいただき、誠にありがとうございます。\n" +
-    "ご希望の公演はただいま満席のため、キャンセル待ち（仮予約）として受け付けました。\n" +
+    "ご希望の公演・席種はただいま満席のため、キャンセル待ち（仮予約）として受け付けました。\n" +
     "お席が空き次第、お申し込み順に「ご予約確定」のメールをお送りします。\n" +
     "※ご予約確定のメールが届くまでは、ご予約は確定しておりません。\n\n" +
     reservationDetailText(r) +

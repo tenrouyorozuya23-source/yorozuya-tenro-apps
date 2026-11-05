@@ -41,6 +41,32 @@
 - 予約一覧でキャンセルを確定すると、その公演のキャンセル待ちを申込順に自動で繰り上げる（収まる枚数のものだけ）
 - 導入時に `update_bookingFlow()` を1回実行（売上管理・公演マスタの集計式の更新と、予約受付開始スケジュールの設定）
 
+## 自動反映・自動デプロイ（GAS が自分で GitHub から更新）
+
+GitHub の `main` の `stage-booking-kizuna/Code.gs`・`index.html`・`checkin.html`・`register.html` が変わると、5分以内に次が自動で行われる（`autoDeployTick` トリガー）。操作パネル「GitHubから今すぐ反映」でも実行できる。
+
+1. GitHub（raw）から上記ファイルを取得（`var CONFIG` と `selfDeployFromGitHub` を含まない Code.gs なら中止）
+2. Apps Script API でこのプロジェクトのファイルを書き換え（appsscript.json などほかのファイルはそのまま）
+3. 版を作り、Webアプリのデプロイ（`CONFIG.webAppUrl` の ID）を新しい版に差し替え（URL は変わらない）
+4. 新しいコードの `?api=migrate` を呼び、`MIGRATIONS` のうち未実行のものを1回ずつ実行（実行済みはスクリプト プロパティ `MIGRATIONS_DONE`）
+
+初回だけの設定：
+
+1. https://script.google.com/home/usersettings で「Google Apps Script API」をオン（オーナーのアカウント）
+2. `appsscript.json` に `oauthScopes` を入れる（spreadsheets・forms・drive・mail.google.com・script.scriptapp・script.external_request・userinfo.email・**script.projects**・**script.deployments**）
+3. この機能を含む Code.gs を `main` に入れた後、Apps Script に貼り付けて `setup_selfDeploy()` を1回実行（権限の許可を求められたら許可）
+   - 「Apps Script API has not been used in project …」と出たら、Apps Script の「プロジェクトの設定」で標準の Google Cloud プロジェクトに切り替え、そのプロジェクトで Apps Script API を有効にする
+
+新しく「1回だけ実行」する処理を作ったら、関数を書いて `MIGRATIONS` に id とともに追加する（id は変えない）。
+
+## 席種ごとの上限と残席表示
+
+- 各回の上限：SS席10・S席10・A席35（`CONFIG.seatTypes` の `cap`）。公演ごとに変えるときは `CONFIG.shows` の `seatCaps`（例：12/4 18:30 は S席 1＝満席扱い）
+- 上限を超える新規申込はキャンセル待ち（仮予約）。既存の予約はそのまま
+- 残席の表示：15席以上＝余裕あり／11〜14席＝残りわずか／10席以下＝残り○席／0＝満席
+  - 予約フォーム：「ご希望の公演日時」の説明欄。予約・キャンセルのたびと1時間ごとに更新（導入時に `setup_availability()` を1回実行）
+  - 予約サイト：日程カードに表示。Webアプリの `?api=availability`（JSON・1分キャッシュ）から読み込む。読み込めないときは表示しない
+
 ## 予約受付の開始（2026/10/12 21:00）
 
 - `CONFIG.reservationOpenAt` より前は予約フォームを閉じ、「受付開始は〜」の案内を表示する

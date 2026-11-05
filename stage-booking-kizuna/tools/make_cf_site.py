@@ -35,6 +35,9 @@ SHOW_COUNT = 7
 #   Code.gs の順番を変えると、配布済みの個別URL（/c/番号）や物販の商品IDがずれるため、表示だけ入れ替える
 SWAP_ON_SITE = [("桑野結女凜", "岡本莉瑚"), ("藤野めいり", "五味川竜馬")]
 
+# 予約システム上の名前 → サイトに出す名前（幸村宥弐は主催のため予約名義が「BSD」）
+DISPLAY_NAME = {"BSD": "幸村宥弐"}
+
 def display_casts(casts):
     """(Code.gs の番号, 名前) をサイトの表示順で返す"""
     order = list(enumerate(casts, 1))
@@ -49,6 +52,12 @@ OPEN_AT = "2026-10-12T21:00:00+09:00"
 OPEN_LABEL = "2026年10月12日（月）21:00"
 OPEN_SHORT = "10/12（月）21:00"
 
+def web_app_url():
+    """Code.gs の webAppUrl（残席データの取得先：…/exec?api=availability）"""
+    import re
+    src = open(os.path.join(ROOT, "stage-booking-kizuna", "Code.gs"), encoding="utf-8").read()
+    return re.search(r'webAppUrl:\s*"([^"]+)"', src).group(1)
+
 def main():
     group, casts = casts_from_code()
     e = html.escape
@@ -61,7 +70,8 @@ def main():
     def day_card(d, w, times):
         m, dd = d.split("/")
         cls = " sat" if w == "土" else " sun" if w == "日" else ""
-        ts = "".join(f'<li><span class="t">{s}</span><span class="o">開場 {o}</span></li>' for o, s in times)
+        ts = "".join(f'<li data-show="{d}({w}) {s}"><span class="t">{s}</span><span class="o">開場 {o}</span>'
+                     f'<dl class="av" hidden></dl></li>' for o, s in times)
         return f'<li class="day{cls}"><div class="date"><span class="m">{m}.</span>{dd}<span class="w">{w}</span></div><ul>{ts}</ul></li>'
     show_rows = "".join(day_card(*x) for x in days)
     seat_rows = "".join(
@@ -69,9 +79,9 @@ def main():
         f'<span class="price"><small>¥</small>{p}</span><span class="note">{t}</span></li>'
         for i, (n, p, t) in enumerate(SEATS))
     cast_cards = "".join(
-        f'<li><a class="cast" href="/c/{i}" aria-label="{e(n)} の取り扱いで予約する">'
+        f'<li><a class="cast" href="/c/{i}" aria-label="{e(DISPLAY_NAME.get(n, n))} の取り扱いで予約する">'
         f'<span class="ph"><img src="/assets/cast/{i:02d}.webp" alt="" width="480" height="640" loading="lazy" decoding="async"></span>'
-        f'<span class="nm">{e(n)}</span>' + (f'<span class="af">{e(AFFIL[n])}</span>' if n in AFFIL else '') +
+        f'<span class="nm">{e(DISPLAY_NAME.get(n, n))}</span>' + (f'<span class="af">{e(AFFIL[n])}</span>' if n in AFFIL else '') +
         f'<span class="go"><span class="only-open">この出演者で予約 →</span><span class="only-pre">{OPEN_SHORT} 受付開始</span></span></a></li>'
         for i, n in display_casts(casts))
     online_goods = "".join(f'<li><span>{e(n)}</span><span class="price">¥{p}</span></li>' for n, p, pre in GOODS if pre)
@@ -80,7 +90,7 @@ def main():
     online_btn = (f'<a class="btn" href="{e(ONLINE_SHOP_URL)}" target="_blank" rel="noopener">オンラインストア（STORES）で予約する <span class="arr">→</span></a>' if ONLINE_SHOP_URL
                   else '<p class="tbd">お申し込み方法は近日公開予定です。</p>')
     preopen = datetime.now(timezone.utc) < datetime.fromisoformat(OPEN_AT)
-    page = TEMPLATE.format(html_class=' class="preopen"' if preopen else "", open_at=OPEN_AT,
+    page = TEMPLATE.format(api_url=web_app_url() + "?api=availability",html_class=' class="preopen"' if preopen else "", open_at=OPEN_AT,
                            open_label=OPEN_LABEL, open_short=OPEN_SHORT,show_rows=show_rows, seat_rows=seat_rows, cast_cards=cast_cards, online_goods=online_goods,
                            staff=staff, story=story, story_last=e(STORY_LAST), online_btn=online_btn,
                            show_count=SHOW_COUNT, site=SITE_URL)
@@ -200,6 +210,13 @@ section{{padding-block:56px 8px}}
 .day .t{{display:block;font-family:var(--num);font-weight:600;font-size:1.25rem;line-height:1.2;letter-spacing:.02em;font-variant-numeric:tabular-nums}}
 .day .o{{display:block;color:var(--mute);font-size:.74rem;font-variant-numeric:tabular-nums}}
 .cap{{text-align:center;color:var(--mute);font-size:.85rem;margin:14px 0 0}}
+/* 残席（GAS から読み込み） */
+.av{{margin:6px auto 2px;display:grid;grid-template-columns:auto auto;gap:1px 8px;justify-content:center;font-size:.72rem;line-height:1.5}}
+.av dt{{color:var(--mute);text-align:right}}
+.av dd{{margin:0;text-align:left;color:var(--ink);font-weight:500}}
+.av dd.few{{color:var(--gold-l);font-weight:700}}
+.av dd.full{{color:#e48a80}}
+.av dd.ok{{color:var(--mute)}}
 
 /* flyer */
 .flyers{{display:grid;grid-template-columns:1fr 1fr;gap:18px;max-width:820px;margin:0 auto}}
@@ -389,7 +406,7 @@ footer img{{width:96px;opacity:.9;margin-bottom:6px}}
 <section id="schedule">
   <div class="hd"><span class="en">Schedule</span><h2>公演スケジュール</h2></div>
   <ul class="days">{show_rows}</ul>
-  <p class="cap">開場は開演の30分前／各回60席</p>
+  <p class="cap">開場は開演の30分前<span class="av-note" hidden>／残席は <span id="av-updated"></span> 時点</span></p>
 </section>
 
 <section id="flyer">
@@ -485,6 +502,28 @@ footer img{{width:96px;opacity:.9;margin-bottom:6px}}
   <div>お問い合わせ：運営事務局 <a href="mailto:info.tenrou.event@gmail.com">info.tenrou.event@gmail.com</a></div>
   <div>主催：BSD　制作：萬屋天狼</div>
 </footer>
+<script>
+/* 公演×席種の残席を予約システム（GAS）から読み込んで日程に表示する。読み込めなければ何も表示しない */
+(function(){{
+  fetch("{api_url}").then(function(r){{ return r.json(); }}).then(function(d){{
+    if (!d || !d.shows) return;
+    d.shows.forEach(function(s){{
+      var li = document.querySelector('[data-show="' + s.show + '"]');
+      if (!li) return;
+      var dl = li.querySelector(".av");
+      dl.innerHTML = s.seats.map(function(x){{
+        var c = x.label === "満席" ? "full" : x.label === "余裕あり" ? "ok" : "few";
+        return "<dt>" + x.seat.replace("席", "") + "</dt><dd class='" + c + "'>" + x.label + "</dd>";
+      }}).join("");
+      dl.hidden = false;
+    }});
+    if (d.updated) {{
+      document.getElementById("av-updated").textContent = d.updated;
+      document.querySelector(".av-note").hidden = false;
+    }}
+  }}).catch(function(){{}});
+}})();
+</script>
 </body></html>
 """
 
