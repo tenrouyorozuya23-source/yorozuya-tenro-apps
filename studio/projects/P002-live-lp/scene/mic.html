@@ -18,35 +18,35 @@ const dark=new THREE.MeshPhysicalMaterial({color:0x1b1c1f,metalness:1,roughness:
 const add=(p,geo,mat,pos,rot)=>{const m=new THREE.Mesh(geo,mat);m.position.set(...pos);if(rot)m.rotation.set(...rot);m.castShadow=m.receiveShadow=true;p.add(m);return m};
 add(g,new THREE.CylinderGeometry(.26,.28,.03,128),dark,[0,.015,0]);
 add(g,new THREE.TorusGeometry(.265,.006,16,128),ch,[0,.03,0],[Math.PI/2,0,0]);
-add(g,new THREE.CylinderGeometry(.013,.013,1.42,48),ch,[0,.74,0]);
+add(g,new THREE.CylinderGeometry(.013,.013,1.42,48),C.brushedMetal(0x6a6b70,.32),[0,.74,0]);
 add(g,new THREE.CylinderGeometry(.02,.02,.06,48),dark,[0,1.47,0]);
 const head=new THREE.Group();head.position.set(0,1.5,0);head.rotation.x=.42;g.add(head);
 add(head,new THREE.BoxGeometry(.032,.05,.032),dark,[0,0,0]);
-add(head,new THREE.CylinderGeometry(.027,.019,.17,96),matte,[0,.1,0]);
-add(head,new THREE.CylinderGeometry(.0305,.0305,.012,96),ch,[0,.19,0]);
+add(head,new THREE.CylinderGeometry(.025,.017,.18,96),matte,[0,.105,0]);
+add(head,new THREE.CylinderGeometry(.0262,.0262,.012,96),C.brushedMetal(0x8a8b90,.45),[0,.198,0]);
 // グリル：細い緯線・経線を実ジオメトリで（テクスチャの模様崩れを避ける）
-const grill=new THREE.Group();grill.position.y=.226;head.add(grill);
+const grill=new THREE.Group();grill.position.y=.222;grill.scale.setScalar(.62);head.add(grill);
 const wire=new THREE.MeshPhysicalMaterial({color:0x7d7e83,metalness:1,roughness:.5});
-for(let i=1;i<40;i++){const a=i/40*Math.PI, r=.042*Math.sin(a);const m=new THREE.Mesh(new THREE.TorusGeometry(r,.00034,5,128),wire);m.rotation.x=Math.PI/2;m.position.y=.042*Math.cos(a);grill.add(m);}
-for(let i=0;i<56;i++){const m=new THREE.Mesh(new THREE.TorusGeometry(.042,.00034,5,128,Math.PI),wire);m.rotation.set(0,i/56*Math.PI*2,Math.PI/2);grill.add(m);}
+for(let i=1;i<34;i++){const a=i/34*Math.PI, r=.042*Math.sin(a);const m=new THREE.Mesh(new THREE.TorusGeometry(r,.00052,5,128),wire);m.rotation.x=Math.PI/2;m.position.y=.042*Math.cos(a);grill.add(m);}
+for(let i=0;i<48;i++){const m=new THREE.Mesh(new THREE.TorusGeometry(.042,.00052,5,128,Math.PI),wire);m.rotation.set(0,i/48*Math.PI*2,Math.PI/2);grill.add(m);}
 add(grill,new THREE.SphereGeometry(.0395,96,64),new THREE.MeshPhysicalMaterial({color:0x1a1a1d,metalness:.8,roughness:.62}),[0,0,0]);
 // ── 光：上手前のトップスポット（暖）＋背後の青いリム
 const KEY=[.2,6.4,.5];
-const key=C.spot(scene,{pos:KEY,target:[0,0,0],color:0xffd4a2,intensity:0,angle:.12,penumbra:.4});
+const key=C.spot(scene,{pos:KEY,target:[0,0,0],color:0xffd4a2,intensity:0,angle:.075,penumbra:.35});
 const rim=C.spot(scene,{pos:[-1.1,2.6,-2.8],target:[0,1.6,0],color:0x9fb6ff,intensity:0,angle:.2,penumbra:.9,shadow:false});
 const rim2=C.spot(scene,{pos:[1.3,2.2,-2.4],target:[0,1.6,0],color:0xffcf9a,intensity:0,angle:.2,penumbra:.9,shadow:false});
-const B=C.beam(scene,{from:KEY,to:[0,0,0],radius:.42,color:0xffd2a0,density:.14});
-const D=C.dust(scene,{center:[.1,3,.25],radius:.6,height:5.6,count:90,seed:21,size:.006});
+const B=C.beam(scene,{from:KEY,to:[0,0,0],radius:.3,color:0xffd2a0,density:.28});
+const D=C.dust(scene,{center:[.1,3,.25],radius:.6,height:5.6,count:28,seed:21,size:.004});
 const V=(x,y,z)=>new THREE.Vector3(x,y,z);
 window.__ready=Promise.resolve();
 window.renderAt=t=>{
   const u=clamp(t);
   // 0-.25 輪郭（リム）、.25-.45 スポットが入る、.45-1 回り込んでグリルへ
-  const r=ease.outCubic(prog(u,0,.22)); rim.intensity=140*r; rim2.intensity=18*ease.outCubic(prog(u,.08,.25));
-  const o=ease.inOutSine(prog(u,.42,.58));const k=ease.outCubic(prog(u,.26,.16)); key.intensity=1500*k*(1-.55*o); B.set(u*6,k*(1-.85*o)); D.update(u*6,.26*k);
-    const ang=lerp(.05,.85,o), dist=lerp(1.55,.7,ease.inOutCubic(prog(u,.4,.6))), hgt=lerp(1.3,1.78,o);
+  const r=ease.outCubic(prog(u,0,.12)); rim.intensity=70*r; rim2.intensity=18*ease.outCubic(prog(u,.08,.25));
+  const o=ease.inOutSine(prog(u,.46,.54));const k=ease.outCubic(prog(u,.3,.04)); key.intensity=1700*k*(1-.55*o); B.set(u*6,k*(1-.7*o)); D.update(u*6,.1*k);
+    const ang=lerp(.05,.85,o), dist=lerp(1.25,.5,ease.inOutCubic(prog(u,.44,.56))), hgt=lerp(1.3,1.78,o);
   camera.position.set(Math.sin(ang)*dist,hgt,Math.cos(ang)*dist);
-  const look=V(0,lerp(1.5,1.7,o),lerp(0,.09,o));look.addScaledVector(V(Math.cos(ang),0,-Math.sin(ang)),.026*o);camera.lookAt(look);
+  const look=V(0,lerp(1.6,1.69,o),lerp(0,.08,o));look.addScaledVector(V(Math.cos(ang),0,-Math.sin(ang)),.016*o);camera.lookAt(look);
   if(S.bokeh){S.bokeh.uniforms.focus.value=camera.position.distanceTo(V(0,1.71,.12));S.bokeh.uniforms.aperture.value=lerp(.0006,.004,o);}
   S.render();
 };
