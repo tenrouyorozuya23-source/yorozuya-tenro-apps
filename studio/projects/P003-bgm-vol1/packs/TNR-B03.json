@@ -1,0 +1,267 @@
+{
+ "id": "TNR-B03",
+ "title": "House Lights Down（Cinematic）",
+ "genre": "Cinematic",
+ "base": {
+  "bpm": 80,
+  "key": "D",
+  "seed": 33,
+  "brightness": 0.45,
+  "reverb": 0.5,
+  "reverb_sec": 3.4,
+  "drive": 0.15,
+  "sidechain": 0.3,
+  "progression": [
+   "Dm",
+   "Bb",
+   "Gm",
+   "A"
+  ],
+  "taiko_pattern": [
+   [
+    0,
+    1.0
+   ],
+   [
+    3,
+    0.5
+   ]
+  ],
+  "mix": {
+   "swell": 0.6,
+   "sub": 0.18,
+   "taiko": 0.6,
+   "bell": 0.3,
+   "impact": 0.6,
+   "riser": 0.35
+  }
+ },
+ "versions": {
+  "30s": {
+   "length": 30.0,
+   "bars": 10,
+   "tail_sec": 3.0,
+   "sections": [
+    {
+     "from": 0,
+     "to": 3,
+     "layers": [
+      "swell",
+      "sub"
+     ]
+    },
+    {
+     "from": 3,
+     "to": 7,
+     "layers": [
+      "swell",
+      "sub",
+      "taiko",
+      "bell"
+     ]
+    },
+    {
+     "from": 7,
+     "to": 9,
+     "layers": [
+      "swell",
+      "sub",
+      "taiko",
+      "bell"
+     ]
+    },
+    {
+     "from": 9,
+     "to": 10,
+     "layers": [
+      "swell"
+     ]
+    }
+   ],
+   "melody": [
+    [
+     3,
+     0,
+     "A5",
+     3
+    ],
+    [
+     4,
+     0,
+     "F5",
+     2
+    ],
+    [
+     4,
+     2,
+     "G5",
+     2
+    ],
+    [
+     5,
+     0,
+     "D5",
+     4
+    ],
+    [
+     7,
+     0,
+     "A5",
+     2
+    ],
+    [
+     7,
+     2,
+     "C6",
+     2
+    ],
+    [
+     8,
+     0,
+     "D6",
+     4
+    ]
+   ],
+   "cues": [
+    {
+     "bar": 7,
+     "beat": 0,
+     "type": "riser",
+     "len_beats": 4
+    },
+    {
+     "bar": 7,
+     "beat": 0,
+     "type": "impact"
+    },
+    {
+     "bar": 9,
+     "beat": 0,
+     "type": "impact"
+    }
+   ]
+  },
+  "loop": {
+   "loop": true,
+   "bars": 8,
+   "tail_sec": 3.4,
+   "sections": [
+    {
+     "from": 0,
+     "to": 8,
+     "layers": [
+      "swell",
+      "sub",
+      "taiko"
+     ]
+    }
+   ],
+   "melody": []
+  },
+  "15s": {
+   "length": 15.0,
+   "bars": 5,
+   "tail_sec": 3.0,
+   "sections": [
+    {
+     "from": 0,
+     "to": 2,
+     "layers": [
+      "swell",
+      "sub"
+     ]
+    },
+    {
+     "from": 2,
+     "to": 4,
+     "layers": [
+      "swell",
+      "sub",
+      "taiko",
+      "bell"
+     ]
+    },
+    {
+     "from": 4,
+     "to": 5,
+     "layers": [
+      "swell"
+     ]
+    }
+   ],
+   "melody": [
+    [
+     2,
+     0,
+     "A5",
+     2
+    ],
+    [
+     2,
+     2,
+     "C6",
+     2
+    ],
+    [
+     3,
+     0,
+     "D6",
+     4
+    ]
+   ],
+   "cues": [
+    {
+     "bar": 2,
+     "beat": 0,
+     "type": "riser",
+     "len_beats": 4
+    },
+    {
+     "bar": 2,
+     "beat": 0,
+     "type": "impact"
+    },
+    {
+     "bar": 4,
+     "beat": 0,
+     "type": "impact"
+    }
+   ]
+  },
+  "6s": {
+   "length": 6.0,
+   "bars": 2,
+   "tail_sec": 3.0,
+   "sections": [
+    {
+     "from": 0,
+     "to": 1,
+     "layers": [
+      "swell",
+      "sub"
+     ]
+    },
+    {
+     "from": 1,
+     "to": 2,
+     "layers": [
+      "swell"
+     ]
+    }
+   ],
+   "cues": [
+    {
+     "bar": 1,
+     "beat": 0,
+     "type": "riser",
+     "len_beats": 4
+    },
+    {
+     "bar": 1,
+     "beat": 0,
+     "type": "impact"
+    }
+   ]
+  }
+ }
+}

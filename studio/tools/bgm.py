@@ -14,10 +14,13 @@ song.json の主なキー（すべて任意。省略時は既定値）:
     sections: [{"from":0,"to":2,"layers":["pad","pluck"]}, ...]
         layers: kick snare clap hat openhat bass sub pad pluck arp bell lead
                 riser impact chime stab
+                epiano rim vinyl koto shaku taiko swell   （2026-11-05 追加: Lo-fi・和風・シネマ用）
     melody: [[bar, beat, "F#5", beats], ...]   (lead/bell が鳴らす)
     cues:   [{"bar":2,"beat":0,"type":"impact"}, {"bar":7,"type":"stab"}]
     mix:    {"kick":1.0, "pad":0.5, ...}       トラック別ゲイン
     reverb: 0-1, brightness: 0-1, drive: 0-1
+    lofi: 0-1（バスのローパスと揺れ）, loop: true（末尾の残響を頭に回して継ぎ目なしのループにする）
+    koto_pattern: [[beat, 和音の何番目, オクターブ], ...]  taiko_pattern: [[beat, 強さ], ...]
 """
 import json
 import sys
@@ -248,7 +251,96 @@ def lead_note(m, dur, bright=0.6):
     ph = 2 * np.pi * np.cumsum(f) / SR
     x = np.sin(ph) * 0.6 + np.sign(np.sin(ph)) * 0.12 + np.sin(2 * ph) * 0.15
     x = lp(x, 1800 + 4000 * bright)
-    return x * env_adsr(int(dur * SR), 0.02, 0.15, 0.75, 0.12)[:n] * 0.4
+    e = env_adsr(int(dur * SR), 0.02, 0.15, 0.75, 0.12)[:n]
+    return x * np.pad(e, (0, n - len(e))) * 0.4
+
+
+def epiano(ms, dur, bright=0.5):
+    """FM のエレクトリックピアノ（Rhodes 風）。和音をまとめて鳴らす"""
+    n = int((dur + 1.2) * SR)
+    t = np.arange(n) / SR
+    L = np.zeros(n); R = np.zeros(n)
+    for k, m in enumerate(ms):
+        f = midi_hz(m)
+        mod = np.sin(2 * np.pi * f * t) * (1.4 + bright) * np.exp(-t * 6)
+        x = np.sin(2 * np.pi * f * t + mod) * np.exp(-t * (1.6 + 0.02 * m))
+        x += np.sin(2 * np.pi * f * 2 * t) * 0.12 * np.exp(-t * 9)
+        trem = 1 + 0.18 * np.sin(2 * np.pi * 4.2 * t + k)
+        pan = (k / max(1, len(ms) - 1) - 0.5) * 0.6
+        L += x * trem * (1 - pan); R += x * trem * (1 + pan)
+    e = np.ones(n); r = int(0.25 * SR); k0 = int(dur * SR)
+    e[k0:k0 + r] = np.linspace(1, 0, min(r, n - k0)); e[k0 + r:] = 0
+    return np.stack([L * e, R * e], 1) / len(ms) * 0.55
+
+
+def rim():
+    n = int(0.12 * SR)
+    t = np.arange(n) / SR
+    x = np.sin(2 * np.pi * 1700 * t) * np.exp(-t * 90) + bp(np.random.randn(n), 2000, 7000) * np.exp(-t * 120) * 0.6
+    return x * 0.35
+
+
+def vinyl(n):
+    """レコードのノイズ（細かい針音＋薄いヒス）"""
+    x = hp(np.random.randn(n), 900) * 0.012
+    pops = np.zeros(n)
+    idx = np.random.randint(0, n, max(1, n // 9000))
+    pops[idx] = np.random.uniform(0.15, 0.5, len(idx)) * np.random.choice([-1, 1], len(idx))
+    pops = bp(pops, 1500, 9000)
+    return lp(x + pops, 7000)
+
+
+def koto_note(m, dur=1.6, bend=0.0):
+    """箏：Karplus-Strong の撥弦に、明るい爪の立ち上がりと押し手（音程の持ち上げ）"""
+    f = midi_hz(m)
+    n = int((dur + 1.2) * SR)
+    p = int(SR / f)
+    buf = np.random.uniform(-1, 1, p)
+    buf = buf - lp(buf, 300, 1)            # 胴鳴りを抜いて爪の硬さを出す
+    reps = n // p + 2
+    cur = buf; seq = [buf]
+    for _ in range(reps):
+        cur = 0.9985 * (0.62 * cur + 0.38 * np.roll(cur, -1)); seq.append(cur)
+    x = np.concatenate(seq)[:n]
+    t = np.arange(n) / SR
+    if bend:
+        # 押し手：0.25 秒後に bend 半音ぶん持ち上げる（時間伸縮で近似）
+        r = 2 ** (bend / 12 * np.clip((t - 0.25) / 0.18, 0, 1))
+        pos = np.cumsum(r); pos = pos[pos < n - 1]
+        x = np.interp(pos, np.arange(n), x); x = np.pad(x, (0, n - len(x)))
+    body = np.sin(2 * np.pi * f * t) * np.exp(-t * 5) * 0.15
+    return (x * np.exp(-t * 1.3) + body) * 0.6
+
+
+def shaku_note(m, dur, bright=0.5):
+    """尺八風：息の帯域ノイズ＋ゆっくり深くなるビブラートの正弦、立ち上がりに『むら息』"""
+    n = int((dur + 0.4) * SR)
+    t = np.arange(n) / SR
+    vib = 1 + 0.009 * np.sin(2 * np.pi * 5.0 * t) * np.clip((t - 0.35) / 0.6, 0, 1)
+    f = midi_hz(m) * vib * (1 - 0.03 * np.exp(-t * 14))   # 下から当てる
+    ph = 2 * np.pi * np.cumsum(f) / SR
+    tone = np.sin(ph) + 0.25 * np.sin(2 * ph) + 0.08 * np.sin(3 * ph)
+    breath = bp(np.random.randn(n), midi_hz(m) * 1.5, min(9000, midi_hz(m) * 9)) * (0.35 + 0.6 * np.exp(-t * 6))
+    e = env_adsr(int(dur * SR), 0.12, 0.2, 0.85, 0.35)[:n]; e = np.pad(e, (0, n - len(e)))
+    return lp(tone * 0.5 + breath * 0.22 * (0.5 + bright), 6000) * e * 0.5
+
+
+def taiko(strength=1.0):
+    n = int(1.1 * SR)
+    t = np.arange(n) / SR
+    f = 62 + 70 * np.exp(-t * 18)
+    body = np.sin(2 * np.pi * np.cumsum(f) / SR) * np.exp(-t * 4.5)
+    skin = bp(np.random.randn(n), 120, 1400) * np.exp(-t * 30) * 0.5
+    harm = np.sin(2 * np.pi * np.cumsum(f * 2.3) / SR) * np.exp(-t * 7) * 0.3   # 倍音で小さなスピーカーでも聞こえる
+    return np.tanh((body + skin + harm) * 1.3) * 0.75 * strength
+
+
+def swell(ms, dur, bright=0.5):
+    """弦の合奏風のゆっくり膨らむ和音（シネマ用。pad より暗く遅い）"""
+    st = pad_chord(ms, dur, bright * 0.6)
+    n = len(st); t = np.arange(n) / SR
+    e = np.clip(t / (dur * 0.6), 0, 1) ** 1.6
+    return st * e[:, None] * 1.3
 
 
 def riser(dur):
@@ -313,6 +405,16 @@ def sidechain(n, kick_times, depth=0.6, rel=0.18):
 
 
 # ---------------------------------------------------------------- composer
+def lofi_fx(x, lofi, wf):
+    """Lo-fi のバス処理：ローパスとテープの揺れ"""
+    n = len(x)
+    fc = 9000 - 6000 * lofi
+    x = np.stack([lp(x[:, 0], fc), lp(x[:, 1], fc)], 1)
+    wow = 1 + 0.0025 * lofi * np.sin(2 * np.pi * wf * np.arange(n) / SR)
+    pos = np.clip(np.cumsum(wow) - 1, 0, n - 1)
+    return np.stack([np.interp(pos, np.arange(n), x[:, 0]), np.interp(pos, np.arange(n), x[:, 1])], 1)
+
+
 def build(song):
     rng = np.random.default_rng(song.get("seed", 1))
     np.random.seed(song.get("seed", 1))
@@ -407,14 +509,38 @@ def build(song):
         if "stab" in L:
             for m in chord:
                 music.add(b * bar, pluck_note(m + 12, 0.3, 0.9), 0, mix["stab"] * 0.6)
+        if "epiano" in L:
+            for bt, ln in song.get("epiano_pattern", [[0, 1.5], [1.5, 1.0], [2.5, 1.5]]):
+                vo = [m + 12 if m < 57 else m for m in chord]
+                music.add_st(tpos(b, bt), epiano(vo, ln * beat, bright), mix.get("epiano", 0.5) * rng.uniform(0.85, 1.0))
+        if "rim" in L:
+            for bt in song.get("rim_pattern", [1, 3]):
+                drums.add(tpos(b, bt), rim(), 0.15, mix.get("rim", 0.45))
+        if "koto" in L:
+            tones = sorted(chord + [chord[0] + 12])
+            for bt, k, octv, *rest in song.get("koto_pattern", [[0, 0, 1], [1, 2, 1], [2, 1, 1], [3, 3, 1]]):
+                m = tones[int(k) % len(tones)] + 12 * octv
+                music.add(tpos(b, bt), koto_note(m, beat * 2, rest[0] if rest else 0), 0.25 if k % 2 else -0.25, mix.get("koto", 0.6))
+        if "taiko" in L:
+            for bt, g in song.get("taiko_pattern", [[0, 1.0], [2.5, 0.6]]):
+                tt = tpos(b, bt)
+                drums.add(tt, taiko(g), 0, mix.get("taiko", 0.8)); kick_times.append(tt)
+        if "swell" in L:
+            music.add_st(b * bar, swell(chord, bar, bright), mix.get("swell", 0.5))
     # melody
     for ev in song.get("melody", []):
-        b, bt, nm, d = ev
+        b, bt, nm, d = ev[:4]
         m = parse_note(nm) if isinstance(nm, str) else nm
         L = layers_at(int(b))
         tt = tpos(b, bt)
         if "bell" in L:
             music.add(tt, fm_bell(m, d * beat), 0.15, mix["bell"])
+        if "shaku" in L:
+            music.add(tt, shaku_note(m, d * beat, bright), -0.1, mix.get("shaku", 0.55))
+            continue
+        if "kotomel" in L:
+            music.add(tt, koto_note(m, d * beat, ev[4] if len(ev) > 4 else 0), 0.1, mix.get("kotomel", 0.6))
+            continue
         if "lead" in L or "bell" not in L:
             music.add(tt, lead_note(m, d * beat, bright), -0.1, mix["lead"])
     # cues
@@ -444,14 +570,30 @@ def build(song):
     mixbus = drums.buf + reverb(drums.buf * 0.25, rv * 0.5, ir) - drums.buf * 0.25 \
         + reverb(music.buf, rv, ir) + reverb(fx.buf, rv * 1.3, ir)
     # master: HP 30Hz, ゆるいサチュレーション, ノーマライズ
-    mixbus = np.stack([hp(mixbus[:, 0], 28), hp(mixbus[:, 1], 28)], 1)
+    if any("vinyl" in s["layers"] for s in sections):
+        vn = vinyl(N); mixbus = mixbus + np.stack([vn, vn * 0.9], 1) * mix.get("vinyl", 1.0)
+    if song.get("loop"):
+        L0 = int(round(bars * bar * SR))
+        body = mixbus[:L0].copy(); tl = mixbus[L0:]
+        body[:len(tl)] += tl[:L0]          # 末尾の残響を頭に回す → 継ぎ目なし
+        # フィルタの状態が頭とお尻で違うと継ぎ目に段差が出るので、2周つないでから後半を使う
+        two = np.concatenate([body, body])
+        if song.get("lofi"):            # Lo-fi も2周つないだ上でかける（揺れの周期はループ長の約数）
+            Ls = bars * bar
+            two = lofi_fx(two, song["lofi"], max(1, round(0.55 * Ls)) / Ls)
+        mixbus = np.stack([hp(two[:, 0], 28), hp(two[:, 1], 28)], 1)[L0:]
+    else:
+        if song.get("lofi"):
+            mixbus = lofi_fx(mixbus, song["lofi"], 0.55)
+        mixbus = np.stack([hp(mixbus[:, 0], 28), hp(mixbus[:, 1], 28)], 1)
     drive = song.get("drive", 0.3)
     mixbus = np.tanh(mixbus * (1 + drive * 2)) / np.tanh(1 + drive * 2)
     peak = np.max(np.abs(mixbus)) + 1e-9
     mixbus = mixbus / peak * 0.89
     # 末尾フェード
-    fo = int(min(tail, 1.2) * SR)
-    mixbus[-fo:] *= np.linspace(1, 0, fo)[:, None] ** 2
+    if not song.get("loop"):
+        fo = int(min(tail, 1.2) * SR)
+        mixbus[-fo:] *= np.linspace(1, 0, fo)[:, None] ** 2
     beats = [round(i * beat, 4) for i in range(int(bars * 4) + 1)]
     meta = {
         "bpm": bpm, "beat_sec": beat, "bar_sec": bar, "bars": bars,

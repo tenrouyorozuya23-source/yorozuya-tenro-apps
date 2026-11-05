@@ -1,0 +1,365 @@
+{
+ "id": "TNR-B05",
+ "title": "Afterglow（Future bass）",
+ "genre": "Future bass",
+ "base": {
+  "bpm": 160,
+  "key": "A",
+  "seed": 55,
+  "brightness": 0.7,
+  "reverb": 0.3,
+  "drive": 0.3,
+  "sidechain": 0.75,
+  "progression": [
+   "Fmaj7",
+   "G6",
+   "Em7",
+   "Am9"
+  ],
+  "kick_pattern": [
+   0,
+   2.5
+  ],
+  "hat16": false,
+  "mix": {
+   "kick": 1.0,
+   "snare": 0.6,
+   "pad": 0.6,
+   "sub": 0.5,
+   "lead": 0.35,
+   "stab": 0.45,
+   "hat": 0.35
+  }
+ },
+ "versions": {
+  "30s": {
+   "length": 30.0,
+   "bars": 20,
+   "tail_sec": 2.0,
+   "sections": [
+    {
+     "from": 0,
+     "to": 4,
+     "layers": [
+      "pad",
+      "pluck"
+     ]
+    },
+    {
+     "from": 4,
+     "to": 8,
+     "layers": [
+      "pad",
+      "pluck",
+      "hat",
+      "sub"
+     ]
+    },
+    {
+     "from": 8,
+     "to": 16,
+     "layers": [
+      "kick",
+      "snare",
+      "hat",
+      "sub",
+      "pad",
+      "stab"
+     ]
+    },
+    {
+     "from": 16,
+     "to": 19,
+     "layers": [
+      "pad",
+      "pluck",
+      "hat"
+     ]
+    },
+    {
+     "from": 19,
+     "to": 20,
+     "layers": [
+      "pad"
+     ]
+    }
+   ],
+   "melody": [
+    [
+     8,
+     0,
+     "E5",
+     1
+    ],
+    [
+     8,
+     1,
+     "G5",
+     1
+    ],
+    [
+     8,
+     2,
+     "A5",
+     2
+    ],
+    [
+     10,
+     0,
+     "C6",
+     2
+    ],
+    [
+     10,
+     2,
+     "B5",
+     2
+    ],
+    [
+     12,
+     0,
+     "A5",
+     1
+    ],
+    [
+     12,
+     1,
+     "G5",
+     1
+    ],
+    [
+     12,
+     2,
+     "E5",
+     2
+    ],
+    [
+     14,
+     0,
+     "A5",
+     4
+    ]
+   ],
+   "cues": [
+    {
+     "bar": 8,
+     "beat": 0,
+     "type": "riser",
+     "len_beats": 8
+    },
+    {
+     "bar": 8,
+     "beat": 0,
+     "type": "impact"
+    },
+    {
+     "bar": 19,
+     "beat": 0,
+     "type": "stab"
+    }
+   ]
+  },
+  "loop": {
+   "loop": true,
+   "bars": 8,
+   "tail_sec": 2.0,
+   "sections": [
+    {
+     "from": 0,
+     "to": 8,
+     "layers": [
+      "kick",
+      "snare",
+      "hat",
+      "sub",
+      "pad",
+      "stab"
+     ]
+    }
+   ],
+   "melody": [
+    [
+     0,
+     0,
+     "E5",
+     1
+    ],
+    [
+     0,
+     1,
+     "G5",
+     1
+    ],
+    [
+     0,
+     2,
+     "A5",
+     2
+    ],
+    [
+     2,
+     0,
+     "C6",
+     2
+    ],
+    [
+     2,
+     2,
+     "B5",
+     2
+    ],
+    [
+     4,
+     0,
+     "A5",
+     1
+    ],
+    [
+     4,
+     1,
+     "G5",
+     1
+    ],
+    [
+     4,
+     2,
+     "E5",
+     2
+    ],
+    [
+     6,
+     0,
+     "A5",
+     4
+    ]
+   ]
+  },
+  "15s": {
+   "length": 15.0,
+   "bars": 10,
+   "tail_sec": 2.0,
+   "sections": [
+    {
+     "from": 0,
+     "to": 2,
+     "layers": [
+      "pad",
+      "pluck"
+     ]
+    },
+    {
+     "from": 2,
+     "to": 9,
+     "layers": [
+      "kick",
+      "snare",
+      "hat",
+      "sub",
+      "pad",
+      "stab"
+     ]
+    },
+    {
+     "from": 9,
+     "to": 10,
+     "layers": [
+      "pad"
+     ]
+    }
+   ],
+   "melody": [
+    [
+     2,
+     0,
+     "E5",
+     1
+    ],
+    [
+     2,
+     1,
+     "G5",
+     1
+    ],
+    [
+     2,
+     2,
+     "A5",
+     2
+    ],
+    [
+     4,
+     0,
+     "C6",
+     2
+    ],
+    [
+     4,
+     2,
+     "B5",
+     2
+    ],
+    [
+     6,
+     0,
+     "A5",
+     4
+    ]
+   ],
+   "cues": [
+    {
+     "bar": 2,
+     "beat": 0,
+     "type": "riser",
+     "len_beats": 8
+    },
+    {
+     "bar": 2,
+     "beat": 0,
+     "type": "impact"
+    },
+    {
+     "bar": 9,
+     "beat": 0,
+     "type": "stab"
+    }
+   ]
+  },
+  "6s": {
+   "length": 6.0,
+   "bars": 4,
+   "tail_sec": 2.0,
+   "sections": [
+    {
+     "from": 0,
+     "to": 3,
+     "layers": [
+      "kick",
+      "snare",
+      "sub",
+      "pad",
+      "stab"
+     ]
+    },
+    {
+     "from": 3,
+     "to": 4,
+     "layers": [
+      "pad"
+     ]
+    }
+   ],
+   "cues": [
+    {
+     "bar": 0,
+     "beat": 0,
+     "type": "impact"
+    },
+    {
+     "bar": 3,
+     "beat": 0,
+     "type": "stab"
+    }
+   ]
+  }
+ }
+}
