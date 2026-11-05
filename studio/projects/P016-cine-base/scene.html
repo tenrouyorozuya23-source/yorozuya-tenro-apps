@@ -1,0 +1,49 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><title>P016 3D cine base test</title>
+<style>html,body{margin:0;width:1080px;height:1920px;overflow:hidden;background:#020203}canvas{display:block}</style>
+<script type="importmap">{"imports":{"three":"/node_modules/three/build/three.module.js","three/addons/":"/node_modules/three/examples/jsm/"}}</script>
+</head><body>
+<script type="module">
+import * as C from '/tools/cine/cine.js';
+const S=C.createStage({exposure:1.05});const {THREE,scene,camera}=S;
+C.stageFloor(scene);
+// ── マイクスタンド（実寸 m）
+const g=new THREE.Group();scene.add(g);
+const darkMetal=C.brushedMetal(0x1c1d20,.32), ch=C.chrome(.16), matte=new THREE.MeshPhysicalMaterial({color:0x101012,roughness:.55,metalness:.6});
+const add=(geo,mat,pos,rot)=>{const m=new THREE.Mesh(geo,mat);m.position.set(...pos);if(rot)m.rotation.set(...rot);m.castShadow=m.receiveShadow=true;g.add(m);return m};
+add(new THREE.CylinderGeometry(.26,.28,.035,96),darkMetal,[0,.0175,0]);
+add(new THREE.CylinderGeometry(.012,.012,1.42,32),ch,[0,.74,0]);
+add(new THREE.CylinderGeometry(.018,.018,.05,32),darkMetal,[0,1.47,0]);
+const head=new THREE.Group();head.position.set(0,1.5,0);head.rotation.x=-0.42;g.add(head);
+const hadd=(geo,mat,pos)=>{const m=new THREE.Mesh(geo,mat);m.position.set(...pos);m.castShadow=true;head.add(m);return m};
+hadd(new THREE.BoxGeometry(.03,.05,.03),darkMetal,[0,.0,0]);
+hadd(new THREE.CylinderGeometry(.027,.019,.17,64),matte,[0,.1,0]);
+hadd(new THREE.CylinderGeometry(.03,.03,.012,64),ch,[0,.19,0]);
+// グリル：金網（アルファの格子）＋内側の暗いスポンジ
+const cv=document.createElement('canvas');cv.width=1024;cv.height=512;const x=cv.getContext('2d');x.fillStyle='#000';x.fillRect(0,0,1024,512);x.strokeStyle='#fff';x.lineWidth=3;
+for(let i=0;i<=1024;i+=16){x.beginPath();x.moveTo(i,0);x.lineTo(i,512);x.stroke()}for(let j=0;j<=512;j+=16){x.beginPath();x.moveTo(0,j);x.lineTo(1024,j);x.stroke()}
+const grid=new THREE.CanvasTexture(cv);grid.wrapS=grid.wrapT=THREE.RepeatWrapping;grid.repeat.set(2,1);
+hadd(new THREE.SphereGeometry(.041,96,64),new THREE.MeshPhysicalMaterial({color:0xcfd0d4,metalness:1,roughness:.28,alphaMap:grid,alphaTest:.5,side:THREE.DoubleSide}),[0,.225,0]);
+hadd(new THREE.SphereGeometry(.036,64,48),new THREE.MeshStandardMaterial({color:0x0b0b0c,roughness:.95}),[0,.225,0]);
+// ── 照明：上手前からのスポット（温白）＋背後のリム（冷）
+const key=C.spot(scene,{pos:[.12,6.2,.35],target:[0,0,0],color:0xffdcb0,intensity:0,angle:.11,penumbra:.35});
+const rim=C.spot(scene,{pos:[-.9,3.2,-2.6],target:[0,1.6,0],color:0xbcd0ff,intensity:0,angle:.16,penumbra:.8,shadow:false});
+const B=C.beam(scene,{from:[.12,6.2,.35],to:[0,0,0],radius:.68,color:0xffd9a8,density:.2});
+const D=C.dust(scene,{center:[.07,2.9,.2],radius:.5,height:5.4,count:90,seed:16,size:.006});
+const KEY_ON=.6;
+window.__ready=Promise.resolve();
+window.renderAt=t=>{
+  // 暗転→ハロゲンが灯る（色温度が上がりながら立ち上がる）
+  const u=C.prog(t,KEY_ON,.35), warm=C.ease.outCubic(u);
+  key.intensity=1400*warm*(1+.03*Math.sin(t*9)*(1-u)); key.color.setHSL(.085,.9-.25*warm,.55+.12*warm);
+  scene.environmentIntensity=.06*warm;   // 暗転中は映り込みも消す
+  rim.intensity=45*C.ease.outCubic(C.prog(t,KEY_ON+.25,.8));
+  B.set(t,warm);D.update(t,.28*warm);
+  // カメラ：ゆっくりドリーイン＋わずかな回り込み、焦点はグリル
+  const d=C.ease.inOutSine(C.prog(t,0,6));
+  const dist=C.lerp(5.6,1.75,d), ang=C.lerp(.38,.22,d), hgt=C.lerp(1.05,1.6,d);
+  camera.position.set(Math.sin(ang)*dist,hgt,Math.cos(ang)*dist);
+  const look=new THREE.Vector3(0,C.lerp(1.2,1.66,d),0);camera.lookAt(look);
+  if(S.bokeh){const fp=new THREE.Vector3(0,1.69,.05);S.bokeh.uniforms.focus.value=camera.position.distanceTo(fp);S.bokeh.uniforms.aperture.value=C.lerp(.0012,.006,d);}
+  S.render();
+};
+</script></body></html>

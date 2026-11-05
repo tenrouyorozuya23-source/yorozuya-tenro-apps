@@ -64,7 +64,26 @@ const SHUTTER = +opt('shutter', 180) / 360;
 const CRF = opt('crf', '17'), PRESET = opt('preset', 'slow');
 const PNG = flag('png');
 const data = opt('data') ? JSON.parse(readFileSync(opt('data'), 'utf8')) : null;
-const url = pathToFileURL(resolve(page_)).href;
+// ES モジュール（three.js など）は file:// から読めないため、studio/ をローカル HTTP で配信して開く
+import { createServer } from 'node:http';
+import { relative, extname, sep } from 'node:path';
+const ROOT = resolve(dirname(new URL(import.meta.url).pathname), '..');
+const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.mjs': 'text/javascript', '.json': 'application/json',
+  '.css': 'text/css', '.png': 'image/png', '.jpg': 'image/jpeg', '.webp': 'image/webp', '.svg': 'image/svg+xml', '.hdr': 'application/octet-stream',
+  '.glb': 'model/gltf-binary', '.gltf': 'model/gltf+json', '.wav': 'audio/wav', '.mp4': 'video/mp4', '.woff2': 'font/woff2', '.ktx2': 'image/ktx2' };
+let url = pathToFileURL(resolve(page_)).href;
+const relPage = relative(ROOT, resolve(page_));
+if (!relPage.startsWith('..')) {
+  const server = createServer((req, res) => {
+    const f = resolve(ROOT, '.' + decodeURIComponent(req.url.split('?')[0]));
+    if (!f.startsWith(ROOT)) { res.writeHead(403); return res.end(); }
+    try { const b = readFileSync(f); res.writeHead(200, { 'Content-Type': MIME[extname(f)] || 'application/octet-stream' }); res.end(b); }
+    catch { res.writeHead(404); res.end(); }
+  });
+  await new Promise(r => server.listen(0, '127.0.0.1', r));
+  server.unref();
+  url = `http://127.0.0.1:${server.address().port}/${relPage.split(sep).join('/')}`;
+}
 
 const LAUNCH_ARGS = ['--font-render-hinting=none', '--disable-lcd-text', '--force-color-profile=srgb',
   '--disable-background-timer-throttling', '--disable-renderer-backgrounding', '--disable-backgrounding-occluded-windows',

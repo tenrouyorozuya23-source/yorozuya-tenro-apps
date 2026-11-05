@@ -2,7 +2,7 @@
 """映像と音声を合体し、配信規格に合わせてマスタリングし、品質チェックを出す。
 
 usage:
-    python3 master.py video.mp4 bgm.wav out.mp4 [--lufs -14] [--dur 15] [--fade 0.6]
+    python3 master.py video.mp4 bgm.wav out.mp4 [--lufs -14] [--dur 15] [--fade 0.6] [--grain 5]   (grain: 3〜6 が目安)
     python3 master.py --qc out.mp4            # QC だけ
 
 出力:
@@ -29,16 +29,26 @@ def loudnorm_measure(wav, lufs):
     return json.loads(m.group(0))
 
 
-def master(video, wav, out, lufs=-14.0, dur=None, fade=0.6):
+def master(video, wav, out, lufs=-14.0, dur=None, fade=0.6, grain=0):
     meas = loudnorm_measure(wav, lufs)
     ln = (f"loudnorm=I={lufs}:TP=-1.0:LRA=11:measured_I={meas['input_i']}:"
           f"measured_TP={meas['input_tp']}:measured_LRA={meas['input_lra']}:"
           f"measured_thresh={meas['input_thresh']}:offset={meas['target_offset']}:linear=true")
-    af = ln
+    try:
+        silent = float(meas["input_i"]) < -70
+    except ValueError:
+        silent = True
+    af = "anull" if silent else ln   # 無音（テスト用）では loudnorm が計算できないので素通し
     if dur:
         af += f",afade=t=out:st={max(dur - fade, 0)}:d={fade}"
     cmd = ["ffmpeg", "-y", "-hide_banner", "-loglevel", "error", "-i", video, "-i", wav,
-           "-map", "0:v", "-map", "1:a", "-c:v", "copy", "-af", af, "-ar", "48000",
+           "-map", "0:v", "-map", "1:a"]
+    if grain:  # フィルムグレイン（時間方向に変化する微細なノイズ）を後付けして再エンコード
+        cmd += ["-vf", f"noise=c0s={grain}:c0f=t+u,format=yuv420p", "-c:v", "libx264", "-preset", "slow", "-crf", "17",
+                "-colorspace", "bt709", "-color_primaries", "bt709", "-color_trc", "bt709"]
+    else:
+        cmd += ["-c:v", "copy"]
+    cmd += ["-af", af, "-ar", "48000",
            "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart"]
     if dur:
         cmd += ["-t", str(dur)]
@@ -106,4 +116,4 @@ if __name__ == "__main__":
         sys.exit(0)
     def opt(k, d):
         return type(d)(a[a.index("--" + k) + 1]) if "--" + k in a else d
-    master(a[0], a[1], a[2], lufs=opt("lufs", -14.0), dur=opt("dur", 0.0) or None, fade=opt("fade", 0.6))
+    master(a[0], a[1], a[2], lufs=opt("lufs", -14.0), dur=opt("dur", 0.0) or None, fade=opt("fade", 0.6), grain=opt("grain", 0))
