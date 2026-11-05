@@ -1,0 +1,53 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><title>P002 mic</title>
+<style>html,body{margin:0;overflow:hidden;background:#000}canvas{display:block}</style>
+<script type="importmap">{"imports":{"three":"/node_modules/three/build/three.module.js","three/addons/":"/node_modules/three/examples/jsm/"}}</script>
+</head><body>
+<script type="module">
+// 1 本のマイクを「製品」として開示する。t∈[0,1]（render.mjs の dur=1 で使う。fps でコマ数を決める）
+import * as C from '/tools/cine/cine.js';
+const {clamp,lerp,prog,ease}=C;
+const W=innerWidth,H=innerHeight;
+const S=C.createStage({width:W,height:H,exposure:1.0,fov:28,envIntensity:0});
+const {THREE,scene,camera}=S;
+if(S.bloom){S.bloom.threshold=.97;S.bloom.strength=.22;S.bloom.radius=.3;}
+scene.fog=new THREE.FogExp2(0x000000,.06);scene.background=new THREE.Color(0);
+C.stageFloor(scene,{material:new THREE.MeshPhysicalMaterial({color:0x0e0e10,roughness:.38,clearcoat:.6,clearcoatRoughness:.2})});
+// ── マイクとスタンド（実寸 m）
+const g=new THREE.Group();scene.add(g);
+const dark=new THREE.MeshPhysicalMaterial({color:0x1b1c1f,metalness:1,roughness:.34}), ch=C.chrome(.14), matte=new THREE.MeshPhysicalMaterial({color:0x0f0f11,roughness:.5,metalness:.55,clearcoat:.4});
+const add=(p,geo,mat,pos,rot)=>{const m=new THREE.Mesh(geo,mat);m.position.set(...pos);if(rot)m.rotation.set(...rot);m.castShadow=m.receiveShadow=true;p.add(m);return m};
+add(g,new THREE.CylinderGeometry(.26,.28,.03,128),dark,[0,.015,0]);
+add(g,new THREE.TorusGeometry(.265,.006,16,128),ch,[0,.03,0],[Math.PI/2,0,0]);
+add(g,new THREE.CylinderGeometry(.013,.013,1.42,48),ch,[0,.74,0]);
+add(g,new THREE.CylinderGeometry(.02,.02,.06,48),dark,[0,1.47,0]);
+const head=new THREE.Group();head.position.set(0,1.5,0);head.rotation.x=.42;g.add(head);
+add(head,new THREE.BoxGeometry(.032,.05,.032),dark,[0,0,0]);
+add(head,new THREE.CylinderGeometry(.027,.019,.17,96),matte,[0,.1,0]);
+add(head,new THREE.CylinderGeometry(.0305,.0305,.012,96),ch,[0,.19,0]);
+// グリル：細い緯線・経線を実ジオメトリで（テクスチャの模様崩れを避ける）
+const grill=new THREE.Group();grill.position.y=.226;head.add(grill);
+const wire=new THREE.MeshPhysicalMaterial({color:0x7d7e83,metalness:1,roughness:.5});
+for(let i=1;i<40;i++){const a=i/40*Math.PI, r=.042*Math.sin(a);const m=new THREE.Mesh(new THREE.TorusGeometry(r,.00034,5,128),wire);m.rotation.x=Math.PI/2;m.position.y=.042*Math.cos(a);grill.add(m);}
+for(let i=0;i<56;i++){const m=new THREE.Mesh(new THREE.TorusGeometry(.042,.00034,5,128,Math.PI),wire);m.rotation.set(0,i/56*Math.PI*2,Math.PI/2);grill.add(m);}
+add(grill,new THREE.SphereGeometry(.0395,96,64),new THREE.MeshPhysicalMaterial({color:0x1a1a1d,metalness:.8,roughness:.62}),[0,0,0]);
+// ── 光：上手前のトップスポット（暖）＋背後の青いリム
+const KEY=[.2,6.4,.5];
+const key=C.spot(scene,{pos:KEY,target:[0,0,0],color:0xffd4a2,intensity:0,angle:.12,penumbra:.4});
+const rim=C.spot(scene,{pos:[-1.1,2.6,-2.8],target:[0,1.6,0],color:0x9fb6ff,intensity:0,angle:.2,penumbra:.9,shadow:false});
+const rim2=C.spot(scene,{pos:[1.3,2.2,-2.4],target:[0,1.6,0],color:0xffcf9a,intensity:0,angle:.2,penumbra:.9,shadow:false});
+const B=C.beam(scene,{from:KEY,to:[0,0,0],radius:.42,color:0xffd2a0,density:.14});
+const D=C.dust(scene,{center:[.1,3,.25],radius:.6,height:5.6,count:90,seed:21,size:.006});
+const V=(x,y,z)=>new THREE.Vector3(x,y,z);
+window.__ready=Promise.resolve();
+window.renderAt=t=>{
+  const u=clamp(t);
+  // 0-.25 輪郭（リム）、.25-.45 スポットが入る、.45-1 回り込んでグリルへ
+  const r=ease.outCubic(prog(u,0,.22)); rim.intensity=140*r; rim2.intensity=18*ease.outCubic(prog(u,.08,.25));
+  const o=ease.inOutSine(prog(u,.42,.58));const k=ease.outCubic(prog(u,.26,.16)); key.intensity=1500*k*(1-.55*o); B.set(u*6,k*(1-.85*o)); D.update(u*6,.26*k);
+    const ang=lerp(.05,.85,o), dist=lerp(1.55,.7,ease.inOutCubic(prog(u,.4,.6))), hgt=lerp(1.3,1.78,o);
+  camera.position.set(Math.sin(ang)*dist,hgt,Math.cos(ang)*dist);
+  const look=V(0,lerp(1.5,1.7,o),lerp(0,.09,o));look.addScaledVector(V(Math.cos(ang),0,-Math.sin(ang)),.026*o);camera.lookAt(look);
+  if(S.bokeh){S.bokeh.uniforms.focus.value=camera.position.distanceTo(V(0,1.71,.12));S.bokeh.uniforms.aperture.value=lerp(.0006,.004,o);}
+  S.render();
+};
+</script></body></html>
