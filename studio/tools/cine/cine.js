@@ -103,7 +103,7 @@ export function beam(scene, { from = [0, 6, 1], to = [0, 0, 0], radius = 1.35, c
         vec3 q = vec3(vPos.x*5.5, vPos.y*0.9 - time*0.05, vPos.z*5.5);
         float n = 0.5*noise(q) + 0.25*noise(q*2.03 + 7.1) + 0.15*noise(q*4.01 - vec3(0.,time*0.08,0.)) + 0.1*noise(q*8.1 + 3.3);
         n = 0.35 + 0.65*n + 0.35*noise(vPos*1.3 + vec3(0., time*0.12, time*0.05));
-        float a = density * strength * edge * fall * (0.55 + 0.75*n);
+        float a = density * strength * edge * fall * (0.15 + 1.35*n*n);
         gl_FragColor = vec4(color * a, a);
       }`,
   });
