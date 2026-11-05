@@ -31,8 +31,10 @@ var CONFIG = {
 
   // 全7公演・各60席（dt は開演時刻。フォームの選択肢・受付シート名に使われる）
   shows: [
-    { dt: "12/4(金) 18:30", cap: 60 },
-    { dt: "12/5(土) 13:00", cap: 60 },
+    // seatCaps＝この公演だけの席種の上限（CONFIG.seatTypes の cap より優先）
+    //   12/4 18:30：S席は既存1席で満席扱い ／ 12/5 13:00：S席は既存2席＋残り2席（2026/11/05 指示）
+    { dt: "12/4(金) 18:30", cap: 60, seatCaps: { "S席": 1 } },
+    { dt: "12/5(土) 13:00", cap: 60, seatCaps: { "S席": 4 } },
     { dt: "12/5(土) 18:30", cap: 60 },
     { dt: "12/6(日) 13:00", cap: 60 },
     { dt: "12/6(日) 18:30", cap: 60 },
@@ -1499,8 +1501,12 @@ function showCapacity(showDt) {
   return 0;
 }
 
-// 席種ごとの販売上限（CONFIG.seatTypes の cap。未設定なら上限なし）
-function seatCap(seatType) {
+// 席種ごとの販売上限（公演の seatCaps → CONFIG.seatTypes の cap の順。未設定なら上限なし）
+function seatCap(seatType, showDt) {
+  for (var j = 0; showDt && j < CONFIG.shows.length; j++) {
+    var sc = CONFIG.shows[j].seatCaps;
+    if (sc && sameShow(CONFIG.shows[j].dt, showDt) && sc[String(seatType)] !== undefined) return sc[String(seatType)];
+  }
   for (var i = 0; i < CONFIG.seatTypes.length; i++) {
     if (CONFIG.seatTypes[i].name === String(seatType || "")) return CONFIG.seatTypes[i].cap || Infinity;
   }
@@ -1522,7 +1528,7 @@ function remainingSeatsFor(sheet, showDt, excludeRow, seatType) {
     if (seatType && String(data[i][cSeat]) === String(seatType)) usedSeat += n;
   }
   var left = showCapacity(showDt) - used;
-  return seatType ? Math.min(left, seatCap(seatType) - usedSeat) : left;
+  return seatType ? Math.min(left, seatCap(seatType, showDt) - usedSeat) : left;
 }
 
 // キャンセル待ちを申込順に繰り上げる（空きに収まる予約だけ本予約にしてメールを送る）
@@ -1559,7 +1565,7 @@ function promoteWaitlist(showDt) {
       waits.forEach(function(i){
         var n = toSeatCount(data[i][c.count]), seat = String(data[i][c.seat]);
         // 公演全体と席種の上限の両方に収まるときだけ繰り上げる
-        if (n > left || (usedBySeat[seat] || 0) + n > seatCap(seat)) return;
+        if (n > left || (usedBySeat[seat] || 0) + n > seatCap(seat, dt)) return;
         left -= n;
         usedBySeat[seat] = (usedBySeat[seat] || 0) + n;
         sheet.getRange(i + 1, c.status + 1).setValue(STATUS_CONFIRMED);
