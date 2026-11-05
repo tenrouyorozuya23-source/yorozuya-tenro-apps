@@ -41,20 +41,21 @@
 - 予約一覧でキャンセルを確定すると、その公演のキャンセル待ちを申込順に自動で繰り上げる（収まる枚数のものだけ）
 - 導入時に `update_bookingFlow()` を1回実行（売上管理・公演マスタの集計式の更新と、予約受付開始スケジュールの設定）
 
-## 自動デプロイ（GitHub Actions）
+## 自動反映・自動デプロイ（GAS が自分で GitHub から更新）
 
-`main` に `stage-booking-kizuna/` の Code.gs・HTML が入ると、`.github/workflows/deploy-kizuna-gas.yml` が次を自動で行う（Actions タブの「Run workflow」から手動でも可）。
+GitHub の `main` の `stage-booking-kizuna/Code.gs`・`index.html`・`checkin.html`・`register.html` が変わると、5分以内に次が自動で行われる（`autoDeployTick` トリガー）。操作パネル「GitHubから今すぐ反映」でも実行できる。
 
-1. Apps Script の今のファイルを取得（`clasp pull`。appsscript.json などはそのまま）
-2. リポジトリの Code.gs（Apps Script 上の「コード」）・index / checkin / register.html で上書きして反映（`clasp push`）
-3. Webアプリを新バージョンでデプロイ（同じデプロイIDを差し替えるので /exec の URL は変わらない）
-4. Webアプリの `?api=migrate` を呼び、Code.gs の `MIGRATIONS` のうち未実行のものを1回ずつ実行（実行済みはスクリプト プロパティ `MIGRATIONS_DONE` に記録）
+1. GitHub（raw）から上記ファイルを取得（`var CONFIG` と `selfDeployFromGitHub` を含まない Code.gs なら中止）
+2. Apps Script API でこのプロジェクトのファイルを書き換え（appsscript.json などほかのファイルはそのまま）
+3. 版を作り、Webアプリのデプロイ（`CONFIG.webAppUrl` の ID）を新しい版に差し替え（URL は変わらない）
+4. 新しいコードの `?api=migrate` を呼び、`MIGRATIONS` のうち未実行のものを1回ずつ実行（実行済みはスクリプト プロパティ `MIGRATIONS_DONE`）
 
 初回だけの設定：
 
-1. https://script.google.com/home/usersettings で「Google Apps Script API」をオンにする（スクリプトのオーナーのアカウントで）
-2. パソコンのターミナルで `npx @google/clasp@2.4.2 login` を実行し、オーナーのアカウントで許可する。できた `~/.clasprc.json` の中身を、GitHub のリポジトリ → Settings → Secrets and variables → Actions → **Secrets** に `CLASPRC_JSON` として登録する（中身はチャットなどに貼らない）
-3. Apps Script のエディタ → プロジェクトの設定 → スクリプトID を、同じ画面の **Variables** に `KIZUNA_SCRIPT_ID` として登録する
+1. https://script.google.com/home/usersettings で「Google Apps Script API」をオン（オーナーのアカウント）
+2. `appsscript.json` に `oauthScopes` を入れる（spreadsheets・forms・drive・mail.google.com・script.scriptapp・script.external_request・userinfo.email・**script.projects**・**script.deployments**）
+3. この機能を含む Code.gs を `main` に入れた後、Apps Script に貼り付けて `setup_selfDeploy()` を1回実行（権限の許可を求められたら許可）
+   - 「Apps Script API has not been used in project …」と出たら、Apps Script の「プロジェクトの設定」で標準の Google Cloud プロジェクトに切り替え、そのプロジェクトで Apps Script API を有効にする
 
 新しく「1回だけ実行」する処理を作ったら、関数を書いて `MIGRATIONS` に id とともに追加する（id は変えない）。
 

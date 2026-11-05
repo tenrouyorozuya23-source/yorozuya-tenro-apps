@@ -1352,6 +1352,9 @@ function setTriggers(form) {
   // フォーム送信トリガー
   ScriptApp.newTrigger("onFormSubmit").forForm(form).onFormSubmit().create();
 
+  // 5分ごと：GitHub の main を確認して自動反映
+  ScriptApp.newTrigger("autoDeployTick").timeBased().everyMinutes(5).create();
+
   // 1時間ごと：予約フォームの残席表示を更新
   ScriptApp.newTrigger("updateFormAvailability").timeBased().everyHours(1).create();
 
@@ -1706,8 +1709,112 @@ function setup_availability() {
 }
 
 // ============================================================
-// 更新処理（自動デプロイ用）
-//   GitHub の main に入ると Actions が Apps Script に反映・デプロイし、Webアプリの ?api=migrate を呼ぶ。
+// GitHub からの自動反映・自動デプロイ（このスクリプトが自分自身を更新する）
+//   5分ごとに GitHub の main の Code.gs・HTML を確認し、変わっていれば
+//   ① Apps Script API でこのプロジェクトのファイルを書き換え ② 版を作り ③ Webアプリのデプロイを新しい版に差し替え（URLは同じ）
+//   ④ 新しいコードで ?api=migrate を呼んで、未実行の更新処理（MIGRATIONS）を実行する
+//   初回：appsscript.json に oauthScopes（script.projects・script.deployments ほか）を入れ、setup_selfDeploy() を1回実行
+// ============================================================
+var SELF_DEPLOY = {
+  repo:   "tenrouyorozuya23-source/yorozuya-tenro-apps",
+  branch: "main",
+  dir:    "stage-booking-kizuna",
+  html:   ["index", "checkin", "register"]
+};
+
+function webAppDeploymentId() {
+  return CONFIG.webAppUrl.match(/\/s\/([^\/]+)\/exec/)[1];
+}
+
+function scriptApi(method, path, body) {
+  var res = UrlFetchApp.fetch("https://script.googleapis.com/v1/projects/" + ScriptApp.getScriptId() + path, {
+    method: method,
+    contentType: "application/json",
+    headers: { Authorization: "Bearer " + ScriptApp.getOAuthToken() },
+    payload: body ? JSON.stringify(body) : undefined,
+    muteHttpExceptions: true
+  });
+  var code = res.getResponseCode(), text = res.getContentText();
+  if (code >= 300) throw new Error("Apps Script API " + method.toUpperCase() + " " + path + " → " + code + ": " + text.slice(0, 500));
+  return text ? JSON.parse(text) : {};
+}
+
+// GitHub（公開リポジトリ）から Code.gs と HTML を取る
+function fetchSourcesFromGitHub() {
+  var base = "https://raw.githubusercontent.com/" + SELF_DEPLOY.repo + "/" + SELF_DEPLOY.branch + "/" + SELF_DEPLOY.dir + "/";
+  var get = function(name) {
+    var res = UrlFetchApp.fetch(base + encodeURIComponent(name) + "?t=" + Date.now(), { muteHttpExceptions: true });
+    if (res.getResponseCode() !== 200) throw new Error("GitHub から " + name + " を取得できません（" + res.getResponseCode() + "）");
+    return res.getContentText("UTF-8");
+  };
+  var out = { code: get("Code.gs"), html: {} };
+  SELF_DEPLOY.html.forEach(function(n){ out.html[n] = get(n + ".html"); });
+  // 壊れたファイルや自動反映の仕組みが無いコードで上書きしないための確認
+  if (out.code.indexOf("var CONFIG = {") === -1 || out.code.indexOf("function selfDeployFromGitHub") === -1) {
+    throw new Error("GitHub の Code.gs が想定と違うため反映を止めました");
+  }
+  return out;
+}
+
+// トリガー・操作パネルから呼ぶ。force=true なら変更が無くても反映する
+function selfDeployFromGitHub(force) {
+  var lock = LockService.getScriptLock();
+  if (!lock.tryLock(10000)) return "別の更新が実行中です";
+  try {
+    var props = PropertiesService.getScriptProperties();
+    var src = fetchSourcesFromGitHub();
+    var hash = Utilities.base64Encode(Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, JSON.stringify(src), Utilities.Charset.UTF_8));
+    if (force !== true && hash === props.getProperty("SELF_DEPLOY_HASH")) return "変更はありません";
+
+    // ① ファイルを書き換え（appsscript.json など、ほかのファイルはそのまま）
+    var files = scriptApi("get", "/content").files;
+    var codeFile = files.filter(function(f){ return f.type === "SERVER_JS" && f.source.indexOf("var CONFIG = {") !== -1; })[0];
+    if (!codeFile) throw new Error("CONFIG を定義しているファイルが見つかりません");
+    codeFile.source = src.code;
+    SELF_DEPLOY.html.forEach(function(n){
+      var f = files.filter(function(x){ return x.type === "HTML" && x.name === n; })[0];
+      if (f) f.source = src.html[n];
+      else files.push({ name: n, type: "HTML", source: src.html[n] });
+    });
+    scriptApi("put", "/content", { files: files });
+
+    // ②③ 版を作って Webアプリのデプロイを差し替え
+    var stamp = Utilities.formatDate(new Date(), "Asia/Tokyo", "yyyy/MM/dd HH:mm");
+    var version = scriptApi("post", "/versions", { description: "GitHub自動反映 " + stamp });
+    scriptApi("put", "/deployments/" + webAppDeploymentId(), { deploymentConfig: {
+      scriptId: ScriptApp.getScriptId(), versionNumber: version.versionNumber,
+      manifestFileName: "appsscript", description: "GitHub自動反映 " + stamp
+    }});
+    props.setProperty("SELF_DEPLOY_HASH", hash);
+
+    // ④ 新しいコードで未実行の更新処理を実行
+    var mig = UrlFetchApp.fetch(CONFIG.webAppUrl + "?api=migrate", { muteHttpExceptions: true }).getContentText();
+    var msg = "版 " + version.versionNumber + " を反映・デプロイしました／更新処理: " + mig.slice(0, 300);
+    Logger.log("✅ " + msg);
+    return msg;
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+// 5分ごとのトリガーから呼ばれる（エラーはログだけ残す）
+function autoDeployTick() {
+  try { Logger.log(selfDeployFromGitHub(false)); } catch (err) { Logger.log("自動反映エラー: " + err.message); }
+}
+
+// 初回だけ実行：Apps Script API が使えるか確認し、5分ごとの自動反映を始める
+function setup_selfDeploy() {
+  scriptApi("get", "");  // ここで失敗する場合は README「自動反映」の確認項目を見る
+  ScriptApp.getProjectTriggers().forEach(function(t){
+    if (t.getHandlerFunction() === "autoDeployTick") ScriptApp.deleteTrigger(t);
+  });
+  ScriptApp.newTrigger("autoDeployTick").timeBased().everyMinutes(5).create();
+  Logger.log("✅ Apps Script API に接続できました。5分ごとに GitHub の main を確認して自動で反映します");
+  Logger.log(selfDeployFromGitHub(true));
+}
+
+// ============================================================
+// 更新処理（自動反映のあとに ?api=migrate で実行される）
 //   ここに並べた処理のうち、まだ実行していないものを上から1回ずつ実行する（実行済みはスクリプト プロパティに記録）。
 //   新しい「1回だけ実行」の処理を作ったら、関数を書いてここに id を足す（id は変えない）。
 // ============================================================
@@ -3375,6 +3482,8 @@ var CONTROL_OPS = [
     run: function(){ return updateRemainingSeats(); } },
   { func: "promoteWaitlist",           name: "キャンセル待ちを繰り上げ",   desc: "空席があれば、キャンセル待ち（仮予約）を申込順に本予約へ繰り上げ、ご予約確定メールを送ります（キャンセル確定時は自動で実行）",
     run: function(){ return promoteWaitlist(); } },
+  { func: "selfDeployFromGitHub",      name: "GitHubから今すぐ反映",       desc: "GitHub の main の Code.gs・HTML をこのスクリプトに反映し、Webアプリを新しい版でデプロイします（通常は5分ごとに自動）",
+    run: function(){ return selfDeployFromGitHub(true); } },
   { func: "updateFormAvailability",    name: "フォームの残席表示を更新",   desc: "予約フォームの「ご希望の公演日時」に表示している残席を今すぐ最新にします（通常は予約・キャンセルのたびと1時間ごとに自動更新）",
     run: function(){ updateFormAvailability(); return "残席表示を更新しました"; } },
   { func: "openReservations",          name: "予約受付を今すぐ開始",       desc: "予約フォームを開きます（通常は " + CONFIG.reservationOpenLabel + " に自動で開きます）",
