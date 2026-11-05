@@ -4,20 +4,20 @@
 #ov{position:absolute;inset:0;color:#efe9df;pointer-events:none;font-family:"Noto Sans JP"}
 #troupe{position:absolute;left:0;right:0;top:300px;text-align:center;font:300 34px/1 "Noto Sans JP";letter-spacing:.3em;text-indent:.3em;opacity:0}
 #role{position:absolute;left:0;right:0;top:400px;text-align:center;font:300 44px/1.3 "Noto Sans JP";letter-spacing:.06em;opacity:0}
-#note{position:absolute;left:0;right:0;top:1800px;text-align:center;font:400 28px/1.4 "Noto Sans JP";color:#9d958a;letter-spacing:.04em;opacity:0}</style>
+#note{position:absolute;left:0;right:0;top:470px;text-align:center;font:400 28px/1.4 "Noto Sans JP";color:#9d958a;letter-spacing:.04em;opacity:0}</style>
 <script type="importmap">{"imports":{"three":"/node_modules/three/build/three.module.js","three/addons/":"/node_modules/three/examples/jsm/"}}</script>
-</head><body><div id="ov"><div id="troupe">灯守座 ・ 解禁</div><div id="role"></div><div id="note">架空の劇団のサンプルです</div></div>
+</head><body><div id="ov"><div id="troupe">灯守座<span style="margin:0 .6em">·</span>解禁</div><div id="role"></div><div id="note">架空の劇団のサンプルです</div></div>
 <script type="module">
 // 役者の名前を「板付き」で舞台に立たせる：名前の文字が板になって床のスポットの中に立ち、床に影を落とす
 import * as C from '/tools/cine/cine.js';
 const {clamp,lerp,prog,ease}=C;
 const D=window.__DATA||{name:"水無瀬 透",role:"硝子職人 伊織 役"};
 const W=innerWidth,H=innerHeight;
-const S=C.createStage({width:W,height:H,exposure:1.0,fov:30,envIntensity:0});
+const S=C.createStage({width:W,height:H,exposure:1.0,fov:30,envIntensity:0,dof:true});
 const {THREE,scene,camera}=S;
-if(S.bloom){S.bloom.threshold=.95;S.bloom.strength=.18;S.bloom.radius=.3;}
+if(S.bloom){S.bloom.threshold=2;S.bloom.strength=0;S.bloom.radius=0;}
 scene.fog=new THREE.FogExp2(0,.05);scene.background=new THREE.Color(0);
-C.stageFloor(scene,{material:new THREE.MeshPhysicalMaterial({color:0x0b0a09,roughness:.6,clearcoat:.35,clearcoatRoughness:.3})});
+C.stageFloor(scene,{material:new THREE.MeshPhysicalMaterial({color:0x0b0a09,roughness:.85})});
 // 文字の板（明朝・縦書き）。アルファで切り抜いて影を落とす
 let plane=null;
 async function makeName(){
@@ -27,9 +27,17 @@ async function makeName(){
   const x=cv.getContext('2d');x.fillStyle='#fff';x.font=`600 ${fs}px "Shippori Mincho"`;x.textAlign='center';x.textBaseline='middle';
   chars.forEach((ch,i)=>x.fillText(ch,cv.width/2,gap+fs/2+i*(fs+gap)));
   const tex=new THREE.CanvasTexture(cv);tex.colorSpace=THREE.SRGBColorSpace;tex.anisotropy=8;
-  const h=1.45, w=h*cv.width/cv.height;
+  const h=1.25, w=h*cv.width/cv.height;
   const mat=new THREE.MeshStandardMaterial({color:0xece4d6,map:tex,alphaMap:tex,alphaTest:.5,roughness:.6,metalness:0,side:THREE.DoubleSide});
-  plane=new THREE.Mesh(new THREE.PlaneGeometry(w,h),mat);plane.position.set(0,h/2+.02,0);plane.castShadow=true;scene.add(plane);
+  plane=new THREE.Mesh(new THREE.PlaneGeometry(w,h),mat);plane.position.set(0,h/2+.003,0);plane.castShadow=false;scene.add(plane);
+  // 接地影：文字の幅の柔らかい楕円（床に置いた板の足元の陰）
+  const sc=document.createElement('canvas');sc.width=256;sc.height=64;const sx=sc.getContext('2d');
+  const g=sx.createRadialGradient(128,32,0,128,32,128);g.addColorStop(0,'rgba(0,0,0,.85)');g.addColorStop(1,'rgba(0,0,0,0)');
+  sx.setTransform(1,0,0,.25,0,24);sx.fillStyle=g;sx.fillRect(0,0,256,256);
+  const st=new THREE.CanvasTexture(sc);const sh=new THREE.Mesh(new THREE.PlaneGeometry(w*1.25,.14),new THREE.MeshBasicMaterial({map:st,transparent:true,depthWrite:false}));
+  sh.rotation.x=-Math.PI/2;sh.position.set(0,.002,.02);scene.add(sh);
+  const side=new THREE.MeshStandardMaterial({color:0x3a332a,map:tex,alphaMap:tex,alphaTest:.5,roughness:.8,side:THREE.DoubleSide});
+  for(let i=1;i<=4;i++){const m=new THREE.Mesh(plane.geometry,side);m.position.set(0,h/2+.003,-i*.003);scene.add(m);}
   const dmat=new THREE.MeshDepthMaterial({depthPacking:THREE.RGBADepthPacking,map:tex,alphaTest:.5});plane.customDepthMaterial=dmat;
 }
 // 光：真上やや後ろのトップ（影を客席側へ長く落とす）＋正面の弱いフロント
@@ -37,16 +45,21 @@ const TOP=[0,6.4,2.4];
 const top=C.spot(scene,{pos:TOP,target:[0,0,-.2],color:0xffd6a8,intensity:0,angle:.13,penumbra:.6});
 const front=C.spot(scene,{pos:[0,2.2,6],target:[0,1,0],color:0xfff0e0,intensity:0,angle:.12,penumbra:.9,shadow:false});
 const B=C.beam(scene,{from:TOP,to:[0,0,-.2],radius:.6,color:0xffd6a8,density:.16});
+const BB=C.beam(scene,{from:[0,4.8,-2.6],to:[0,-1.2,-1.6],radius:.75,color:0xffe2bd,density:.3});
+
+const bk=C.spot(scene,{pos:[0,4.8,-2.6],target:[0,0,-2.1],color:0xffe2bd,intensity:0,angle:.16,penumbra:1,shadow:false});
 const V=(x,y,z)=>new THREE.Vector3(x,y,z);
 window.__ready=makeName();
 const $=id=>document.getElementById(id);$('role').textContent=D.role;
 window.renderAt=t=>{
   // 0.0 暗転（板付きの輪郭だけ）→ 0.6 明転（拍）→ 2.4 役名 → 6.6 溶暗に向かう
   const k=ease.outCubic(prog(t,.6,.5))*(1-ease.inOutSine(prog(t,7.2,.8)));
-  top.intensity=620*k; B.set(t,k); front.intensity=14*ease.outCubic(prog(t,.9,1.2))*(1-prog(t,7.2,.8));
-  const d=lerp(5.4,4.6,ease.inOutSine(prog(t,0,8)));
-  camera.position.set(0,1.05,d);camera.lookAt(0,1.0,0);
-  if(S.bokeh){S.bokeh.uniforms.focus.value=d;S.bokeh.uniforms.aperture.value=.0012;}
+  const sil=ease.inOutSine(prog(t,5.06,.7))*(1-ease.inOutSine(prog(t,7.2,.8)));
+  top.intensity=620*k*(1-.97*sil); B.set(t,Math.max(.04*(1-prog(t,.6,.3)),k*(1-.5*sil)));
+  bk.intensity=160*sil;BB.set(t,Math.max(.22*(1-prog(t,.6,.4)),1.1*sil)); front.intensity=14*ease.outCubic(prog(t,.9,1.2))*(1-prog(t,7.2,.8))*(1-sil);
+  const d=lerp(5.6,4.9,ease.inOutSine(prog(t,0,8)));
+  const ped=lerp(1.12,.98,ease.inOutSine(prog(t,0,8)));const az=lerp(.12,-.05,ease.inOutSine(prog(t,0,8)));camera.position.set(Math.sin(az)*d,ped,Math.cos(az)*d);camera.lookAt(0,ped-.2,0);
+  if(S.bokeh){const rf=ease.inOutSine(prog(t,.7,1.8));S.bokeh.uniforms.focus.value=lerp(1.2,d,rf);S.bokeh.uniforms.aperture.value=lerp(.006,.0008,rf);}
   const f=(el,a,b)=>{el.style.opacity=(ease.outCubic(prog(t,a,.6))*(1-prog(t,b,.5))).toFixed(3)};
   f($('troupe'),.9,7.2);f($('role'),2.4,7.2);f($('note'),3.2,7.2);
   S.render();
