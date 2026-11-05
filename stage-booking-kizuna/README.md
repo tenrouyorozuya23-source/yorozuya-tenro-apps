@@ -41,6 +41,23 @@
 - 予約一覧でキャンセルを確定すると、その公演のキャンセル待ちを申込順に自動で繰り上げる（収まる枚数のものだけ）
 - 導入時に `update_bookingFlow()` を1回実行（売上管理・公演マスタの集計式の更新と、予約受付開始スケジュールの設定）
 
+## 自動デプロイ（GitHub Actions）
+
+`main` に `stage-booking-kizuna/` の Code.gs・HTML が入ると、`.github/workflows/deploy-kizuna-gas.yml` が次を自動で行う（Actions タブの「Run workflow」から手動でも可）。
+
+1. Apps Script の今のファイルを取得（`clasp pull`。appsscript.json などはそのまま）
+2. リポジトリの Code.gs（Apps Script 上の「コード」）・index / checkin / register.html で上書きして反映（`clasp push`）
+3. Webアプリを新バージョンでデプロイ（同じデプロイIDを差し替えるので /exec の URL は変わらない）
+4. Webアプリの `?api=migrate` を呼び、Code.gs の `MIGRATIONS` のうち未実行のものを1回ずつ実行（実行済みはスクリプト プロパティ `MIGRATIONS_DONE` に記録）
+
+初回だけの設定：
+
+1. https://script.google.com/home/usersettings で「Google Apps Script API」をオンにする（スクリプトのオーナーのアカウントで）
+2. パソコンのターミナルで `npx @google/clasp@2.4.2 login` を実行し、オーナーのアカウントで許可する。できた `~/.clasprc.json` の中身を、GitHub のリポジトリ → Settings → Secrets and variables → Actions → **Secrets** に `CLASPRC_JSON` として登録する（中身はチャットなどに貼らない）
+3. Apps Script のエディタ → プロジェクトの設定 → スクリプトID を、同じ画面の **Variables** に `KIZUNA_SCRIPT_ID` として登録する
+
+新しく「1回だけ実行」する処理を作ったら、関数を書いて `MIGRATIONS` に id とともに追加する（id は変えない）。
+
 ## 席種ごとの上限と残席表示
 
 - 各回の上限：SS席10・S席10・A席35（`CONFIG.seatTypes` の `cap`）。公演ごとに変えるときは `CONFIG.shows` の `seatCaps`（例：12/4 18:30 は S席 1＝満席扱い）

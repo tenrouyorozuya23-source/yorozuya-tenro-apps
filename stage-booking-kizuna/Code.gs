@@ -1705,6 +1705,41 @@ function setup_availability() {
   Logger.log(availabilityText());
 }
 
+// ============================================================
+// 更新処理（自動デプロイ用）
+//   GitHub の main に入ると Actions が Apps Script に反映・デプロイし、Webアプリの ?api=migrate を呼ぶ。
+//   ここに並べた処理のうち、まだ実行していないものを上から1回ずつ実行する（実行済みはスクリプト プロパティに記録）。
+//   新しい「1回だけ実行」の処理を作ったら、関数を書いてここに id を足す（id は変えない）。
+// ============================================================
+var MIGRATIONS = [
+  { id: "2026-11-05-seat-caps-and-availability", run: function(){ fix_formText(); setup_availability(); } }
+];
+
+function runMigrations() {
+  var lock = LockService.getScriptLock();
+  if (!lock.tryLock(30000)) return { ok: false, error: "別の更新処理が実行中です" };
+  var props = PropertiesService.getScriptProperties();
+  var done = JSON.parse(props.getProperty("MIGRATIONS_DONE") || "[]");
+  var ran = [];
+  try {
+    for (var i = 0; i < MIGRATIONS.length; i++) {
+      var m = MIGRATIONS[i];
+      if (done.indexOf(m.id) !== -1) continue;
+      m.run();
+      done.push(m.id);
+      props.setProperty("MIGRATIONS_DONE", JSON.stringify(done));
+      ran.push(m.id);
+      Logger.log("✅ 更新処理を実行しました: " + m.id);
+    }
+    return { ok: true, ran: ran };
+  } catch (err) {
+    Logger.log("更新処理のエラー: " + err.message);
+    return { ok: false, ran: ran, error: String(err.message || err) };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
 // 更新用：本予約・キャンセル待ちの仕組みを入れたあと1回だけ実行
 //   売上管理・公演マスタの集計式をキャンセル待ちを除く形に直し、予約受付の開始スケジュールを設定する
 function update_bookingFlow() {
@@ -2650,6 +2685,12 @@ function getWebAppUrl() { return CONFIG.webAppUrl || ScriptApp.getService().getU
 // ============================================================
 function doGet(e) {
   var page = e && e.parameter && e.parameter.page ? e.parameter.page : "";
+
+  // 自動デプロイ（GitHub Actions）の後に呼ばれる：未実行の更新処理を実行する
+  if (e && e.parameter && e.parameter.api === "migrate") {
+    return ContentService.createTextOutput(JSON.stringify(runMigrations()))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
 
   // 予約サイト用：公演×席種の残席（JSON）。個人情報は含めない
   if (e && e.parameter && e.parameter.api === "availability") {
