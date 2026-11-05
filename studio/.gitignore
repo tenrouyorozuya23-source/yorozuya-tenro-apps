@@ -1,0 +1,10 @@
+# 中間生成物はコミットしない（完成品は works/ に置く）
+projects/*/video.mp4
+projects/*/*.wav
+projects/*/check/
+projects/*/P*.mp4
+projects/*/*.sheet.jpg
+projects/*/*.poster.jpg
+projects/*/*.qc.json
+projects/*/spec.png
+projects/*/wave.png

@@ -1,0 +1,9 @@
+{
+  "dashboard_url": "https://claude.ai/artifact/X6eebhYWCKkLx5FSpQ3Ubh",
+  "branch": "studio-autopilot",
+  "drive_folder_id": null,
+  "drive_folder_note": "ユーザーが作業フォルダのURLを共有したら、ここにフォルダIDを入れる",
+  "cloudflare_pages_project": null,
+  "x_daily_post_limit": 3,
+  "next_ids": {"plan": 14, "work": 2, "report": 2}
+}

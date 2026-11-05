@@ -1,0 +1,483 @@
+#!/usr/bin/env python3
+"""Studio BGM synthesizer — オリジナルBGMを数値合成で生成する。
+
+外部音源・サンプルを一切使わず、numpy/scipy だけで楽曲を合成するので
+著作権的に完全オリジナル。映像と同期させるための拍・小節・キュー時刻を
+JSON で書き出す。
+
+usage:
+    python3 bgm.py song.json out.wav            # out.wav と out.beats.json を出力
+
+song.json の主なキー（すべて任意。省略時は既定値）:
+    bpm, bars, key(例 "D"), seed, swing(0-0.3), tail_sec
+    progression: ["Dmaj7","Bm7","Gmaj7","A"]  1小節1コード、足りなければ循環
+    sections: [{"from":0,"to":2,"layers":["pad","pluck"]}, ...]
+        layers: kick snare clap hat openhat bass sub pad pluck arp bell lead
+                riser impact chime stab
+    melody: [[bar, beat, "F#5", beats], ...]   (lead/bell が鳴らす)
+    cues:   [{"bar":2,"beat":0,"type":"impact"}, {"bar":7,"type":"stab"}]
+    mix:    {"kick":1.0, "pad":0.5, ...}       トラック別ゲイン
+    reverb: 0-1, brightness: 0-1, drive: 0-1
+"""
+import json
+import sys
+import wave
+from pathlib import Path
+
+import numpy as np
+from scipy import signal
+
+SR = 48000
+NOTE = {"C": 0, "C#": 1, "Db": 1, "D": 2, "D#": 3, "Eb": 3, "E": 4, "F": 5,
+        "F#": 6, "Gb": 6, "G": 7, "G#": 8, "Ab": 8, "A": 9, "A#": 10, "Bb": 10, "B": 11}
+QUAL = {
+    "": [0, 4, 7], "maj": [0, 4, 7], "m": [0, 3, 7], "7": [0, 4, 7, 10],
+    "maj7": [0, 4, 7, 11], "m7": [0, 3, 7, 10], "sus2": [0, 2, 7], "sus4": [0, 5, 7],
+    "add9": [0, 4, 7, 14], "madd9": [0, 3, 7, 14], "m9": [0, 3, 7, 10, 14],
+    "maj9": [0, 4, 7, 11, 14], "6": [0, 4, 7, 9], "m6": [0, 3, 7, 9], "dim": [0, 3, 6],
+}
+
+
+def midi_hz(m):
+    return 440.0 * 2 ** ((m - 69) / 12)
+
+
+def parse_note(s):
+    """'F#5' -> midi"""
+    name = s[:-1] if s[-1].isdigit() else s
+    octv = int(s[-1]) if s[-1].isdigit() else 4
+    return NOTE[name] + 12 * (octv + 1)
+
+
+def parse_chord(s):
+    root = s[:2] if len(s) > 1 and s[1] in "#b" else s[:1]
+    rest = s[len(root):]
+    bass = None
+    if "/" in rest:
+        rest, bass = rest.split("/")
+    q = QUAL.get(rest, QUAL[""])
+    return NOTE[root], q, (NOTE[bass] if bass else None)
+
+
+# ---------------------------------------------------------------- DSP utils
+def env_adsr(n, a, d, s, r, sr=SR):
+    a, d, r = int(a * sr), int(d * sr), int(r * sr)
+    sus = max(n - a - d, 0)
+    e = np.concatenate([
+        np.linspace(0, 1, max(a, 1), endpoint=False),
+        np.linspace(1, s, max(d, 1), endpoint=False),
+        np.full(sus, s),
+    ])[:n]
+    if len(e) < n:
+        e = np.pad(e, (0, n - len(e)), constant_values=s)
+    tail = s * np.exp(-np.linspace(0, 6, max(r, 1)))
+    return np.concatenate([e, tail])
+
+
+def lp(x, fc, order=2):
+    fc = float(np.clip(fc, 20, SR / 2.2))
+    b, a = signal.butter(order, fc / (SR / 2), "low")
+    return signal.lfilter(b, a, x)
+
+
+def hp(x, fc, order=2):
+    b, a = signal.butter(order, fc / (SR / 2), "high")
+    return signal.lfilter(b, a, x)
+
+
+def bp(x, lo, hi, order=2):
+    b, a = signal.butter(order, [lo / (SR / 2), hi / (SR / 2)], "band")
+    return signal.lfilter(b, a, x)
+
+
+def saw(freq, n, phase=0.0):
+    t = np.arange(n) / SR
+    # PolyBLEP-less saw は高域が荒れるので加算合成で帯域制限
+    out = np.zeros(n)
+    k = 1
+    while k * freq < SR / 2.5 and k < 40:
+        out += np.sin(2 * np.pi * k * freq * t + phase * k) / k
+        k += 1
+    return out * (2 / np.pi)
+
+
+def sweep_lp(x, f0, f1):
+    """時間変化するローパス（ブロック処理）"""
+    out = np.zeros_like(x)
+    blk = 512
+    zi = None
+    nb = max(1, len(x) // blk + 1)
+    for i in range(nb):
+        s = slice(i * blk, (i + 1) * blk)
+        if s.start >= len(x):
+            break
+        f = f0 * (f1 / f0) ** (i / nb)
+        b, a = signal.butter(2, min(f, SR / 2.2) / (SR / 2), "low")
+        if zi is None:
+            zi = signal.lfilter_zi(b, a) * 0
+        out[s], zi = signal.lfilter(b, a, x[s], zi=zi)
+    return out
+
+
+class Track:
+    def __init__(self, n):
+        self.buf = np.zeros((n, 2))
+
+    def add(self, start, mono, pan=0.0, gain=1.0):
+        i = int(start * SR)
+        if i >= len(self.buf) or len(mono) == 0:
+            return
+        j = min(i + len(mono), len(self.buf))
+        l = np.cos((pan + 1) * np.pi / 4)
+        r = np.sin((pan + 1) * np.pi / 4)
+        seg = mono[: j - i] * gain
+        self.buf[i:j, 0] += seg * l * 1.414
+        self.buf[i:j, 1] += seg * r * 1.414
+
+    def add_st(self, start, st, gain=1.0):
+        i = int(start * SR)
+        j = min(i + len(st), len(self.buf))
+        if i < j:
+            self.buf[i:j] += st[: j - i] * gain
+
+
+# ---------------------------------------------------------------- instruments
+def kick(punch=1.0):
+    n = int(0.45 * SR)
+    t = np.arange(n) / SR
+    f = 48 + 110 * np.exp(-t * 32)
+    ph = 2 * np.pi * np.cumsum(f) / SR
+    body = np.sin(ph) * np.exp(-t * 11)
+    click = hp(np.random.randn(n), 2500) * np.exp(-t * 400) * 0.25 * punch
+    return np.tanh((body + click) * 1.6) * 0.9
+
+
+def snare():
+    n = int(0.3 * SR)
+    t = np.arange(n) / SR
+    tone = np.sin(2 * np.pi * 185 * t) * np.exp(-t * 28) * 0.6
+    nz = bp(np.random.randn(n), 1200, 9000) * np.exp(-t * 18)
+    return np.tanh((tone + nz) * 1.2) * 0.7
+
+
+def clap():
+    n = int(0.35 * SR)
+    t = np.arange(n) / SR
+    nz = bp(np.random.randn(n), 900, 6000)
+    e = np.zeros(n)
+    for k, d in enumerate([0, 0.011, 0.022, 0.034]):
+        i = int(d * SR)
+        e[i:] += np.exp(-(t[: n - i]) * (90 if k < 3 else 16))
+    return nz * e * 0.5
+
+
+def hat(open_=False):
+    n = int((0.35 if open_ else 0.06) * SR)
+    t = np.arange(n) / SR
+    nz = hp(np.random.randn(n), 7000, 4)
+    return nz * np.exp(-t * (9 if open_ else 70)) * (0.35 if open_ else 0.28)
+
+
+def bass_note(m, dur, bright=0.5):
+    n = int(dur * SR)
+    f = midi_hz(m)
+    x = saw(f, n) * 0.6 + np.sin(2 * np.pi * f * np.arange(n) / SR) * 0.7
+    x = sweep_lp(x, 300 + 900 * bright, 180 + 300 * bright)
+    return np.tanh(x * 1.4) * env_adsr(n, 0.004, 0.08, 0.7, 0.04)[:n] * 0.55
+
+
+def sub_note(m, dur):
+    n = int(dur * SR)
+    t = np.arange(n) / SR
+    return np.sin(2 * np.pi * midi_hz(m) * t) * env_adsr(n, 0.01, 0.1, 0.9, 0.05)[:n] * 0.6
+
+
+def pad_chord(ms, dur, bright=0.5):
+    n = int((dur + 0.6) * SR)
+    L = np.zeros(n)
+    R = np.zeros(n)
+    for m in ms:
+        f = midi_hz(m)
+        for det, pan in [(-0.11, -0.7), (0.0, 0.0), (0.12, 0.7)]:
+            v = saw(f * 2 ** (det / 12), n, phase=np.random.rand() * 6.28)
+            L += v * (1 - pan) * 0.5
+            R += v * (1 + pan) * 0.5
+    fc = 900 + 2600 * bright
+    L, R = hp(lp(L, fc), 160), hp(lp(R, fc), 160)  # 低域は bass/kick に譲る
+    e = env_adsr(int(dur * SR), 0.35, 0.4, 0.8, 0.6)[:n]
+    e = np.pad(e, (0, n - len(e)))
+    st = np.stack([L * e, R * e], 1) / (len(ms) * 3) * 1.4
+    return st
+
+
+def pluck_note(m, dur=0.4, bright=0.6):
+    """Karplus-Strong"""
+    f = midi_hz(m)
+    n = int(max(dur, 0.25) * SR + 0.6 * SR)
+    p = int(SR / f)
+    buf = np.random.uniform(-1, 1, p)
+    buf = lp(buf, 2000 + 6000 * bright, 1)
+    out = np.zeros(n)
+    damp = 0.996 - (1 - bright) * 0.006
+    idx = 0
+    # ベクトル化した KS: 周期ごとに平均化
+    reps = n // p + 2
+    seq = [buf]
+    cur = buf
+    for _ in range(reps):
+        cur = damp * 0.5 * (cur + np.roll(cur, -1))
+        seq.append(cur)
+    out = np.concatenate(seq)[:n]
+    t = np.arange(n) / SR
+    return out * np.exp(-t * 2.2) * 0.55
+
+
+def fm_bell(m, dur=1.2, idx=2.5):
+    n = int((dur + 1.0) * SR)
+    t = np.arange(n) / SR
+    f = midi_hz(m)
+    mod = np.sin(2 * np.pi * f * 3.5 * t) * idx * np.exp(-t * 3)
+    x = np.sin(2 * np.pi * f * t + mod)
+    return x * np.exp(-t * 2.4) * 0.35
+
+
+def lead_note(m, dur, bright=0.6):
+    n = int((dur + 0.15) * SR)
+    t = np.arange(n) / SR
+    f = midi_hz(m) * (1 + 0.004 * np.sin(2 * np.pi * 5.2 * t) * np.clip(t * 3, 0, 1))
+    ph = 2 * np.pi * np.cumsum(f) / SR
+    x = np.sin(ph) * 0.6 + np.sign(np.sin(ph)) * 0.12 + np.sin(2 * ph) * 0.15
+    x = lp(x, 1800 + 4000 * bright)
+    return x * env_adsr(int(dur * SR), 0.02, 0.15, 0.75, 0.12)[:n] * 0.4
+
+
+def riser(dur):
+    n = int(dur * SR)
+    t = np.arange(n) / SR
+    nz = np.random.randn(n)
+    x = sweep_lp(hp(nz, 300), 400, 12000)
+    tone = np.sin(2 * np.pi * np.cumsum(200 * 2 ** (t / dur * 3)) / SR) * 0.2
+    return (x * 0.5 + tone) * (t / dur) ** 2 * 0.6
+
+
+def impact():
+    n = int(2.2 * SR)
+    t = np.arange(n) / SR
+    boom = np.sin(2 * np.pi * np.cumsum(30 + 60 * np.exp(-t * 6)) / SR) * np.exp(-t * 2.2)
+    nz = lp(np.random.randn(n), 3000) * np.exp(-t * 4) * 0.5
+    return np.tanh((boom + nz) * 1.5) * 0.8
+
+
+def chime(m=84):
+    out = np.zeros(int(2.5 * SR))
+    for k, mm in enumerate([m, m + 7, m + 12, m + 16]):
+        b = fm_bell(mm, 1.2, 1.5)
+        i = int(k * 0.06 * SR)
+        out[i:i + len(b)] += b[: len(out) - i] * 0.6
+    return out
+
+
+# ---------------------------------------------------------------- reverb / mix
+def make_ir(sec=2.2, sr=SR, seed=7):
+    rng = np.random.default_rng(seed)
+    n = int(sec * sr)
+    t = np.arange(n) / sr
+    decay = np.exp(-t * 6.9 / sec)
+    L = rng.standard_normal(n) * decay
+    R = rng.standard_normal(n) * decay
+    L, R = lp(L, 6000), lp(R, 6000)
+    L[: int(0.012 * sr)] = 0
+    R[: int(0.017 * sr)] = 0
+    return np.stack([L, R], 1) / np.sqrt(np.sum(L ** 2))
+
+
+def reverb(st, amount, ir):
+    if amount <= 0:
+        return st
+    wetL = signal.fftconvolve(st[:, 0], ir[:, 0])[: len(st)]
+    wetR = signal.fftconvolve(st[:, 1], ir[:, 1])[: len(st)]
+    wet = np.stack([wetL, wetR], 1)
+    return st + wet * amount
+
+
+def sidechain(n, kick_times, depth=0.6, rel=0.18):
+    g = np.ones(n)
+    t = np.arange(int(rel * 1.5 * SR)) / SR
+    shape = 1 - depth * np.exp(-t / (rel / 3))
+    for kt in kick_times:
+        i = int(kt * SR)
+        j = min(i + len(shape), n)
+        if i < n:
+            g[i:j] = np.minimum(g[i:j], shape[: j - i])
+    return g
+
+
+# ---------------------------------------------------------------- composer
+def build(song):
+    rng = np.random.default_rng(song.get("seed", 1))
+    np.random.seed(song.get("seed", 1))
+    bpm = song.get("bpm", 120)
+    bars = song.get("bars", 8)
+    beat = 60 / bpm
+    bar = beat * 4
+    tail = song.get("tail_sec", 1.5)
+    total = bars * bar + tail
+    N = int(total * SR)
+    swing = song.get("swing", 0.0)
+    bright = song.get("brightness", 0.55)
+    prog = [parse_chord(c) for c in song.get("progression", ["C", "Am", "F", "G"])]
+    key_root = NOTE.get(song.get("key", "C"), 0)
+    sections = song.get("sections", [{"from": 0, "to": bars, "layers": ["kick", "hat", "bass", "pad", "pluck"]}])
+    mix = {"kick": 1.0, "snare": 0.55, "clap": 0.5, "hat": 0.45, "openhat": 0.35, "bass": 0.7,
+           "sub": 0.55, "pad": 0.5, "pluck": 0.45, "arp": 0.4, "bell": 0.4, "lead": 0.5,
+           "riser": 0.45, "impact": 0.7, "chime": 0.4, "stab": 0.5}
+    mix.update(song.get("mix", {}))
+    drums = Track(N)
+    music = Track(N)  # sidechain 対象
+    fx = Track(N)
+    kick_times = []
+
+    def layers_at(b):
+        L = set()
+        for s in sections:
+            if s.get("from", 0) <= b < s.get("to", bars):
+                L |= set(s["layers"])
+        return L
+
+    def tpos(b, bt):
+        # 8分裏にスウィング
+        frac = bt - int(bt)
+        sw = swing * beat * 0.5 if abs(frac - 0.5) < 1e-6 else 0
+        return b * bar + bt * beat + sw
+
+    K = kick()
+    for b in range(bars):
+        L = layers_at(b)
+        root, q, bass_override = prog[b % len(prog)]
+        base = 48 + root  # C3 基準
+        chord = [base + 12 + iv for iv in q]
+        # 中音域に寄せたボイシング
+        chord = [m if m < 72 else m - 12 for m in chord]
+        bass_m = 36 + (bass_override if bass_override is not None else root)
+        if "kick" in L:
+            pat = song.get("kick_pattern", [0, 1, 2, 3])
+            for bt in pat:
+                tt = tpos(b, bt)
+                drums.add(tt, K, 0, mix["kick"])
+                kick_times.append(tt)
+        if "snare" in L:
+            for bt in [1, 3]:
+                drums.add(tpos(b, bt), snare(), 0.05, mix["snare"])
+        if "clap" in L:
+            for bt in [1, 3]:
+                drums.add(tpos(b, bt), clap(), -0.05, mix["clap"])
+        if "hat" in L:
+            for i in range(8):
+                bt = i * 0.5
+                v = 1.0 if i % 2 else 0.55
+                drums.add(tpos(b, bt), hat(), 0.3, mix["hat"] * v * rng.uniform(0.85, 1.0))
+            if song.get("hat16", False):
+                for i in range(16):
+                    if i % 2:
+                        drums.add(b * bar + i * beat / 4, hat(), -0.3, mix["hat"] * 0.3)
+        if "openhat" in L:
+            for bt in [0.5, 1.5, 2.5, 3.5]:
+                drums.add(tpos(b, bt), hat(True), -0.2, mix["openhat"])
+        if "bass" in L:
+            for i in range(8):
+                bt = i * 0.5
+                if i % 2 == 0 and "kick" in L:
+                    continue  # キックとぶつけない（裏打ちベース）
+                m = bass_m + (12 if i == 7 else 0)
+                music.add(tpos(b, bt), bass_note(m, beat * 0.45, bright), 0, mix["bass"])
+        if "sub" in L:
+            music.add(b * bar, sub_note(bass_m - 12 if bass_m > 40 else bass_m, bar * 0.98), 0, mix["sub"])
+        if "pad" in L:
+            music.add_st(b * bar, pad_chord(chord, bar, bright), mix["pad"])
+        if "pluck" in L or "arp" in L:
+            tones = sorted(chord + [chord[0] + 12, chord[1] + 12])
+            order = song.get("arp_order", [0, 2, 1, 3, 2, 4, 3, 5])
+            step = 0.5 if "pluck" in L else 0.25
+            nsteps = int(4 / step)
+            for i in range(nsteps):
+                m = tones[order[i % len(order)] % len(tones)] + 12
+                pan = -0.45 if i % 2 else 0.45
+                g = mix["pluck"] if "pluck" in L else mix["arp"]
+                music.add(tpos(b, i * step), pluck_note(m, beat * step, bright), pan, g * (1.0 if i % 4 == 0 else 0.75))
+        if "stab" in L:
+            for m in chord:
+                music.add(b * bar, pluck_note(m + 12, 0.3, 0.9), 0, mix["stab"] * 0.6)
+    # melody
+    for ev in song.get("melody", []):
+        b, bt, nm, d = ev
+        m = parse_note(nm) if isinstance(nm, str) else nm
+        L = layers_at(int(b))
+        tt = tpos(b, bt)
+        if "bell" in L:
+            music.add(tt, fm_bell(m, d * beat), 0.15, mix["bell"])
+        if "lead" in L or "bell" not in L:
+            music.add(tt, lead_note(m, d * beat, bright), -0.1, mix["lead"])
+    # cues
+    cue_out = []
+    for c in song.get("cues", []):
+        tt = c.get("bar", 0) * bar + c.get("beat", 0) * beat
+        ty = c["type"]
+        cue_out.append({"t": round(tt, 4), "type": ty})
+        if ty == "riser":
+            d = c.get("len_beats", 4) * beat
+            fx.add(tt - d, riser(d), 0, mix["riser"])
+        elif ty == "impact":
+            fx.add(tt, impact(), 0, mix["impact"])
+            kick_times.append(tt)
+        elif ty == "chime":
+            fx.add(tt, chime(c.get("note", 84)), 0.1, mix["chime"])
+        elif ty == "stab":
+            root, q, _ = prog[int(c.get("bar", 0)) % len(prog)]
+            for iv in q:
+                fx.add(tt, pluck_note(60 + root + iv, 1.0, 0.9), 0, mix["stab"])
+                fx.add(tt, fm_bell(72 + root + iv, 1.5, 1.2), 0.2, mix["stab"] * 0.6)
+            fx.add(tt, K, 0, mix["kick"])
+    sc = sidechain(N, kick_times, song.get("sidechain", 0.55))
+    music.buf *= sc[:, None]
+    ir = make_ir(song.get("reverb_sec", 2.2))
+    rv = song.get("reverb", 0.25)
+    mixbus = drums.buf + reverb(drums.buf * 0.25, rv * 0.5, ir) - drums.buf * 0.25 \
+        + reverb(music.buf, rv, ir) + reverb(fx.buf, rv * 1.3, ir)
+    # master: HP 30Hz, ゆるいサチュレーション, ノーマライズ
+    mixbus = np.stack([hp(mixbus[:, 0], 28), hp(mixbus[:, 1], 28)], 1)
+    drive = song.get("drive", 0.3)
+    mixbus = np.tanh(mixbus * (1 + drive * 2)) / np.tanh(1 + drive * 2)
+    peak = np.max(np.abs(mixbus)) + 1e-9
+    mixbus = mixbus / peak * 0.89
+    # 末尾フェード
+    fo = int(min(tail, 1.2) * SR)
+    mixbus[-fo:] *= np.linspace(1, 0, fo)[:, None] ** 2
+    beats = [round(i * beat, 4) for i in range(int(bars * 4) + 1)]
+    meta = {
+        "bpm": bpm, "beat_sec": beat, "bar_sec": bar, "bars": bars,
+        "music_end_sec": round(bars * bar, 4), "total_sec": round(total, 4),
+        "beats": beats, "downbeats": beats[::4], "cues": cue_out,
+        "sections": sections,
+    }
+    return mixbus, meta
+
+
+def write_wav(path, st):
+    pcm = (np.clip(st, -1, 1) * 32767).astype("<i2")
+    with wave.open(str(path), "wb") as w:
+        w.setnchannels(2)
+        w.setsampwidth(2)
+        w.setframerate(SR)
+        w.writeframes(pcm.tobytes())
+
+
+if __name__ == "__main__":
+    if len(sys.argv) < 3:
+        print(__doc__)
+        sys.exit(1)
+    song = json.loads(Path(sys.argv[1]).read_text())
+    st, meta = build(song)
+    out = Path(sys.argv[2])
+    write_wav(out, st)
+    out.with_suffix(".beats.json").write_text(json.dumps(meta, ensure_ascii=False, indent=1))
+    print(f"wrote {out} ({meta['total_sec']}s, {meta['bpm']}bpm)")

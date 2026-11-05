@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8">
+<title>P001 萬屋天狼 ブランド広告 15s</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700;900&family=Shippori+Mincho+B1:wght@700;800&family=JetBrains+Mono:wght@500;700&family=Barlow+Condensed:wght@500;700&display=swap" rel="stylesheet">
+<style>
+/* 1080x1920 縦型。SNS UI 被りを避けるため文字は上 260px / 下 420px を空ける */
+:root{
+  --night:#090E22; --night2:#141B3E; --sirius:#DCEBFF; --ice:#8FB8FF;
+  --lantern:#FFB547; --ink:#F4F6FF; --mute:#9AA6CF;
+  --jp:"Zen Kaku Gothic New","Hiragino Sans","Noto Sans JP",sans-serif;
+  --mincho:"Shippori Mincho B1","Hiragino Mincho ProN","Noto Serif JP",serif;
+  --mono:"JetBrains Mono",ui-monospace,monospace;
+  --cond:"Barlow Condensed","Arial Narrow",sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:1080px;height:1920px;overflow:hidden;background:var(--night);color:var(--ink);font-family:var(--jp)}
+canvas{position:absolute;inset:0}
+.layer{position:absolute;inset:0;pointer-events:none}
+.scene{position:absolute;inset:0;opacity:0}
+.line{position:absolute;left:110px;font-weight:900;letter-spacing:.02em;white-space:nowrap}
+.big{position:absolute;left:96px;top:1040px;font-size:230px;font-weight:900;line-height:1;letter-spacing:-.02em;white-space:nowrap;transform-origin:left center}
+.label{position:absolute;left:104px;top:960px;font-family:var(--cond);font-weight:700;font-size:44px;letter-spacing:.32em;color:var(--lantern)}
+.sub{position:absolute;left:104px;top:1310px;font-size:50px;font-weight:700;color:var(--sirius);letter-spacing:.06em}
+.mono{font-family:var(--mono)}
+</style></head>
+<body>
+<canvas id="bg" width="1080" height="1920"></canvas>
+<canvas id="fx" width="1080" height="1920"></canvas>
+
+<!-- A: intro -->
+<div class="scene" id="A">
+  <div class="line" id="a1" style="top:760px;font-size:120px">映像も、</div>
+  <div class="line" id="a2" style="top:930px;font-size:120px">音も、</div>
+  <div class="line" id="a3" style="top:1100px;font-size:120px">Webも。</div>
+</div>
+
+<!-- B1..B4: services -->
+<div class="scene" id="B1"><div class="label">SHOOT &amp; EDIT</div><div class="big">撮る。</div><div class="sub">撮影・映像編集</div></div>
+<div class="scene" id="B2"><div class="label">SOUND &amp; LIVE</div><div class="big">響かせる。</div><div class="sub">音響・ライブ配信</div></div>
+<div class="scene" id="B3"><div class="label">WEB DESIGN</div><div class="big">届ける。</div><div class="sub">ホームページ制作</div></div>
+<div class="scene" id="B4"><div class="label">ADS &amp; SNS</div><div class="big">広げる。</div><div class="sub">広告映像・SNS運用</div></div>
+
+<div id="steps" style="position:absolute;left:104px;top:1450px;display:flex;gap:14px;opacity:0">
+  <i></i><i></i><i></i><i></i></div>
+<style>#steps i{display:block;width:196px;height:8px;border-radius:4px;background:rgba(220,235,255,.18);overflow:hidden;position:relative}
+#steps i::after{content:"";position:absolute;inset:0;background:var(--lantern);transform:scaleX(var(--p,0));transform-origin:left}</style>
+<!-- C: logo -->
+<div class="scene" id="C">
+  <div id="logo" style="position:absolute;left:0;right:0;top:780px;text-align:center;font-family:var(--mincho);font-weight:800;font-size:200px;letter-spacing:.06em"></div>
+  <div id="roman" style="position:absolute;left:0;right:0;top:1030px;text-align:center;font-family:var(--cond);font-weight:500;font-size:46px;letter-spacing:.6em;color:var(--sirius)">YOROZUYA TENRO</div>
+  <div id="svc" style="position:absolute;left:0;right:0;top:1140px;text-align:center;font-size:40px;font-weight:700;color:var(--mute);letter-spacing:.12em">映像制作 ｜ 音響 ｜ 配信 ｜ Web制作</div>
+  <div id="cta" style="position:absolute;left:50%;top:1270px;transform:translateX(-50%);padding:26px 64px;border:3px solid var(--lantern);border-radius:999px;font-size:48px;font-weight:900;color:var(--lantern);white-space:nowrap;letter-spacing:.08em">ご相談・お見積り 受付中</div>
+</div>
+
+<script>
+const W=1080,H=1920;
+const D=window.__DATA||{beat_sec:60/128,bar_sec:240/128};
+const BEAT=D.beat_sec, BAR=D.bar_sec;
+const T={A0:0,B1:2*BAR,B2:3*BAR,B3:4*BAR,B4:5*BAR,C:6*BAR,END:15};
+const bg=document.getElementById('bg').getContext('2d');
+const fx=document.getElementById('fx').getContext('2d');
+const $=id=>document.getElementById(id);
+
+// ---------- helpers
+const clamp=(x,a=0,b=1)=>Math.min(b,Math.max(a,x));
+const lerp=(a,b,t)=>a+(b-a)*t;
+const eOut=t=>1-Math.pow(1-clamp(t),4);
+const eInOut=t=>{t=clamp(t);return t<.5?8*t*t*t*t:1-Math.pow(-2*t+2,4)/2};
+const eBack=t=>{t=clamp(t);const c=1.7;return 1+(c+1)*Math.pow(t-1,3)+c*Math.pow(t-1,2)};
+const prog=(t,a,d)=>clamp((t-a)/d);
+function rng(seed){return()=>{seed=(seed*16807)%2147483647;return(seed-1)/2147483646}}
+// 拍の「打点」: 直近の拍からの経過で減衰する 0..1
+const pulse=(t,k=8)=>Math.exp(-((t%BEAT+BEAT)%BEAT)*k);
+
+// ---------- static star field
+const R=rng(23);
+const stars=Array.from({length:260},()=>({x:R()*W,y:R()*H,r:R()*1.8+.3,a:R()*.7+.2,tw:R()*6.28,sp:R()*2+1}));
+const logoText='萬屋天狼';
+window.__ready=Promise.all(['700 34px "JetBrains Mono"','500 28px "JetBrains Mono"','900 46px "Zen Kaku Gothic New"'].map(f=>document.fonts.load(f))).then(()=>{
+  document.querySelectorAll('.big').forEach(b=>{const max=W-200;b.style.fontSize=Math.min(230,230*max/b.scrollWidth)+'px'})});
+$('logo').innerHTML=[...logoText].map(c=>`<span style="display:inline-block">${c}</span>`).join('');
+
+function drawBG(t){
+  const g=bg.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,'#05081A');g.addColorStop(.55,'#0D1433');g.addColorStop(1,'#1A1640');
+  bg.fillStyle=g;bg.fillRect(0,0,W,H);
+  // 低い位置の地平の灯り（萬屋＝店先の灯）
+  const lg=bg.createRadialGradient(W/2,H+200,50,W/2,H+200,900);
+  lg.addColorStop(0,'rgba(255,181,71,.28)');lg.addColorStop(1,'rgba(255,181,71,0)');
+  bg.fillStyle=lg;bg.fillRect(0,0,W,H);
+  const drift=t*6;
+  for(const s of stars){
+    const a=s.a*(.65+.35*Math.sin(t*s.sp+s.tw));
+    bg.fillStyle=`rgba(220,235,255,${a})`;
+    bg.beginPath();bg.arc(s.x,(s.y+drift*s.r)%H,s.r,0,6.283);bg.fill();
+  }
+}
+
+// 天狼星（シリウス）: 回折スパイク付きの光点
+function sirius(ctx,x,y,size,alpha=1,rot=0){
+  ctx.save();ctx.translate(x,y);ctx.globalCompositeOperation='lighter';ctx.globalAlpha=alpha;
+  const g=ctx.createRadialGradient(0,0,0,0,0,size*3);
+  g.addColorStop(0,'rgba(255,255,255,1)');g.addColorStop(.08,'rgba(220,235,255,.9)');
+  g.addColorStop(.3,'rgba(143,184,255,.25)');g.addColorStop(1,'rgba(143,184,255,0)');
+  ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,size*3,0,6.283);ctx.fill();
+  ctx.rotate(rot);
+  for(let i=0;i<4;i++){
+    ctx.rotate(Math.PI/2);
+    const sg=ctx.createLinearGradient(0,0,size*6,0);
+    sg.addColorStop(0,'rgba(240,247,255,.95)');sg.addColorStop(1,'rgba(143,184,255,0)');
+    ctx.fillStyle=sg;ctx.beginPath();ctx.moveTo(0,-size*.08);ctx.lineTo(size*6,0);ctx.lineTo(0,size*.08);ctx.fill();
+  }
+  ctx.restore();
+}
+
+function setScene(id,op){$(id).style.opacity=op}
+function tx(el,x,y,s=1,o=1,blur=0){el.style.transform=`translate(${x}px,${y}px) scale(${s})`;el.style.opacity=o;el.style.filter=blur?`blur(${blur}px)`:'none'}
+
+// ---------- scene renderers
+function sceneA(t){
+  const on=t<T.B1;setScene('A',on?1:0);if(!on)return;
+  const lines=['a1','a2','a3'];
+  lines.forEach((id,i)=>{
+    const st=BEAT*(2+i*2)-0.08;
+    const p=eOut(prog(t,st,.45));
+    tx($(id),lerp(-60,0,p),lerp(30,0,p),1,p,(1-p)*12);
+  });
+  // ライザー区間：文字が光に吸い込まれる
+  const r=prog(t,T.B1-BEAT*2,BEAT*2);
+  $('A').style.opacity=1-eInOut(r)*.9;
+  $('A').style.filter=`blur(${r*r*14}px)`;
+  // シリウス
+  const sz=lerp(4,26,eOut(prog(t,0,1.2)))*(1+.15*Math.sin(t*5))+r*r*120;
+  sirius(fx,780,520,sz,clamp(t*3),t*.15);
+}
+
+function viewfinder(ctx,t,lt){
+  const o=eOut(prog(lt,0,.25));
+  ctx.save();ctx.globalAlpha=o;ctx.strokeStyle='rgba(244,246,255,.9)';ctx.lineWidth=6;
+  const m=90,top=330,bot=900,L=70;
+  [[m,top,1,1],[W-m,top,-1,1],[m,bot,1,-1],[W-m,bot,-1,-1]].forEach(([x,y,sx,sy])=>{
+    ctx.beginPath();ctx.moveTo(x,y+L*sy);ctx.lineTo(x,y);ctx.lineTo(x+L*sx,y);ctx.stroke();});
+  ctx.globalAlpha=o*.25;ctx.lineWidth=2;
+  for(let i=1;i<3;i++){const x=m+(W-2*m)*i/3,y=top+(bot-top)*i/3;
+    ctx.beginPath();ctx.moveTo(x,top);ctx.lineTo(x,bot);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(m,y);ctx.lineTo(W-m,y);ctx.stroke();}
+  ctx.globalAlpha=o;
+  // 被写体：光の帯がパンする
+  const px=lerp(250,830,eInOut(lt/BAR));
+  sirius(ctx,px,615,22,1,lt*.4);
+  // REC / TC
+  if(Math.floor(lt/BEAT)%2===0){ctx.fillStyle='#FF4D4D';ctx.beginPath();ctx.arc(m+40,top+60,14,0,6.283);ctx.fill();}
+  ctx.font='700 34px "JetBrains Mono"';ctx.fillStyle='#F4F6FF';ctx.fillText('REC',m+66,top+72);
+  const f=Math.floor((t*30)%30),s=Math.floor(t)%60;
+  ctx.textAlign='right';ctx.fillText(`00:00:${String(s).padStart(2,'0')}:${String(f).padStart(2,'0')}`,W-m-30,top+72);
+  ctx.textAlign='left';ctx.font='500 28px "JetBrains Mono"';ctx.fillStyle='rgba(244,246,255,.7)';
+  ctx.fillText('4K 29.97p  ISO 800  1/60',m+30,bot-36);
+  ctx.restore();
+}
+
+function meters(ctx,t,lt){
+  const o=eOut(prog(lt,0,.2));ctx.save();ctx.globalAlpha=o;
+  const n=24,x0=110,w=(W-220)/n,base=880;
+  for(let i=0;i<n;i++){
+    const f=Math.abs(Math.sin(i*1.7+Math.floor(t/BEAT*2)*.9));
+    const h=(120+380*f*(.45+.55*pulse(t,6)))*eOut(prog(lt,i*.012,.3));
+    const cells=Math.floor(h/22);
+    for(let c=0;c<cells;c++){
+      const r=c/22;ctx.fillStyle=r>.8?'#FF6B5A':r>.6?'#FFB547':'#8FB8FF';
+      ctx.fillRect(x0+i*w+4,base-c*22,w-8,16);
+    }
+  }
+  // 波形ライン
+  ctx.strokeStyle='rgba(220,235,255,.8)';ctx.lineWidth=4;ctx.beginPath();
+  for(let x=110;x<=W-110;x+=6){const y=330+Math.sin(x*.03+t*9)*30*pulse(t,5)+Math.sin(x*.011-t*4)*18;x===110?ctx.moveTo(x,y):ctx.lineTo(x,y);}
+  ctx.stroke();ctx.restore();
+}
+
+function browser(ctx,t,lt){
+  const o=eOut(prog(lt,0,.2));ctx.save();ctx.globalAlpha=o;
+  const x=110,y=300,w=W-220,h=620;
+  const rr=(X,Y,Wd,Hd,r)=>{ctx.beginPath();ctx.roundRect(X,Y,Wd,Hd,r)};
+  ctx.fillStyle='rgba(20,27,62,.92)';rr(x,y,w,h,24);ctx.fill();
+  ctx.strokeStyle='rgba(143,184,255,.6)';ctx.lineWidth=3;ctx.stroke();
+  ['#FF6B5A','#FFB547','#5ED39A'].forEach((c,i)=>{ctx.fillStyle=c;ctx.beginPath();ctx.arc(x+40+i*34,y+36,10,0,6.283);ctx.fill();});
+  ctx.fillStyle='rgba(244,246,255,.12)';rr(x+150,y+20,w-190,32,16);ctx.fill();
+  ctx.font='500 22px "JetBrains Mono"';ctx.fillStyle='rgba(244,246,255,.6)';ctx.fillText('https://your-shop.jp',x+172,y+43);
+  // 部品が拍ごとに組み上がる
+  const step=k=>eBack(prog(lt,BEAT*k*.9,.35));
+  let s=step(0);ctx.fillStyle='rgba(143,184,255,.85)';rr(x+40,y+90,(w-80)*s,190,16);ctx.fill();
+  s=step(1);ctx.fillStyle='#FFB547';rr(x+70,y+200,260*s,52,26);ctx.fill();
+  ctx.fillStyle='rgba(9,14,34,.9)';ctx.font='900 46px "Zen Kaku Gothic New"';if(s>.5)ctx.fillText('Hello, World',x+70,y+170);
+  for(let i=0;i<3;i++){s=step(2+i*.6);const cw=(w-120)/3;ctx.fillStyle='rgba(244,246,255,.14)';
+    rr(x+40+i*(cw+20),y+310+(1-s)*40,cw,250,14);ctx.globalAlpha=o*s;ctx.fill();ctx.globalAlpha=o;
+    ctx.fillStyle='rgba(244,246,255,.4)';ctx.fillRect(x+60+i*(cw+20),y+500+(1-s)*40,(cw-40)*s,12);}
+  // カーソル
+  const cx=lerp(W-260,x+200,eInOut(prog(lt,BEAT*1.2,BEAT*1.6))),cy=lerp(900,y+226,eInOut(prog(lt,BEAT*1.2,BEAT*1.6)));
+  ctx.fillStyle='#F4F6FF';ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+30,cy+38);ctx.lineTo(cx+14,cy+38);ctx.lineTo(cx+22,cy+60);ctx.lineTo(cx+12,cy+62);ctx.lineTo(cx+4,cy+42);ctx.lineTo(cx-6,cy+52);ctx.closePath();ctx.fill();
+  ctx.restore();
+}
+
+function phones(ctx,t,lt){
+  const o=eOut(prog(lt,0,.2));ctx.save();ctx.globalAlpha=o;
+  const spread=eBack(prog(lt,.05,.5));
+  [-1,0,1].forEach((k,i)=>{
+    ctx.save();ctx.translate(W/2+k*290*spread,640+Math.abs(k)*40*spread);ctx.rotate(k*.14*spread);
+    const w=250,h=480;ctx.fillStyle='rgba(20,27,62,.95)';ctx.beginPath();ctx.roundRect(-w/2,-h/2,w,h,36);ctx.fill();
+    ctx.strokeStyle='rgba(220,235,255,.7)';ctx.lineWidth=4;ctx.stroke();
+    const hue=['#8FB8FF','#FFB547','#B79BFF'][i];
+    ctx.fillStyle=hue;ctx.globalAlpha=o*.85;ctx.beginPath();ctx.roundRect(-w/2+18,-h/2+60,w-36,250,18);ctx.fill();
+    ctx.globalAlpha=o;sirius(ctx,0,-h/2+185,10,.9,t);
+    // いいね数が拍で増える
+    const likes=Math.floor(lerp(12,980+i*640,eOut(prog(lt,.3,BAR-.4))));
+    ctx.fillStyle='#FF6B8A';ctx.font='900 34px "Zen Kaku Gothic New"';ctx.fillText('♥',-w/2+22,h/2-80);
+    ctx.fillStyle='#F4F6FF';ctx.font='700 30px "JetBrains Mono"';ctx.fillText(likes.toLocaleString(),-w/2+62,h/2-80);
+    ctx.fillStyle='rgba(244,246,255,.3)';ctx.fillRect(-w/2+22,h/2-150,w-44,12);ctx.fillRect(-w/2+22,h/2-128,(w-44)*.6,12);
+    ctx.restore();
+  });
+  // 浮かぶハート
+  for(let j=0;j<10;j++){const st=j*.15,p=prog(lt,st,1.1);if(p<=0||p>=1)continue;
+    ctx.globalAlpha=o*(1-p);ctx.fillStyle='#FF6B8A';ctx.font='900 44px sans-serif';
+    ctx.fillText('♥',W/2-300+((j*137)%600),900-p*520);}
+  ctx.restore();
+}
+
+function sceneB(t){
+  const st=$('steps'),inB=t>=T.B1&&t<T.C;st.style.opacity=inB?eOut(prog(t,T.B1,.3))*(1-prog(t,T.C-.15,.15)):0;
+  [...st.children].forEach((el,i)=>el.style.setProperty('--p',clamp((t-T.B1-i*BAR)/BAR)));
+  const ids=['B1','B2','B3','B4'],starts=[T.B1,T.B2,T.B3,T.B4],draw=[viewfinder,meters,browser,phones];
+  ids.forEach((id,i)=>{
+    const lt=t-starts[i],on=lt>=0&&lt<BAR;setScene(id,on?1:0);if(!on)return;
+    const el=$(id),big=el.querySelector('.big'),lab=el.querySelector('.label'),sub=el.querySelector('.sub');
+    const p=eOut(prog(lt,0,.32));
+    tx(big,lerp(120,0,p),0,lerp(1.08,1,p),p,(1-p)*10);
+    const q=eOut(prog(lt,.08,.3));tx(lab,lerp(-40,0,q),0,1,q);
+    const s=eOut(prog(lt,BEAT,.35));tx(sub,0,lerp(24,0,s),1,s);
+    // 抜け際に少し流す
+    const out=prog(lt,BAR-.16,.16);if(out>0){el.style.opacity=1-out*.6;big.style.transform+=` translateX(${-out*80}px)`;}
+    draw[i](fx,t,lt);
+  });
+}
+
+// 小節頭の光のワイプ
+function wipes(t){
+  [T.B1,T.B2,T.B3,T.B4,T.C].forEach((c,i)=>{
+    const p=prog(t,c-.06,.24);if(p<=0||p>=1)return;
+    fx.save();fx.globalCompositeOperation='lighter';
+    const x=lerp(-600,W+600,eInOut(p));
+    const g=fx.createLinearGradient(x-260,0,x+260,0);
+    g.addColorStop(0,'rgba(220,235,255,0)');g.addColorStop(.5,`rgba(220,235,255,${i===0||i===4?.95:.55})`);g.addColorStop(1,'rgba(220,235,255,0)');
+    fx.fillStyle=g;fx.translate(0,0);fx.transform(1,0,-.35,1,H*.18,0);fx.fillRect(x-300,0,600,H);
+    fx.restore();
+  });
+  // インパクト時の全面フラッシュ
+  [T.B1,T.C].forEach(c=>{const p=prog(t,c,.35);if(p>0&&p<1){fx.fillStyle=`rgba(235,243,255,${(1-p)**2*.75})`;fx.fillRect(0,0,W,H);}});
+}
+
+function sceneC(t){
+  const lt=t-T.C,on=lt>=0;setScene('C',on?1:0);if(!on)return;
+  [...$('logo').children].forEach((sp,i)=>{
+    const p=eBack(prog(lt,.05+i*.09,.5));
+    sp.style.transform=`translateY(${lerp(60,0,p)}px) scale(${lerp(.7,1,p)})`;sp.style.opacity=clamp(p*1.4);
+    sp.style.filter=`blur(${(1-clamp(p))*10}px)`;
+  });
+  const r=eOut(prog(lt,.55,.6));tx($('roman'),0,lerp(20,0,r),1,r);$('roman').style.letterSpacing=lerp(.9,.6,r)+'em';
+  const s=eOut(prog(lt,BEAT*2,.5));tx($('svc'),0,lerp(20,0,s),1,s);
+  const c=eBack(prog(lt,BEAT*4,.5));
+  $('cta').style.transform=`translateX(-50%) scale(${lerp(.85,1,c)})`;$('cta').style.opacity=clamp(c);
+  $('cta').style.boxShadow=`0 0 ${30+30*pulse(t,3)}px rgba(255,181,71,${.25*c})`;
+  sirius(fx,W/2+230,760,lerp(0,30,eOut(prog(lt,0,.8)))*(1+.1*Math.sin(lt*4)),1,lt*.2);
+  // 終端フェード
+  const f=prog(t,T.END-.5,.5);if(f>0){fx.fillStyle=`rgba(5,8,26,${f*.0})`;fx.fillRect(0,0,W,H);}
+}
+
+window.renderAt=t=>{
+  drawBG(t);fx.clearRect(0,0,W,H);
+  sceneA(t);sceneB(t);sceneC(t);wipes(t);
+};
+if(!window.__RENDER){let t0=performance.now();const loop=()=>{renderAt(((performance.now()-t0)/1000)%15);requestAnimationFrame(loop)};document.fonts.ready.then(loop);}
+</script>
+</body></html>

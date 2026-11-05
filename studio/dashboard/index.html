@@ -1,0 +1,394 @@
+<title>天狼スタジオ 制作進行表</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700;900&family=Shippori+Mincho+B1:wght@800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+/* Layout: 制作進行表（香盤表）— 上に稼働状況の帯、下にタブで 計画 / 完成品 / 報告書。行は撮影スレートの体裁 */
+:root{
+  --bg:#EEF0F6; --surface:#FFFFFF; --sunk:#E3E6F0; --line:#D2D6E4;
+  --ink:#151A31; --mute:#5B6283; --faint:#8B91AE;
+  --indigo:#2F3FB8; --indigo-soft:#E2E5FA; --lantern:#C97A0A; --lantern-soft:#FCEFD9;
+  --ok:#1F8A5B; --ok-soft:#DDF3E8; --warn:#B4540B; --bad:#C2363B; --bad-soft:#FBE3E4;
+  --jp:"Zen Kaku Gothic New","Hiragino Sans","Noto Sans JP",system-ui,sans-serif;
+  --brand:"Shippori Mincho B1","Hiragino Mincho ProN","Noto Serif JP",serif;
+  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --r:10px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0C1024; --surface:#151A33; --sunk:#0F1430; --line:#272E52;
+  --ink:#E9ECFA; --mute:#A2A9CC; --faint:#6E769C;
+  --indigo:#9AA8FF; --indigo-soft:#232C63; --lantern:#FFB547; --lantern-soft:#3A2C12;
+  --ok:#5ED39A; --ok-soft:#14372A; --warn:#F2A35A; --bad:#FF7A80; --bad-soft:#3D1A20; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0C1024; --surface:#151A33; --sunk:#0F1430; --line:#272E52;
+  --ink:#E9ECFA; --mute:#A2A9CC; --faint:#6E769C;
+  --indigo:#9AA8FF; --indigo-soft:#232C63; --lantern:#FFB547; --lantern-soft:#3A2C12;
+  --ok:#5ED39A; --ok-soft:#14372A; --warn:#F2A35A; --bad:#FF7A80; --bad-soft:#3D1A20; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:15px/1.65 var(--jp);margin:0}
+.wrap{max-width:1080px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 64px;display:flex;flex-direction:column;gap:20px}
+h1,h2,h3{margin:0;text-wrap:balance}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--indigo);outline-offset:2px}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+
+/* masthead */
+.mast{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px}
+.mast h1{font-family:var(--brand);font-size:30px;letter-spacing:.06em;line-height:1.2}
+.mast h1 small{display:block;font:500 12px var(--mono);letter-spacing:.3em;color:var(--mute)}
+.mast p{margin:0;color:var(--mute);font-size:13px}
+
+/* status band */
+.band{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;display:grid;grid-template-columns:1.4fr 1fr;gap:16px}
+@media (max-width:760px){.band{grid-template-columns:1fr}}
+.band h2{font-size:12px;letter-spacing:.14em;color:var(--mute);font-weight:700;margin-bottom:8px}
+.cycle{display:grid;grid-template-columns:repeat(5,1fr);gap:4px}
+.cycle div{min-width:0;text-align:center;padding:8px 2px;border-radius:6px;background:var(--sunk);color:var(--faint);font-size:12px;font-weight:700;position:relative}
+.cycle div.on{background:var(--indigo);color:var(--surface)}
+.cycle div.done{background:var(--indigo-soft);color:var(--indigo)}
+.cycle-meta{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:10px;font-size:13px;color:var(--mute)}
+.cycle-meta b{color:var(--ink);font-weight:700}
+.msg{margin-top:8px;font-size:13px;color:var(--ink);min-width:0;overflow-wrap:anywhere}
+.conns{display:flex;flex-direction:column;gap:6px}
+.conn{display:flex;align-items:center;gap:10px;font-size:13px}
+.conn .dot{width:9px;height:9px;border-radius:50%;background:var(--faint);flex:none}
+.conn.ok .dot{background:var(--ok)} .conn.wait .dot{background:var(--lantern)}
+.conn .nm{font-weight:700;width:96px;flex:none}
+.conn .st{color:var(--mute);min-width:0}
+.auto{display:flex;gap:8px;align-items:center;margin-top:12px;padding-top:10px;border-top:1px solid var(--line);font-size:13px;font-weight:700;cursor:pointer}
+.auto input{width:18px;height:18px;accent-color:var(--indigo)}
+
+/* tabs */
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);overflow-x:auto}
+.tabs button{background:none;border:0;padding:10px 14px;font-weight:700;color:var(--mute);border-bottom:3px solid transparent;cursor:pointer;white-space:nowrap}
+.tabs button[aria-selected="true"]{color:var(--ink);border-color:var(--lantern)}
+.tabs .n{font:500 12px var(--mono);color:var(--faint);margin-left:6px}
+
+/* filters */
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:4px 12px;font-size:13px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.btn{border:1px solid var(--ink);background:var(--ink);color:var(--surface);border-radius:8px;padding:8px 14px;font-weight:700;cursor:pointer}
+.btn.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+
+/* plan list = slates */
+.group-h{font-size:12px;letter-spacing:.14em;color:var(--mute);font-weight:700;margin:6px 0 -6px}
+.list{display:flex;flex-direction:column;gap:8px}
+.plan{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.plan.active{border-color:var(--indigo)}
+.row{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;padding:12px 14px}
+.ck{appearance:none;width:26px;height:26px;border:2px solid var(--faint);border-radius:7px;display:grid;place-content:center;cursor:pointer;background:var(--surface);margin:0}
+.ck:checked{background:var(--indigo);border-color:var(--indigo)}
+.ck:checked::after{content:"";width:12px;height:7px;border-left:3px solid var(--surface);border-bottom:3px solid var(--surface);transform:translateY(-2px) rotate(-45deg)}
+.ck.done:checked{background:var(--ok);border-color:var(--ok)}
+.ck:disabled{cursor:default}
+.ck.run{border-color:var(--indigo);background:var(--indigo-soft)}
+.ck.run::after{content:"";width:10px;height:10px;border-radius:50%;background:var(--indigo);animation:beat 1s infinite}
+@keyframes beat{50%{transform:scale(.55);opacity:.5}}
+@media (prefers-reduced-motion:reduce){.ck.run::after{animation:none}}
+.head{min-width:0;cursor:pointer;background:none;border:0;text-align:left;padding:0;display:flex;flex-direction:column;gap:2px}
+.head .t{font-weight:700;font-size:16px;line-height:1.4}
+.head .s{font-size:13px;color:var(--mute);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.cat{font-size:11px;font-weight:700;padding:2px 8px;border-radius:4px;background:var(--sunk);color:var(--mute);white-space:nowrap}
+.pill{font-size:12px;font-weight:700;padding:3px 10px;border-radius:999px;white-space:nowrap}
+.p-backlog{background:var(--sunk);color:var(--mute)}
+.p-queued{background:var(--lantern-soft);color:var(--lantern)}
+.p-run{background:var(--indigo-soft);color:var(--indigo)}
+.p-done{background:var(--ok-soft);color:var(--ok)}
+.p-failed{background:var(--bad-soft);color:var(--bad)}
+.take{font:700 11px var(--mono);color:var(--faint);letter-spacing:.08em}
+@media (max-width:560px){.row{grid-template-columns:auto 1fr}.meta{grid-column:2;justify-content:flex-start}}
+
+.detail{border-top:1px dashed var(--line);padding:14px 14px 16px 52px;display:grid;grid-template-columns:1fr 1fr;gap:16px 24px}
+@media (max-width:700px){.detail{grid-template-columns:1fr;padding-left:14px}}
+.detail section{min-width:0}
+.detail h3{font-size:12px;letter-spacing:.12em;color:var(--mute);margin-bottom:6px}
+.detail p{margin:0;white-space:pre-wrap;overflow-wrap:anywhere}
+.detail ul{margin:0;padding-left:1.2em}
+.full{grid-column:1/-1}
+.steps{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin-bottom:4px}
+.steps span{font-size:11px;font-weight:700;text-align:center;padding:4px 0;border-top:3px solid var(--sunk);color:var(--faint)}
+.steps span.done{border-color:var(--indigo);color:var(--indigo)}
+.steps span.on{border-color:var(--lantern);color:var(--ink)}
+.log{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:6px;max-height:280px;overflow:auto}
+.log li{display:grid;grid-template-columns:auto 1fr;gap:10px;font-size:13px}
+.log time{font:500 12px var(--mono);color:var(--faint);white-space:nowrap}
+.log b{color:var(--indigo);font-weight:700;margin-right:6px}
+.note-form{display:flex;gap:8px;flex-wrap:wrap}
+.note-form textarea{flex:1 1 260px;min-height:44px;border:1px solid var(--line);border-radius:8px;padding:8px 10px;background:var(--bg);resize:vertical}
+
+/* works */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+.work{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;display:flex;flex-direction:column}
+.media{background:#05081A;display:grid;place-items:center;aspect-ratio:var(--ar,9/16);max-width:100%;max-height:520px;overflow:hidden}
+.media video,.media img{width:100%;height:100%;object-fit:contain;display:block}
+.media .ph{color:#8B91AE;font-size:13px;padding:16px;text-align:center}
+.wbody{padding:12px 14px 14px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.wbody h3{font-size:16px;line-height:1.4}
+.wbody p{margin:0;font-size:13px;color:var(--mute)}
+.specs{display:flex;flex-wrap:wrap;gap:4px}
+.specs span{font:500 11px var(--mono);background:var(--sunk);color:var(--mute);padding:2px 6px;border-radius:4px}
+.links{display:flex;flex-wrap:wrap;gap:6px 12px;font-size:13px}
+.links a{color:var(--indigo);font-weight:700}
+audio{width:100%;height:36px}
+
+/* reports */
+.rep{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;display:flex;flex-direction:column;gap:8px}
+.rep header{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:baseline}
+.rep h3{font-size:16px}
+.rep .d{font:500 12px var(--mono);color:var(--faint)}
+.rep ul{margin:0;padding-left:1.2em}
+.rep .lbl{font-size:12px;font-weight:700;color:var(--mute);letter-spacing:.1em}
+
+/* add form */
+dialog{border:1px solid var(--line);border-radius:14px;background:var(--surface);color:var(--ink);padding:0;width:min(560px,calc(100vw - 32px))}
+dialog::backdrop{background:rgba(8,10,25,.5)}
+dialog form{padding:18px;display:flex;flex-direction:column;gap:12px}
+dialog label{display:flex;flex-direction:column;gap:4px;font-size:13px;font-weight:700;color:var(--mute)}
+dialog input,dialog select,dialog textarea{border:1px solid var(--line);border-radius:8px;padding:8px 10px;background:var(--bg);font-weight:400;color:var(--ink)}
+dialog textarea{min-height:110px}
+.row-btn{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+.inline{flex-direction:row!important;align-items:center;gap:8px!important}
+
+.empty{border:1px dashed var(--line);border-radius:var(--r);padding:28px 18px;text-align:center;color:var(--mute);font-size:14px}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--surface);padding:10px 16px;border-radius:8px;font-size:14px;max-width:calc(100vw - 32px)}
+.notice{font-size:13px;color:var(--warn)}
+</style>
+
+<div class="wrap">
+  <header class="mast">
+    <div>
+      <h1><small>TENRO STUDIO · AUTOPILOT</small>天狼スタジオ 制作進行表</h1>
+    </div>
+    <p id="who">計画にチェックを入れると、次の稼働サイクルで Claude が着手します。</p>
+  </header>
+
+  <section class="band" aria-label="稼働状況">
+    <div style="min-width:0">
+      <h2>稼働サイクル</h2>
+      <div class="cycle" id="cycle"><div>計画</div><div>テスト</div><div>制作</div><div>公開</div><div>報告</div></div>
+      <div class="cycle-meta" id="cmeta"><span>状態を読み込み中…</span></div>
+      <div class="msg" id="cmsg"></div>
+    </div>
+    <div>
+      <h2>連携</h2>
+      <div class="conns" id="conns"></div>
+      <label class="auto" for="auto"><input type="checkbox" id="auto" checked> チェックが無いときは優先度順に自動着手する</label>
+    </div>
+  </section>
+
+  <nav class="tabs" role="tablist">
+    <button role="tab" id="tab-plans" aria-selected="true" data-v="plans">計画<span class="n" id="n-plans">–</span></button>
+    <button role="tab" id="tab-works" aria-selected="false" data-v="works">完成品<span class="n" id="n-works">–</span></button>
+    <button role="tab" id="tab-reports" aria-selected="false" data-v="reports">報告書・ナレッジ<span class="n" id="n-reports">–</span></button>
+  </nav>
+
+  <section id="v-plans" style="display:flex;flex-direction:column;gap:14px">
+    <div class="bar">
+      <div class="chips" id="catf"></div>
+      <button class="btn" id="add">計画を追加</button>
+    </div>
+    <div id="plans"><div class="empty">計画を読み込み中…</div></div>
+  </section>
+
+  <section id="v-works" hidden>
+    <div class="chips" id="catw" style="margin-bottom:14px"></div>
+    <div class="grid" id="works"><div class="empty">完成品を読み込み中…</div></div>
+  </section>
+
+  <section id="v-reports" hidden>
+    <div class="list" id="reports"><div class="empty">報告書を読み込み中…</div></div>
+  </section>
+  <p class="notice" id="ro" hidden>閲覧のみの権限です。チェックや追加はできません。</p>
+</div>
+
+<dialog id="dlg">
+  <form id="f" method="dialog">
+    <h2 style="font-size:18px">新しい計画</h2>
+    <label>タイトル<input id="f-title" required maxlength="80" placeholder="例：カフェ向け 15秒 店頭サイネージ動画"></label>
+    <label>カテゴリ<select id="f-cat"></select></label>
+    <label>内容・要望<textarea id="f-detail" placeholder="目的、尺、雰囲気、使う場所、参考など。わかる範囲でOK"></textarea></label>
+    <label class="inline"><input type="checkbox" id="f-go" checked> すぐ着手する（チェック済みで追加）</label>
+    <div class="row-btn"><button type="button" class="btn ghost" id="f-cancel">やめる</button><button class="btn" id="f-ok">追加する</button></div>
+  </form>
+</dialog>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+const CATS={video:'映像作品',ad:'広告動画',web:'HPサンプル',sns:'SNS運用',music:'BGM・音源',system:'仕組み'};
+const STATUS={backlog:['未着手','p-backlog'],queued:['着手待ち','p-queued'],testing:['テスト中','p-run'],producing:['制作中','p-run'],publishing:['公開中','p-run'],reporting:['報告書作成','p-run'],done:['完成','p-done'],failed:['要確認','p-failed']};
+const STEP_OF={backlog:-1,queued:0,testing:1,producing:2,publishing:3,reporting:4,done:5,failed:-1};
+const STEPS=['計画','テスト','制作','公開','報告'];
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt=iso=>{if(!iso)return'–';const d=new Date(iso);if(isNaN(d))return esc(iso);return d.toLocaleString('ja-JP',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'})};
+let db=null,canWrite=true,plans=[],works=[],reports=[],sys=null,open=new Set(),fcat='all',wcat='all';
+function toast(m){const t=$('#toast');t.textContent=m;t.hidden=false;clearTimeout(toast.h);toast.h=setTimeout(()=>t.hidden=true,2600)}
+
+// ---------- tabs
+function show(v){document.querySelectorAll('.tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.v===v));
+  ['plans','works','reports'].forEach(k=>$('#v-'+k).hidden=k!==v);try{localStorage.setItem('tab',v)}catch(e){}}
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>show(b.dataset.v));
+try{const t=localStorage.getItem('tab');if(t)show(t)}catch(e){}
+
+function chips(el,cur,set,counts){
+  const keys=['all',...Object.keys(CATS).filter(k=>counts[k])];
+  el.innerHTML=keys.map(k=>`<button class="chip" aria-pressed="${k===cur}" data-k="${k}">${k==='all'?'すべて':CATS[k]}${counts[k]?` <span class="mono">${counts[k]}</span>`:''}</button>`).join('');
+  el.querySelectorAll('button').forEach(b=>b.onclick=()=>{set(b.dataset.k)});
+}
+
+// ---------- status band
+function renderSys(){
+  const s=sys||{};const step={planning:0,testing:1,producing:2,publishing:3,reporting:4}[s.phase]??-1;
+  [...$('#cycle').children].forEach((d,i)=>{d.className=step<0?'':i<step?'done':i===step?'on':''});
+  $('#cmeta').innerHTML=[
+    `<span>サイクル <b class="mono">#${esc(s.cycle??0)}</b></span>`,
+    `<span>前回稼働 <b>${fmt(s.lastRunAt)}</b></span>`,
+    `<span>次回予定 <b>${fmt(s.nextRunAt)}</b></span>`,
+    `<span>稼働間隔 <b>${esc(s.interval||'–')}</b></span>`].join('');
+  $('#cmsg').textContent=s.message||'';
+  const c=s.connections||{};
+  const rows=[['drive','Google Drive'],['github','GitHub Pages'],['cloudflare','Cloudflare'],['x','X（旧Twitter）']];
+  $('#conns').innerHTML=rows.map(([k,n])=>{const v=c[k]||{state:'none',note:'未設定'};
+    return `<div class="conn ${v.state==='ok'?'ok':v.state==='wait'?'wait':''}"><span class="dot"></span><span class="nm">${n}</span><span class="st">${esc(v.note)}</span></div>`}).join('');
+}
+
+// ---------- plans
+const ORDER={producing:0,testing:0,publishing:0,reporting:0,queued:1,failed:2,backlog:3,done:4};
+function renderPlans(){
+  const counts={};plans.forEach(p=>counts[p.category]=(counts[p.category]||0)+1);
+  chips($('#catf'),fcat,k=>{fcat=k;renderPlans()},counts);
+  $('#n-plans').textContent=plans.filter(p=>p.status!=='done').length;
+  const list=plans.filter(p=>fcat==='all'||p.category===fcat).sort((a,b)=>(ORDER[a.status]??9)-(ORDER[b.status]??9)||(a.priority??2)-(b.priority??2)||String(a.createdAt).localeCompare(String(b.createdAt)));
+  if(!plans.length){$('#plans').innerHTML='<div class="empty">まだ計画がありません。「計画を追加」から依頼を入れると、Claude が次のサイクルで拾います。</div>';return}
+  const groups=[['進行中',p=>['testing','producing','publishing','reporting'].includes(p.status)],['着手待ち',p=>p.status==='queued'],['要確認',p=>p.status==='failed'],['計画ストック',p=>p.status==='backlog'],['完成',p=>p.status==='done']];
+  let html='';
+  for(const [name,fn] of groups){const g=list.filter(fn);if(!g.length)continue;
+    html+=`<h2 class="group-h">${name}</h2><div class="list">${g.map(planHTML).join('')}</div>`}
+  $('#plans').innerHTML=html||'<div class="empty">このカテゴリの計画はありません。</div>';
+  $('#plans').querySelectorAll('.ck').forEach(c=>c.onchange=()=>toggle(c.dataset.id,c.checked,c));
+  $('#plans').querySelectorAll('.head').forEach(h=>h.onclick=()=>{const id=h.dataset.id;open.has(id)?open.delete(id):open.add(id);renderPlans()});
+  $('#plans').querySelectorAll('.note-form').forEach(f=>f.onsubmit=e=>{e.preventDefault();addNote(f.dataset.id,f.querySelector('textarea'))});
+}
+function planHTML(p){
+  const [lab,cls]=STATUS[p.status]||STATUS.backlog;
+  const running=['testing','producing','publishing','reporting'].includes(p.status);
+  const checked=p.status!=='backlog'&&p.status!=='failed';
+  const lock=!canWrite||running||p.status==='done';
+  const ck=`<input type="checkbox" class="ck ${p.status==='done'?'done':''} ${running?'run':''}" id="ck-${esc(p.id)}" data-id="${esc(p.id)}" ${checked&&!running?'checked':''} ${lock?'disabled':''} aria-label="${esc(p.title)} に着手する">`;
+  const isOpen=open.has(p.id);
+  const step=STEP_OF[p.status]??-1;
+  let det='';
+  if(isOpen){
+    const li=a=>(a&&a.length)?`<ul>${a.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:'<p style="color:var(--faint)">–</p>';
+    const log=(p.log||[]).slice().reverse();
+    const notes=(p.notes||[]);
+    det=`<div class="detail">
+      <section class="full"><div class="steps">${STEPS.map((s,i)=>`<span class="${i<step?'done':i===step?'on':''}">${s}</span>`).join('')}</div></section>
+      <section class="full"><h3>内容</h3><p>${esc(p.detail||p.summary||'')}</p></section>
+      <section><h3>成果物</h3>${li(p.deliverables)}</section>
+      <section><h3>合格ライン</h3>${li(p.criteria)}</section>
+      <section class="full"><h3>進行ログ</h3>${log.length?`<ul class="log">${log.map(l=>`<li><time>${fmt(l.at)}</time><span><b>${esc(l.phase||'')}</b>${esc(l.text)}</span></li>`).join('')}</ul>`:'<p style="color:var(--faint)">まだ記録はありません。</p>'}</section>
+      ${notes.length?`<section class="full"><h3>あなたからの指示</h3><ul class="log">${notes.map(n=>`<li><time>${fmt(n.at)}</time><span>${esc(n.text)}</span></li>`).join('')}</ul></section>`:''}
+      ${canWrite?`<section class="full"><h3>指示・フィードバックを追加</h3><form class="note-form" data-id="${esc(p.id)}"><textarea id="note-${esc(p.id)}" placeholder="例：BGMはもう少し落ち着いた雰囲気で／テロップを大きく"></textarea><button class="btn ghost">送る</button></form></section>`:''}
+    </div>`;
+  }
+  return `<article class="plan ${running?'active':''}">
+    <div class="row">${ck}
+      <button class="head" data-id="${esc(p.id)}" aria-expanded="${isOpen}"><span class="t">${esc(p.title)}</span><span class="s">${esc(p.summary||'')}</span></button>
+      <div class="meta"><span class="take">${esc(p.id)}${p.iterations?` · TAKE ${p.iterations}`:''}</span><span class="cat">${esc(CATS[p.category]||p.category||'')}</span><span class="pill ${cls}">${lab}</span></div>
+    </div>${det}</article>`;
+}
+async function toggle(id,on,el){
+  const p=plans.find(x=>x.id===id);if(!p||!db)return;
+  if(!['backlog','queued','failed'].includes(p.status)){el.checked=!on;return}
+  const now=new Date().toISOString();
+  const status=on?'queued':'backlog';
+  const log=[...(p.log||[]),{at:now,phase:on?'承認':'取り下げ',text:on?'着手を承認。次の稼働サイクルでテストから開始します。':'着手を取り下げました。'}];
+  el.disabled=true;
+  try{await db.doc('plans/'+id).update({status,updatedAt:now,queuedAt:on?now:null,log});toast(on?'着手待ちにしました':'計画ストックに戻しました')}
+  catch(e){el.checked=!on;toast('保存できませんでした：'+(e.code||e.message));if(e.code==='invalid_argument'){canWrite=false;$('#ro').hidden=false}}
+  finally{el.disabled=false}
+}
+async function addNote(id,ta){
+  const text=ta.value.trim();if(!text||!db)return;const p=plans.find(x=>x.id===id);if(!p)return;
+  const now=new Date().toISOString();
+  try{await db.doc('plans/'+id).update({notes:[...(p.notes||[]),{at:now,text}],updatedAt:now});ta.value='';toast('指示を記録しました。次のサイクルで反映します')}
+  catch(e){toast('保存できませんでした：'+(e.code||e.message))}
+}
+
+// ---------- works
+function renderWorks(){
+  const counts={};works.forEach(w=>counts[w.category]=(counts[w.category]||0)+1);
+  chips($('#catw'),wcat,k=>{wcat=k;renderWorks()},counts);
+  $('#n-works').textContent=works.length;
+  const list=works.filter(w=>wcat==='all'||w.category===wcat);
+  if(!works.length){$('#works').innerHTML='<div class="empty" style="grid-column:1/-1">完成品はまだありません。計画が「完成」になるとここに並びます。</div>';return}
+  $('#works').innerHTML=list.map(w=>{
+    const v=w.videoAsset?`/_blob/${esc(w.videoAsset)}`:w.videoUrl;const po=w.posterAsset?`/_blob/${esc(w.posterAsset)}`:w.posterUrl;
+    const ar=w.aspect||'9/16';
+    const media=v?`<video controls playsinline preload="metadata" ${po?`poster="${esc(po)}"`:''} src="${esc(v)}"></video>`:po?`<img src="${esc(po)}" alt="${esc(w.title)} のサムネイル">`:'<div class="ph">プレビューなし</div>';
+    const sp=w.specs||{};
+    const specs=[sp.duration&&`${sp.duration}s`,sp.width&&`${sp.width}×${sp.height}`,sp.fps&&`${sp.fps}fps`,sp.lufs!=null&&`${sp.lufs} LUFS`,w.music&&w.music.bpm&&`${w.music.bpm} BPM`,w.music&&w.music.key&&`Key ${w.music.key}`].filter(Boolean);
+    const audio=w.audioAsset?`<audio controls preload="none" src="/_blob/${esc(w.audioAsset)}"></audio>`:'';
+    return `<article class="work"><div class="media" style="--ar:${esc(ar)}">${media}</div><div class="wbody">
+      <div class="meta" style="justify-content:flex-start"><span class="cat">${esc(CATS[w.category]||w.category)}</span><span class="take">${esc(w.planId||'')} · ${fmt(w.completedAt)}</span></div>
+      <h3>${esc(w.title)}</h3><p>${esc(w.summary||'')}</p>
+      ${w.music&&w.music.title?`<p>BGM：${esc(w.music.title)}（自作）</p>`:''}${audio}
+      ${specs.length?`<div class="specs">${specs.map(s=>`<span>${esc(s)}</span>`).join('')}</div>`:''}
+      ${(w.links||[]).length?`<div class="links">${w.links.map(l=>`<a href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.label)}</a>`).join('')}</div>`:''}
+    </div></article>`}).join('')||'<div class="empty" style="grid-column:1/-1">このカテゴリの完成品はありません。</div>';
+}
+
+// ---------- reports
+function renderReports(){
+  $('#n-reports').textContent=reports.length;
+  if(!reports.length){$('#reports').innerHTML='<div class="empty">報告書はまだありません。制作が1本終わるごとに、学んだことをここにまとめます。</div>';return}
+  const li=(t,a)=>(a&&a.length)?`<div><div class="lbl">${t}</div><ul>${a.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>`:'';
+  $('#reports').innerHTML=reports.map(r=>`<article class="rep"><header><h3>${esc(r.title)}</h3><span class="d">${esc(r.planId||'')} · ${fmt(r.date)}</span></header>
+    ${r.summary?`<p style="margin:0">${esc(r.summary)}</p>`:''}${li('うまくいったこと',r.good)}${li('学び（スキルに反映）',r.learnings)}${li('次に改善すること',r.next)}</article>`).join('');
+}
+
+// ---------- add plan
+const sel=$('#f-cat');sel.innerHTML=Object.entries(CATS).map(([k,v])=>`<option value="${k}">${v}</option>`).join('');
+$('#add').onclick=()=>{if(!canWrite){toast('閲覧のみの権限です');return}$('#dlg').showModal()};
+$('#f-cancel').onclick=()=>$('#dlg').close();
+$('#f').onsubmit=async e=>{e.preventDefault();if(!db)return;
+  const title=$('#f-title').value.trim();if(!title)return;
+  const now=new Date().toISOString();const go=$('#f-go').checked;
+  const n=plans.reduce((m,p)=>Math.max(m,parseInt(String(p.id).replace(/\D/g,''))||0),0)+1;
+  const id='P'+String(n).padStart(3,'0');
+  const doc={id,title,category:$('#f-cat').value,summary:$('#f-detail').value.trim().split('\n')[0].slice(0,90),detail:$('#f-detail').value.trim(),
+    deliverables:[],criteria:[],status:go?'queued':'backlog',priority:1,requestedBy:'user',createdAt:now,updatedAt:now,queuedAt:go?now:null,
+    log:[{at:now,phase:'依頼',text:'あなたが計画を追加しました。'+(go?'着手待ちに入れました。':'')}],notes:[]};
+  $('#f-ok').disabled=true;
+  try{await db.doc('plans/'+id).set(doc);$('#dlg').close();$('#f').reset();$('#f-go').checked=true;toast(id+' を追加しました');show('plans')}
+  catch(e){toast('追加できませんでした：'+(e.code||e.message))}finally{$('#f-ok').disabled=false}
+};
+
+// ---------- boot
+renderSys();
+(async()=>{
+  const timer=setTimeout(()=>{if(!plans.length)$('#plans').innerHTML='<div class="empty">データに接続できません。少し待ってから開き直してください。</div>'},10000);
+  db=await claude?.use?.('db');
+  const user=await claude?.use?.('user');
+  if(user){const w=await user.can?.('data.write');if(w===false){canWrite=false;$('#ro').hidden=false;$('#add').disabled=true}}
+  if(!db){clearTimeout(timer);canWrite=false;$('#add').disabled=true;
+    ['#plans','#reports'].forEach(s=>$(s).innerHTML='<div class="empty">このビューではデータを読み込めません。claude.ai にサインインして開いてください。</div>');
+    $('#works').innerHTML='<div class="empty" style="grid-column:1/-1">このビューではデータを読み込めません。</div>';return}
+  db.collection('plans').onSnapshot(s=>{clearTimeout(timer);plans=s.docs.map(d=>({id:d.id,...d.data()}));renderPlans()},e=>{$('#plans').innerHTML=`<div class="empty">計画を読み込めませんでした（${esc(e.code)}）。</div>`});
+  db.collection('works').orderBy('completedAt','desc').onSnapshot(s=>{works=s.docs.map(d=>({id:d.id,...d.data()}));renderWorks()},e=>{$('#works').innerHTML=`<div class="empty">完成品を読み込めませんでした（${esc(e.code)}）。</div>`});
+  db.collection('reports').orderBy('date','desc').onSnapshot(s=>{reports=s.docs.map(d=>({id:d.id,...d.data()}));renderReports()},e=>{$('#reports').innerHTML=`<div class="empty">報告書を読み込めませんでした（${esc(e.code)}）。</div>`});
+  db.doc('system/status').onSnapshot(d=>{sys=d.exists?d.data():null;renderSys()});
+  let settings=null;
+  db.doc('system/settings').onSnapshot(d=>{settings=d.exists?d.data():null;$('#auto').checked=settings?settings.autoStart!==false:true});
+  $('#auto').disabled=!canWrite;
+  $('#auto').onchange=async e=>{const v=e.target.checked;e.target.disabled=true;
+    try{await db.doc('system/settings').set({...(settings||{}),autoStart:v,updatedAt:new Date().toISOString()});toast(v?'自動着手をオンにしました':'自動着手をオフにしました。チェックした計画だけ制作します')}
+    catch(err){e.target.checked=!v;toast('保存できませんでした：'+(err.code||err.message))}finally{e.target.disabled=!canWrite}};
+})();
+</script>
