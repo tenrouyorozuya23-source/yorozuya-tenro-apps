@@ -1,0 +1,1234 @@
+{
+ "note": "ムード・用途は解析値と曲名からの推定。Claude は音を聴けないため、実際の印象はユーザーの確認で補正する。",
+ "tracks": [
+  {
+   "id": "TNR-M00",
+   "drive_id": "1FBZ3U47rt1zvpJt1PhckUIWlFA1ZSPsg",
+   "original_title": "M0_夜明け-Yoake-",
+   "proposed_title": "夜明け -Yoake-",
+   "english_title": "Yoake",
+   "proposed_filename": "TNR-M00_Yoake_89bpm_Em",
+   "duration": 248.88,
+   "bpm": 89.1,
+   "bpm_half_time": null,
+   "key": "E minor",
+   "lufs": -11.4,
+   "true_peak": -2.4,
+   "brightness_hz": 2306,
+   "percussive_ratio": 0.075,
+   "low_minus_mid_db": -1.2,
+   "climax_center": 220.0,
+   "cuts": {
+    "6": [
+     202.942,
+     208.942
+    ],
+    "15": [
+     219.173,
+     234.173
+    ],
+    "30": [
+     205.659,
+     235.659
+    ],
+    "60": [
+     175.891,
+     235.891
+    ]
+   },
+   "sections": [
+    {
+     "start": 0.3,
+     "end": 11.08,
+     "energy": 0.565
+    },
+    {
+     "start": 11.08,
+     "end": 43.4,
+     "energy": 0.721
+    },
+    {
+     "start": 43.4,
+     "end": 48.81,
+     "energy": 0.827
+    },
+    {
+     "start": 48.81,
+     "end": 151.56,
+     "energy": 0.89
+    },
+    {
+     "start": 151.56,
+     "end": 159.66,
+     "energy": 0.621
+    },
+    {
+     "start": 159.66,
+     "end": 165.07,
+     "energy": 0.832
+    },
+    {
+     "start": 165.07,
+     "end": 170.48,
+     "energy": 0.777
+    },
+    {
+     "start": 170.48,
+     "end": 208.35,
+     "energy": 0.95
+    },
+    {
+     "start": 208.35,
+     "end": 235.4,
+     "energy": 0.98
+    },
+    {
+     "start": 235.4,
+     "end": 248.88,
+     "energy": 0.595
+    }
+   ],
+   "mood": "希望・始まり・壮大な立ち上がり",
+   "use": "ブランドムービー冒頭／ショーリールの導入／周年・開業告知",
+   "tags": [
+    "和風",
+    "壮大",
+    "希望",
+    "ロング"
+   ],
+   "analysis": "analysis/1FBZ3U47rt1zvpJt1PhckUIWlFA1ZSPsg.json",
+   "source": "SUNO AI（ユーザー制作・著作権フリー）"
+  },
+  {
+   "id": "TNR-M01",
+   "drive_id": "1dkAZrEDuRb2Tvtyqf6TlPHiKLC4-kgrw",
+   "original_title": "M1_Taiko Brotherhood",
+   "proposed_title": "太鼓の契り",
+   "english_title": "Taiko Brotherhood",
+   "proposed_filename": "TNR-M01_TaikoBrotherhood_112bpm_Fm",
+   "duration": 62.88,
+   "bpm": 112.3,
+   "bpm_half_time": null,
+   "key": "F minor",
+   "lufs": -14.2,
+   "true_peak": -4.8,
+   "brightness_hz": 2322,
+   "percussive_ratio": 0.099,
+   "low_minus_mid_db": 0.6,
+   "climax_center": 33.5,
+   "cuts": {
+    "6": [
+     52.129,
+     58.129
+    ],
+    "15": [
+     43.607,
+     58.607
+    ],
+    "30": [
+     28.746,
+     58.746
+    ],
+    "60": [
+     1.231,
+     61.231
+    ]
+   },
+   "sections": [
+    {
+     "start": 0.0,
+     "end": 58.51,
+     "energy": 0.884
+    },
+    {
+     "start": 58.51,
+     "end": 62.76,
+     "energy": 0.449
+    }
+   ],
+   "mood": "和太鼓の推進力・団結・祭りの熱",
+   "use": "15秒SNS広告／イベント・公演告知／6秒バンパー（全編高エネルギーで短い）",
+   "tags": [
+    "和太鼓",
+    "勢い",
+    "広告向き",
+    "ショート"
+   ],
+   "analysis": "analysis/1dkAZrEDuRb2Tvtyqf6TlPHiKLC4-kgrw.json",
+   "source": "SUNO AI（ユーザー制作・著作権フリー）"
+  },
+  {
+   "id": "TNR-M02",
+   "drive_id": "1FxE7oJPp8X9IcOrqVREiyYgDuAbeibel",
+   "original_title": "M2_The Silence Between Beats",
+   "proposed_title": "鼓動の間",
+   "english_title": "The Silence Between Beats",
+   "proposed_filename": "TNR-M02_TheSilenceBetweenBeats_83bpm_Fm",
+   "duration": 122.0,
+   "bpm": 83.4,
+   "bpm_half_time": null,
+   "key": "F minor",
+   "lufs": -14.1,
+   "true_peak": -4.6,
+   "brightness_hz": 2651,
+   "percussive_ratio": 0.108,
+   "low_minus_mid_db": 1.4,
+   "climax_center": 99.0,
+   "cuts": {
+    "6": [
+     94.552,
+     100.552
+    ],
+    "15": [
+     85.937,
+     100.937
+    ],
+    "30": [
+     91.742,
+     121.742
+    ],
+    "60": [
+     60.186,
+     120.186
+    ]
+   },
+   "sections": [
+    {
+     "start": 0.0,
+     "end": 10.82,
+     "energy": 0.622
+    },
+    {
+     "start": 10.82,
+     "end": 28.21,
+     "energy": 0.79
+    },
+    {
+     "start": 28.21,
+     "end": 91.74,
+     "energy": 0.902
+    },
+    {
+     "start": 91.74,
+     "end": 100.1,
+     "energy": 0.953
+    },
+    {
+     "start": 100.1,
+     "end": 120.42,
+     "energy": 0.905
+    },
+    {
+     "start": 120.42,
+     "end": 122.0,
+     "energy": 0.369
+    }
+   ],
+   "mood": "張り詰めた緊張・静と動",
+   "use": "ティザー／謎解き・予告の前半／ノウハウ動画の導入",
+   "tags": [
+    "緊張",
+    "ティザー",
+    "ミドル"
+   ],
+   "analysis": "analysis/1FxE7oJPp8X9IcOrqVREiyYgDuAbeibel.json",
+   "source": "SUNO AI（ユーザー制作・著作権フリー）"
+  },
+  {
+   "id": "TNR-M03",
+   "drive_id": "1bz1TG4WdTqSjkt7aUku7CXZMnRGPhhng",
+   "original_title": "M3_The Silence After the Shriek",
+   "proposed_title": "叫びの後の静寂",
+   "english_title": "The Silence After the Shriek",
+   "proposed_filename": "TNR-M03_TheSilenceAftertheShriek_81bpm_D",
+   "duration": 148.0,
+   "bpm": 80.7,
+   "bpm_half_time": null,
+   "key": "D major",
+   "lufs": -13.1,
+   "true_peak": -4.1,
+   "brightness_hz": 1706,
+   "percussive_ratio": 0.078,
+   "low_minus_mid_db": 1.1,
+   "climax_center": 141.5,
+   "cuts": {
+    "6": [
+     94.645,
+     100.645
+    ],
+    "15": [
+     85.658,
+     100.658
+    ],
+    "30": [
+     76.649,
+     106.649
+    ],
+    "60": [
+     40.612,
+     100.612
+    ]
+   },
+   "sections": [
+    {
+     "start": 0.0,
+     "end": 8.27,
+     "energy": 0.416
+    },
+    {
+     "start": 8.27,
+     "end": 17.07,
+     "energy": 0.619
+    },
+    {
+     "start": 17.07,
+     "end": 22.83,
+     "energy": 0.762
+    },
+    {
+     "start": 22.83,
+     "end": 28.63,
+     "energy": 0.646
+    },
+    {
+     "start": 28.63,
+     "end": 100.64,
+     "energy": 0.873
+    },
+    {
+     "start": 100.64,
+     "end": 106.65,
+     "energy": 0.81
+    },
+    {
+     "start": 106.65,
+     "end": 148.0,
+     "energy": 0.897
+    }
+   ],
+   "mood": "余韻から高揚へ（長調・持続的に高い）",
+   "use": "ドキュメンタリー調の実績紹介／ショーリールの中盤",
+   "tags": [
+    "長調",
+    "高揚",
+    "持続"
+   ],
+   "analysis": "analysis/1bz1TG4WdTqSjkt7aUku7CXZMnRGPhhng.json",
+   "source": "SUNO AI（ユーザー制作・著作権フリー）"
+  },
+  {
+   "id": "TNR-M04",
+   "drive_id": "1GP3RmJsYz6q9UG_UEL3b6TuoDE7U93ne",
+   "original_title": "M4_妖印ノ刻",
+   "proposed_title": "妖印ノ刻",
+   "english_title": "Youin no Toki",
+   "proposed_filename": "TNR-M04_YouinnoToki_103bpm_C",
+   "duration": 195.28,
+   "bpm": 103.4,
+   "bpm_half_time": null,
+   "key": "C major",
+   "lufs": -14.1,
+   "true_peak": -2.6,
+   "brightness_hz": 1051,
+   "percussive_ratio": 0.081,
+   "low_minus_mid_db": 0.6,
+   "climax_center": 178.0,
+   "cuts": {
+    "6": [
+     176.797,
+     182.797
+    ],
+    "15": [
+     167.555,
+     182.555
+    ],
+    "30": [
+     158.337,
+     188.337
+    ],
+    "60": [
+     123.716,
+     183.716
+    ]
+   },
+   "sections": [
+    {
+     "start": 0.0,
+     "end": 29.14,
+     "energy": 0.468
+    },
+    {
+     "start": 29.14,
+     "end": 35.97,
+     "energy": 0.832
+    },
+    {
+     "start": 35.97,
+     "end": 70.61,
+     "energy": 0.634
+    },
+    {
+     "start": 70.61,
+     "end": 116.8,
+     "energy": 0.792
+    },
+    {
+     "start": 116.8,
+     "end": 156.01,
+     "energy": 0.871
+    },
+    {
+     "start": 156.01,
+     "end": 183.72,
+     "energy": 0.915
+    },
+    {
+     "start": 183.72,
+     "end": 188.31,
+     "energy": 0.884
+    },
+    {
+     "start": 188.31,
+     "end": 192.93,
+     "energy": 0.743
+    },
+    {
+     "start": 192.93,
+     "end": 195.28,
+     "energy": 0.76
+    }
+   ],
+   "mood": "怪しさ・ミステリー（序盤が疎で抑揚が大きい）",
+   "use": "ミステリー・ホラー系告知／『謎』を引っ張る構成／ハロウィン等の季節ネタ",
+   "tags": [
+    "ミステリー",
+    "抑揚大",
+    "和風"
+   ],
+   "analysis": "analysis/1GP3RmJsYz6q9UG_UEL3b6TuoDE7U93ne.json",
+   "source": "SUNO AI（ユーザー制作・著作権フリー）"
+  },
+  {
+   "id": "TNR-M05",
+   "drive_id": "1ftyBPquLbS326fdfURz7iNYHDy1_NiIu",
+   "original_title": "M5_鬼門の進軍",
+   "proposed_title": "鬼門の進軍",
+   "english_title": "Kimon March",
+   "proposed_filename": "TNR-M05_KimonMarch_83bpm_D",
+   "duration": 184.51,
+   "bpm": 83.4,
+   "bpm_half_time": null,
+   "key": "D major",
+   "lufs": -11.3,
+   "true_peak": -1.3,
+   "brightness_hz": 2194,
+   "percussive_ratio": 0.085,
+   "low_minus_mid_db": 5.4,
+   "climax_center": 100.0,
+   "cuts": {
+    "6": [
+     101.843,
+     107.843
+    ],
+    "15": [
+     93.112,
+     108.112
+    ],
+    "30": [
+     84.358,
+     114.358
+    ],
+    "60": [
+     84.358,
+     144.358
+    ]
+   },
+   "sections": [
+    {
+     "start": 0.0,
+     "end": 31.7,
+     "energy": 0.502
+    },
+    {
+     "start": 31.7,
+     "end": 34.62,
+     "energy": 0.395
+    },
+    {
+     "start": 34.62,
+     "end": 43.42,
+     "energy": 0.759
+    },
+    {
+     "start": 43.42,
+     "end": 107.67,
+     "energy": 0.895
+    },
+    {
+     "start": 107.67,
+     "end": 113.5,
+     "energy": 0.916
+    },
+    {
+     "start": 113.5,
+     "end": 145.45,
+     "energy": 0.905
+    },
+    {
+     "start": 145.45,
+     "end": 180.26,
+     "energy": 0.858
+    },
+    {
+     "start": 180.26,
+     "end": 184.51,
+     "energy": 0.667
+    }
+   ],
+   "mood": "重厚な行進・低域が厚く音圧が高い",
+   "use": "アクション予告／決意表明／スポーツ・格闘系（スマホでは低域を少し削る）",
+   "tags": [
+    "重厚",
+    "行進",
+    "低域厚"
+   ],
+   "analysis": "analysis/1ftyBPquLbS326fdfURz7iNYHDy1_NiIu.json",
+   "source": "SUNO AI（ユーザー制作・著作権フリー）"
+  },
+  {
+   "id": "TNR-M06",
+   "drive_id": "1UM6pzJ8PuAvBSszBVw5D2YqMERD5kFGY",
+   "original_title": "M6_深紅の旗 Crimson Banner",
+   "proposed_title": "深紅の旗",
+   "english_title": "Crimson Banner",
+   "proposed_filename": "TNR-M06_CrimsonBanner_103bpm_Em",
+   "duration": 184.6,
+   "bpm": 103.4,
+   "bpm_half_time": null,
+   "key": "E minor",
+   "lufs": -12.4,
+   "true_peak": -3.0,
+   "brightness_hz": 1812,
+   "percussive_ratio": 0.054,
+   "low_minus_mid_db": 0.8,
+   "climax_center": 165.0,
+   "cuts": {
+    "6": [
+     162.725,
+     168.725
+    ],
+    "15": [
+     155.527,
+     170.527
+    ],
+    "30": [
+     139.227,
+     169.227
+    ],
+    "60": [
+     109.18,
+     169.18
+    ]
+   },
+   "sections": [
+    {
+     "start": 0.0,
+     "end": 3.44,
+     "energy": 0.002
+    },
+    {
+     "start": 3.44,
+     "end": 5.71,
+     "energy": 0.372
+    },
+    {
+     "start": 5.71,
+     "end": 23.64,
+     "energy": 0.733
+    },
+    {
+     "start": 23.64,
+     "end": 25.94,
+     "energy": 0.734
+    },
+    {
+     "start": 25.94,
+     "end": 148.54,
+     "energy": 0.888
+    },
+    {
+     "start": 148.54,
+     "end": 169.78,
+     "energy": 0.948
+    },
+    {
+     "start": 169.78,
+     "end": 174.27,
+     "energy": 0.398
+    },
+    {
+     "start": 174.27,
+     "end": 184.6,
+     "energy": 0.541
+    }
+   ],
+   "mood": "熱量・クライマックス・勝負",
+   "use": "クライマックス演出／キャンペーン告知のサビ／ショーリールのハイライト",
+   "tags": [
+    "熱量",
+    "クライマックス",
+    "和風"
+   ],
+   "analysis": "analysis/1UM6pzJ8PuAvBSszBVw5D2YqMERD5kFGY.json",
+   "source": "SUNO AI（ユーザー制作・著作権フリー）"
+  },
+  {
+   "id": "TNR-M07",
+   "drive_id": "1nN0CcH-Ta9Swwxfu6dbhS7myhJ_0pDSf",
+   "original_title": "M7_怪しき陣、胎動",
+   "proposed_title": "怪しき陣、胎動",
+   "english_title": "Ayashiki Jin",
+   "proposed_filename": "TNR-M07_AyashikiJin_108bpm_C",
+   "duration": 113.72,
+   "bpm": 107.7,
+   "bpm_half_time": null,
+   "key": "C major",
+   "lufs": -12.6,
+   "true_peak": -3.4,
+   "brightness_hz": 1439,
+   "percussive_ratio": 0.075,
+   "low_minus_mid_db": 4.8,
+   "climax_center": 38.5,
+   "cuts": {
+    "6": [
+     84.683,
+     90.683
+    ],
+    "15": [
+     75.72,
+     90.72
+    ],
+    "30": [
+     62.299,
+     92.299
+    ],
+    "60": [
+     30.929,
+     90.929
+    ]
+   },
+   "sections": [
+    {
+     "start": 0.0,
+     "end": 1.79,
+     "energy": 0.0
+    },
+    {
+     "start": 1.79,
+     "end": 8.52,
+     "energy": 0.523
+    },
+    {
+     "start": 8.52,
+     "end": 91.39,
+     "energy": 0.849
+    },
+    {
+     "start": 91.39,
+     "end": 107.04,
+     "energy": 0.821
+    },
+    {
+     "start": 107.04,
+     "end": 113.72,
+     "energy": 0.228
+    }
+   ],
+   "mood": "不穏な胎動・じわじわ迫る",
+   "use": "予告編の前半／敵役・ダーク系の導入",
+   "tags": [
+    "不穏",
+    "胎動",
+    "低域厚"
+   ],
+   "analysis": "analysis/1nN0CcH-Ta9Swwxfu6dbhS7myhJ_0pDSf.json",
+   "source": "SUNO AI（ユーザー制作・著作権フリー）"
+  },
+  {
+   "id": "TNR-M08",
+   "drive_id": "1ytcBZ_G1awYjaY3BS_K5Zzhv-AzInVkm",
+   "original_title": "M8_Faded Koto Memory",
+   "proposed_title": "褪せた琴の記憶",
+   "english_title": "Faded Koto Memory",
+   "proposed_filename": "TNR-M08_FadedKotoMemory_129bpm_Gm",
+   "duration": 134.84,
+   "bpm": 129.2,
+   "bpm_half_time": null,
+   "key": "G minor",
+   "lufs": -13.4,
+   "true_peak": -2.8,
+   "brightness_hz": 836,
+   "percussive_ratio": 0.019,
+   "low_minus_mid_db": -1.5,
+   "climax_center": 99.5,
+   "cuts": {
+    "6": [
+     51.641,
+     57.641
+    ],
+    "15": [
+     98.151,
+     113.151
+    ],
+    "30": [
+     83.244,
+     113.244
+    ],
+    "60": [
+     53.499,
+     113.499
+    ]
+   },
+   "sections": [
+    {
+     "start": 0.0,
+     "end": 9.01,
+     "energy": 0.458
+    },
+    {
+     "start": 9.01,
+     "end": 23.78,
+     "energy": 0.68
+    },
+    {
+     "start": 23.78,
+     "end": 113.13,
+     "energy": 0.873
+    },
+    {
+     "start": 113.13,
+     "end": 120.86,
+     "energy": 0.29
+    },
+    {
+     "start": 120.86,
+     "end": 126.5,
+     "energy": 0.541
+    },
+    {
+     "start": 126.5,
+     "end": 134.84,
+     "energy": 0.661
+    }
+   ],
+   "mood": "しっとり・回想（打楽器が非常に少なく暗め）",
+   "use": "和食・旅館・着物など和の店舗サイネージ／回想・感謝の動画／静かな実績紹介",
+   "tags": [
+    "琴",
+    "しっとり",
+    "サイネージ向き",
+    "打楽器少"
+   ],
+   "analysis": "analysis/1ytcBZ_G1awYjaY3BS_K5Zzhv-AzInVkm.json",
+   "source": "SUNO AI（ユーザー制作・著作権フリー）"
+  },
+  {
+   "id": "TNR-M09",
+   "drive_id": "1MQ5jFW5RoQ0kFQeLuyq_je5F2Ulxv85k",
+   "original_title": "M9_The Hollow Collapse",
+   "proposed_title": "虚ろな崩落",
+   "english_title": "The Hollow Collapse",
+   "proposed_filename": "TNR-M09_TheHollowCollapse_162bpm_Em",
+   "duration": 153.6,
+   "bpm": 161.5,
+   "bpm_half_time": 80.8,
+   "key": "E minor",
+   "lufs": -15.6,
+   "true_peak": -4.3,
+   "brightness_hz": 1572,
+   "percussive_ratio": 0.067,
+   "low_minus_mid_db": -0.1,
+   "climax_center": 99.5,
+   "cuts": {
+    "6": [
+     115.264,
+     121.264
+    ],
+    "15": [
+     107.787,
+     122.787
+    ],
+    "30": [
+     92.787,
+     122.787
+    ],
+    "60": [
+     62.787,
+     122.787
+    ]
+   },
+   "sections": [
+    {
+     "start": 0.0,
+     "end": 2.86,
+     "energy": 0.104
+    },
+    {
+     "start": 2.86,
+     "end": 20.83,
+     "energy": 0.791
+    },
+    {
+     "start": 20.83,
+     "end": 122.74,
+     "energy": 0.909
+    },
+    {
+     "start": 122.74,
+     "end": 131.75,
+     "energy": 0.331
+    },
+    {
+     "start": 131.75,
+     "end": 139.46,
+     "energy": 0.666
+    },
+    {
+     "start": 139.46,
+     "end": 146.82,
+     "energy": 0.44
+    },
+    {
+     "start": 146.82,
+     "end": 153.6,
+     "energy": 0.685
+    }
+   ],
+   "mood": "崩壊・悲劇・速い刻み（体感は約81BPMの可能性）",
+   "use": "シリアスな転換点／ドラマチックなショーリール章",
+   "tags": [
+    "悲劇",
+    "速い",
+    "シリアス"
+   ],
+   "analysis": "analysis/1MQ5jFW5RoQ0kFQeLuyq_je5F2Ulxv85k.json",
+   "source": "SUNO AI（ユーザー制作・著作権フリー）"
+  },
+  {
+   "id": "TNR-M10",
+   "drive_id": "18DhqDew9Xdy4feoVc_yofauHkmXDWMbe",
+   "original_title": "M10_The Final Strike",
+   "proposed_title": "最後の一撃",
+   "english_title": "The Final Strike",
+   "proposed_filename": "TNR-M10_TheFinalStrike_129bpm_Fm",
+   "duration": 93.2,
+   "bpm": 129.2,
+   "bpm_half_time": null,
+   "key": "F minor",
+   "lufs": -16.4,
+   "true_peak": -6.0,
+   "brightness_hz": 1932,
+   "percussive_ratio": 0.089,
+   "low_minus_mid_db": 0.4,
+   "climax_center": 84.0,
+   "cuts": {
+    "6": [
+     82.315,
+     88.315
+    ],
+    "15": [
+     74.791,
+     89.791
+    ],
+    "30": [
+     59.629,
+     89.629
+    ],
+    "60": [
+     29.234,
+     89.234
+    ]
+   },
+   "sections": [
+    {
+     "start": 0.0,
+     "end": 8.45,
+     "energy": 0.57
+    },
+    {
+     "start": 8.45,
+     "end": 10.26,
+     "energy": 0.389
+    },
+    {
+     "start": 10.26,
+     "end": 89.84,
+     "energy": 0.92
+    },
+    {
+     "start": 89.84,
+     "end": 93.2,
+     "energy": 0.028
+    }
+   ],
+   "mood": "決戦・終始高エネルギー（約93秒）",
+   "use": "6秒・15秒バンパー／アクション系SNS広告のサビ",
+   "tags": [
+    "決戦",
+    "高エネルギー",
+    "ショート"
+   ],
+   "analysis": "analysis/18DhqDew9Xdy4feoVc_yofauHkmXDWMbe.json",
+   "source": "SUNO AI（ユーザー制作・著作権フリー）"
+  },
+  {
+   "id": "TNR-M11",
+   "drive_id": "1UqlRNOvH_Z9WTvtZlLQu31me0c7L8BzA",
+   "original_title": "M11_終幕と輪廻",
+   "proposed_title": "終幕と輪廻",
+   "english_title": "Finale and Rebirth",
+   "proposed_filename": "TNR-M11_FinaleandRebirth_144bpm_Gm",
+   "duration": 208.8,
+   "bpm": 143.6,
+   "bpm_half_time": 71.8,
+   "key": "G minor",
+   "lufs": -15.0,
+   "true_peak": -4.4,
+   "brightness_hz": 903,
+   "percussive_ratio": 0.064,
+   "low_minus_mid_db": -0.5,
+   "climax_center": 161.5,
+   "cuts": {
+    "6": [
+     155.411,
+     161.411
+    ],
+    "15": [
+     167.23,
+     182.23
+    ],
+    "30": [
+     130.125,
+     160.125
+    ],
+    "60": [
+     100.31,
+     160.31
+    ]
+   },
+   "sections": [
+    {
+     "start": 0.0,
+     "end": 14.91,
+     "energy": 0.164
+    },
+    {
+     "start": 14.91,
+     "end": 19.78,
+     "energy": 0.293
+    },
+    {
+     "start": 19.78,
+     "end": 43.14,
+     "energy": 0.606
+    },
+    {
+     "start": 43.14,
+     "end": 51.53,
+     "energy": 0.836
+    },
+    {
+     "start": 51.53,
+     "end": 75.16,
+     "energy": 0.713
+    },
+    {
+     "start": 75.16,
+     "end": 160.52,
+     "energy": 0.895
+    },
+    {
+     "start": 160.52,
+     "end": 182.44,
+     "energy": 0.946
+    },
+    {
+     "start": 182.44,
+     "end": 190.98,
+     "energy": 0.488
+    },
+    {
+     "start": 190.98,
+     "end": 208.8,
+     "energy": 0.635
+    }
+   ],
+   "mood": "余韻・エンディング・ゆっくり立ち上がる（体感は約72BPMの可能性）",
+   "use": "エンディング／ブランドの締め／感謝・周年動画",
+   "tags": [
+    "エンディング",
+    "余韻",
+    "スロービルド"
+   ],
+   "analysis": "analysis/1UqlRNOvH_Z9WTvtZlLQu31me0c7L8BzA.json",
+   "source": "SUNO AI（ユーザー制作・著作権フリー）"
+  },
+  {
+   "id": "TNR-M12",
+   "drive_id": "1QsHWdx6rherh8e27UsoXvPWQZfqg-d3B",
+   "original_title": "M12_Kagebi - Electronic Band Mix",
+   "proposed_title": "影火 Electronic Band Mix",
+   "english_title": "Kagebi (Electronic Band Mix)",
+   "proposed_filename": "TNR-M12_Kagebi_ElectronicBandMix_108bpm_Gm",
+   "duration": 256.76,
+   "bpm": 107.7,
+   "bpm_half_time": null,
+   "key": "G minor",
+   "lufs": -13.6,
+   "true_peak": -3.5,
+   "brightness_hz": 3401,
+   "percussive_ratio": 0.151,
+   "low_minus_mid_db": 2.2,
+   "climax_center": 248.5,
+   "cuts": {
+    "6": [
+     187.826,
+     193.826
+    ],
+    "15": [
+     240.141,
+     255.141
+    ],
+    "30": [
+     225.025,
+     255.025
+    ],
+    "60": [
+     196.418,
+     256.418
+    ]
+   },
+   "sections": [
+    {
+     "start": 0.0,
+     "end": 2.0,
+     "energy": 0.126
+    },
+    {
+     "start": 2.0,
+     "end": 17.76,
+     "energy": 0.706
+    },
+    {
+     "start": 17.76,
+     "end": 26.56,
+     "energy": 0.64
+    },
+    {
+     "start": 26.56,
+     "end": 91.6,
+     "energy": 0.79
+    },
+    {
+     "start": 91.6,
+     "end": 96.11,
+     "energy": 0.82
+    },
+    {
+     "start": 96.11,
+     "end": 134.12,
+     "energy": 0.872
+    },
+    {
+     "start": 134.12,
+     "end": 141.04,
+     "energy": 0.7
+    },
+    {
+     "start": 141.04,
+     "end": 181.12,
+     "energy": 0.89
+    },
+    {
+     "start": 181.12,
+     "end": 185.57,
+     "energy": 0.818
+    },
+    {
+     "start": 185.57,
+     "end": 194.37,
+     "energy": 0.905
+    },
+    {
+     "start": 194.37,
+     "end": 198.51,
+     "energy": 0.719
+    },
+    {
+     "start": 198.51,
+     "end": 256.76,
+     "energy": 0.952
+    }
+   ],
+   "mood": "和×エレクトロ・最も明るく打楽器が強い・モダン",
+   "use": "モダンなSNS広告／テック・Web制作の紹介／ショーリールのメイン曲（最も汎用的）",
+   "tags": [
+    "和×エレクトロ",
+    "モダン",
+    "広告向き",
+    "汎用"
+   ],
+   "analysis": "analysis/1QsHWdx6rherh8e27UsoXvPWQZfqg-d3B.json",
+   "source": "SUNO AI（ユーザー制作・著作権フリー）"
+  },
+  {
+   "id": "TNR-M13",
+   "drive_id": "12s4Ykk_pk2-D1ZJUfPgFTj7acdJagU5Y",
+   "original_title": "鉄心死す",
+   "proposed_title": "鉄心死す",
+   "english_title": "Tesshin Falls",
+   "proposed_filename": "TNR-M13_TesshinFalls_108bpm_Cm",
+   "duration": 88.66,
+   "bpm": 107.7,
+   "bpm_half_time": null,
+   "key": "C minor",
+   "lufs": -26.2,
+   "true_peak": -14.5,
+   "brightness_hz": 922,
+   "percussive_ratio": 0.044,
+   "low_minus_mid_db": -0.5,
+   "climax_center": 27.0,
+   "cuts": {
+    "6": [
+     22.918,
+     28.918
+    ],
+    "15": [
+     67.64,
+     82.64
+    ],
+    "30": [
+     52.315,
+     82.315
+    ],
+    "60": [
+     22.918,
+     82.918
+    ]
+   },
+   "sections": [
+    {
+     "start": 0.19,
+     "end": 20.62,
+     "energy": 0.639
+    },
+    {
+     "start": 20.62,
+     "end": 83.01,
+     "energy": 0.866
+    },
+    {
+     "start": 83.01,
+     "end": 88.66,
+     "energy": 0.149
+    }
+   ],
+   "mood": "悲壮・別れ（元音源が-26 LUFSと小さいので+12dB程度の正規化が必要）",
+   "use": "追悼・別れの場面／重い実話系ドラマ（広告には不向き）",
+   "tags": [
+    "悲壮",
+    "静か",
+    "要音量補正"
+   ],
+   "analysis": "analysis/12s4Ykk_pk2-D1ZJUfPgFTj7acdJagU5Y.json",
+   "source": "SUNO AI（ユーザー制作・著作権フリー）"
+  },
+  {
+   "id": "TNR-M14",
+   "drive_id": "1rHWeOAlYzlUMXp3Btgq0_A00LaSlOdK9",
+   "original_title": "影の降臨",
+   "proposed_title": "影の降臨",
+   "english_title": "Advent of Shadow",
+   "proposed_filename": "TNR-M14_AdventofShadow_108bpm_Cm",
+   "duration": 209.92,
+   "bpm": 107.7,
+   "bpm_half_time": null,
+   "key": "C minor",
+   "lufs": -14.8,
+   "true_peak": -4.5,
+   "brightness_hz": 2278,
+   "percussive_ratio": 0.092,
+   "low_minus_mid_db": -0.7,
+   "climax_center": 200.5,
+   "cuts": {
+    "6": [
+     191.356,
+     197.356
+    ],
+    "15": [
+     182.486,
+     197.486
+    ],
+    "30": [
+     167.091,
+     197.091
+    ],
+    "60": [
+     138.159,
+     198.159
+    ]
+   },
+   "sections": [
+    {
+     "start": 0.72,
+     "end": 5.32,
+     "energy": 0.042
+    },
+    {
+     "start": 5.32,
+     "end": 30.07,
+     "energy": 0.555
+    },
+    {
+     "start": 30.07,
+     "end": 109.6,
+     "energy": 0.774
+    },
+    {
+     "start": 109.6,
+     "end": 111.8,
+     "energy": 0.658
+    },
+    {
+     "start": 111.8,
+     "end": 122.81,
+     "energy": 0.796
+    },
+    {
+     "start": 122.81,
+     "end": 182.49,
+     "energy": 0.857
+    },
+    {
+     "start": 182.49,
+     "end": 198.07,
+     "energy": 0.943
+    },
+    {
+     "start": 198.07,
+     "end": 209.42,
+     "energy": 0.804
+    }
+   ],
+   "mood": "ダーク・登場・後半に向けて上がる",
+   "use": "敵役・新キャラ登場／ダーク系ゲーム・イベントの告知",
+   "tags": [
+    "ダーク",
+    "登場",
+    "ビルド"
+   ],
+   "analysis": "analysis/1rHWeOAlYzlUMXp3Btgq0_A00LaSlOdK9.json",
+   "source": "SUNO AI（ユーザー制作・著作権フリー）"
+  }
+ ]
+}

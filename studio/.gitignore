@@ -8,3 +8,5 @@ projects/*/*.poster.jpg
 projects/*/*.qc.json
 projects/*/spec.png
 projects/*/wave.png
+music-library/src/
+music-library/analysis/*.png
