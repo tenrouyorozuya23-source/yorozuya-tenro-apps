@@ -16,10 +16,11 @@ var CONFIG = {
   creditRate: 0.0326,
 
   // 席種設定（販売有無・単価はスプシの公演マスタで変更可）
+  //   cap＝1公演あたりの販売上限。超えた新規申込はキャンセル待ち（仮予約）になる（既存の予約はそのまま）
   seatTypes: [
-    { name: "SS席", price: 7000, enabled: true, note: "最前列確保／非売品・役者ブロマイド付" },
-    { name: "S席",  price: 6000, enabled: true, note: "2列目確保" },
-    { name: "A席",  price: 5000, enabled: true, note: "3列目以降" }
+    { name: "SS席", price: 7000, enabled: true, cap: 10, note: "最前列確保／非売品・役者ブロマイド付" },
+    { name: "S席",  price: 6000, enabled: true, cap: 10, note: "2列目確保" },
+    { name: "A席",  price: 5000, enabled: true, cap: 35, note: "3列目以降" }
   ],
 
   // 特別チケット（なし）
@@ -1075,11 +1076,12 @@ function setupSalesManagementSheet(ss) {
 }
 
 // フォームの説明文・送信後メッセージ
-var FORM_CONFIRMATION = "ご予約ありがとうございます！\nご入力のメールアドレスに「ご予約確定」のメールをお送りしました。\n満席の公演はキャンセル待ち（仮予約）での受付となり、その旨のメールをお送りしています。";
+var FORM_CONFIRMATION = "ご予約ありがとうございます！\nご入力のメールアドレスに「ご予約確定」のメールをお送りしました。\n満席の公演・席種はキャンセル待ち（仮予約）での受付となり、その旨のメールをお送りしています。";
 
 function formSeatText() {
   return CONFIG.seatTypes.map(function(st){
-    return "・" + st.name + "　¥" + String(st.price).replace(/\B(?=(\d{3})+(?!\d))/g, ",") + (st.note ? "　" + st.note : "");
+    return "・" + st.name + "　¥" + String(st.price).replace(/\B(?=(\d{3})+(?!\d))/g, ",") + (st.note ? "　" + st.note : "") +
+      (st.cap ? "（各回" + st.cap + "席）" : "");
   }).join("\n");
 }
 
@@ -1089,7 +1091,7 @@ function formDescriptionText() {
     "【チケット】\n" + formSeatText() + "\n\n" +
     "【お支払い】\n" + CONFIG.payment.ticket + "\n" + CONFIG.payment.goods + "\n\n" +
     "【ご予約について】\n送信と同時にご予約が確定し、「ご予約確定」のメールが届きます。\n" +
-    "満席の公演はキャンセル待ち（仮予約）での受付となり、お席が空き次第、ご予約確定のメールをお送りします。" +
+    "満席の公演・席種はキャンセル待ち（仮予約）での受付となり、お席が空き次第、ご予約確定のメールをお送りします。" +
     (isReservationOpen() ? "" : "\n\n【予約受付開始】" + CONFIG.reservationOpenLabel + "〜");
 }
 
@@ -1435,7 +1437,7 @@ function onFormSubmit(e) {
   var waitlisted = false;
   try {
     waitlisted = showDt && seatType !== "全通券" &&
-      remainingSeatsFor(sheet, showDt, targetRow) < (Number(seatCount) || 1);
+      remainingSeatsFor(sheet, showDt, targetRow, seatType) < (Number(seatCount) || 1);
     if (colMap.status) sheet.getRange(targetRow, colMap.status).setValue(waitlisted ? STATUS_WAIT : STATUS_CONFIRMED);
     SpreadsheetApp.flush();
   } finally {
@@ -1497,18 +1499,30 @@ function showCapacity(showDt) {
   return 0;
 }
 
+// 席種ごとの販売上限（CONFIG.seatTypes の cap。未設定なら上限なし）
+function seatCap(seatType) {
+  for (var i = 0; i < CONFIG.seatTypes.length; i++) {
+    if (CONFIG.seatTypes[i].name === String(seatType || "")) return CONFIG.seatTypes[i].cap || Infinity;
+  }
+  return Infinity;
+}
+
 // 残席（excludeRow の行は数えない。1始まりの行番号）
-function remainingSeatsFor(sheet, showDt, excludeRow) {
+//   seatType を渡すと、公演全体の残席と、その席種の残り（上限 − 予約済み）の少ない方を返す
+function remainingSeatsFor(sheet, showDt, excludeRow, seatType) {
   var data = sheet.getDataRange().getValues();
   var hdr = data[0].map(String);
-  var cShow = hdr.indexOf("公演日時"), cStatus = hdr.indexOf("ステータス"), cCount = hdr.indexOf("枚数");
-  var used = 0;
+  var cShow = hdr.indexOf("公演日時"), cStatus = hdr.indexOf("ステータス"), cCount = hdr.indexOf("枚数"), cSeat = hdr.indexOf("席種");
+  var used = 0, usedSeat = 0;
   for (var i = 1; i < data.length; i++) {
     if (i + 1 === excludeRow) continue;
     if (!sameShow(data[i][cShow], showDt) || !countsAsSeat(data[i][cStatus])) continue;
-    used += toSeatCount(data[i][cCount]);
+    var n = toSeatCount(data[i][cCount]);
+    used += n;
+    if (seatType && String(data[i][cSeat]) === String(seatType)) usedSeat += n;
   }
-  return showCapacity(showDt) - used;
+  var left = showCapacity(showDt) - used;
+  return seatType ? Math.min(left, seatCap(seatType) - usedSeat) : left;
 }
 
 // キャンセル待ちを申込順に繰り上げる（空きに収まる予約だけ本予約にしてメールを送る）
@@ -1529,19 +1543,25 @@ function promoteWaitlist(showDt) {
     };
     var shows = showDt ? [showDt] : CONFIG.shows.map(function(s){ return s.dt; });
     shows.forEach(function(dt){
-      var used = 0, waits = [];
+      var used = 0, usedBySeat = {}, waits = [];
       for (var i = 1; i < data.length; i++) {
         if (!sameShow(data[i][c.show], dt)) continue;
         var st = String(data[i][c.status] || "");
         if (st === STATUS_WAIT) waits.push(i);
-        else if (countsAsSeat(st)) used += toSeatCount(data[i][c.count]);
+        else if (countsAsSeat(st)) {
+          var k = toSeatCount(data[i][c.count]), seat = String(data[i][c.seat]);
+          used += k;
+          usedBySeat[seat] = (usedBySeat[seat] || 0) + k;
+        }
       }
       var left = showCapacity(dt) - used;
       waits.sort(function(a, b){ return new Date(data[a][c.ts]) - new Date(data[b][c.ts]); });
       waits.forEach(function(i){
-        var n = toSeatCount(data[i][c.count]);
-        if (n > left) return;
+        var n = toSeatCount(data[i][c.count]), seat = String(data[i][c.seat]);
+        // 公演全体と席種の上限の両方に収まるときだけ繰り上げる
+        if (n > left || (usedBySeat[seat] || 0) + n > seatCap(seat)) return;
         left -= n;
+        usedBySeat[seat] = (usedBySeat[seat] || 0) + n;
         sheet.getRange(i + 1, c.status + 1).setValue(STATUS_CONFIRMED);
         data[i][c.status] = STATUS_CONFIRMED;
         try {
@@ -4031,7 +4051,7 @@ function sendWaitlistMail(r) {
   var body =
     r.name + " 様\n\n" +
     "この度は「" + CONFIG.title + "」にお申し込みいただき、誠にありがとうございます。\n" +
-    "ご希望の公演はただいま満席のため、キャンセル待ち（仮予約）として受け付けました。\n" +
+    "ご希望の公演・席種はただいま満席のため、キャンセル待ち（仮予約）として受け付けました。\n" +
     "お席が空き次第、お申し込み順に「ご予約確定」のメールをお送りします。\n" +
     "※ご予約確定のメールが届くまでは、ご予約は確定しておりません。\n\n" +
     reservationDetailText(r) +
