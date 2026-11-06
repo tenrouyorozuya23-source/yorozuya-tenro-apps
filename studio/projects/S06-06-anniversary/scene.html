@@ -1,0 +1,67 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><title>S06-06 50th</title>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@600&family=Noto+Sans+JP:wght@300;400&display=block" rel="stylesheet">
+<style>html,body{margin:0;overflow:hidden;background:#000}canvas{display:block}
+#ov{position:absolute;inset:0;color:#efe9df;pointer-events:none;font-family:"Noto Sans JP"}
+.t{position:absolute;opacity:0}
+#year{left:120px;top:96px;font:300 64px/1 "Noto Sans JP";letter-spacing:.08em;font-variant-numeric:tabular-nums}
+#ms{left:122px;top:176px;font:400 26px/1 "Noto Sans JP";color:#a69d90;letter-spacing:.14em}
+#intro{left:0;right:0;top:470px;text-align:center;font:600 64px/1.4 "Shippori Mincho";letter-spacing:.14em}
+#co{left:0;right:0;top:900px;text-align:center;font:600 54px/1 "Shippori Mincho";letter-spacing:.3em;text-indent:.3em}
+#span{left:0;right:0;top:975px;text-align:center;font:300 28px/1 "Noto Sans JP";letter-spacing:.3em;text-indent:.3em;color:#a69d90}
+#note{right:120px;bottom:60px;font:400 22px/1 "Noto Sans JP";color:#6e6e73}</style>
+<script type="importmap">{"imports":{"three":"/node_modules/three/build/three.module.js","three/addons/":"/node_modules/three/examples/jsm/"}}</script>
+</head><body><div id="ov"><div class="t" id="year"></div><div class="t" id="ms"></div><div class="t" id="intro">創業から、五十年。</div><div class="t" id="co">灯野精工</div><div class="t" id="span">1976 — 2026　創業50周年</div><div class="t" id="note">架空の企業のサンプルです</div></div>
+<script type="module">
+// 床に落ちる50の光だまりが「50」の形に並ぶ。1年に1灯ずつ、拍で点く。節目の年だけ色温度が変わる。最後に真上から「50」が見える
+import * as C from '/tools/cine/cine.js';
+const {lerp,prog,ease}=C;
+const W=innerWidth,H=innerHeight;
+const S=C.createStage({width:W,height:H,exposure:1.0,fov:34,envIntensity:0,dof:true});
+const {THREE,scene,camera}=S;
+if(S.bloom){S.bloom.threshold=.9;S.bloom.strength=.25;S.bloom.radius=.4;}
+scene.fog=new THREE.FogExp2(0,.03);scene.background=new THREE.Color(0);
+C.stageFloor(scene,{material:new THREE.MeshPhysicalMaterial({color:0x0b0b0c,roughness:.35,clearcoat:.5,clearcoatRoughness:.3})});
+// 「5」と「0」の線を等間隔に25点ずつ
+const sample=(pts,n)=>{const L=[0];for(let i=1;i<pts.length;i++)L.push(L[i-1]+Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]));
+  const out=[];for(let k=0;k<n;k++){const d=L.at(-1)*k/(n-1);let i=1;while(i<L.length-1&&L[i]<d)i++;const f=(d-L[i-1])/(L[i]-L[i-1]||1);out.push([lerp(pts[i-1][0],pts[i][0],f),lerp(pts[i-1][1],pts[i][1],f)]);}return out;};
+const five=[[.85,0],[.15,0],[.12,.44]];for(let a=-2.0;a<=2.2;a+=.15){five.push([.48+.38*Math.cos(a*.75-.2)*1.05,.68+.3*Math.sin(a*.75-.2)]);}
+const zero=[];for(let a=0;a<=Math.PI*2+.001;a+=.08)zero.push([.5+.38*Math.sin(a),.5-.5*Math.cos(a)]);
+const P=[...sample(five,25).map(([x,y])=>[x-1.25,y]),...sample(zero,25).map(([x,y])=>[x+.25,y])].map(([x,y])=>[x*2.9,(y-.5)*4.6]);
+const MS={9:'創業10年',24:'創業25年',39:'創業40年'};
+const warm=0xffd2a0,cool=0xcfe0ff;
+const pc=document.createElement('canvas');pc.width=pc.height=128;{const x=pc.getContext('2d');const g=x.createRadialGradient(64,64,0,64,64,64);g.addColorStop(0,'rgba(255,255,255,1)');g.addColorStop(.55,'rgba(255,255,255,.55)');g.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=g;x.fillRect(0,0,128,128);}
+const pt=new THREE.CanvasTexture(pc);
+const pools=[],beams=[];
+P.forEach(([x,z],i)=>{const col=MS[i]?cool:warm;
+  const m=new THREE.Mesh(new THREE.PlaneGeometry(.36,.36),new THREE.MeshBasicMaterial({map:pt,color:col,transparent:true,opacity:0,blending:THREE.AdditiveBlending,depthWrite:false}));
+  m.rotation.x=-Math.PI/2;m.position.set(x,.003,z);scene.add(m);pools.push(m);
+  beams.push(C.beam(scene,{from:[x,3.4,z+.15],to:[x,0,z],radius:.16,color:col,density:.12}));});
+const T0=4.0,DT=.5,HIT=30.0;
+const $=id=>document.getElementById(id);
+window.__ready=document.fonts.ready;
+window.renderAt=t=>{
+  const fi=(t-T0)/DT, n=Math.floor(fi)+1;   // 点いている数
+  pools.forEach((m,i)=>{let v=0;
+    if(i<n) v=(i===n-1&&t<HIT)?ease.outCubic(prog(t,T0+i*DT,.06)):.75;
+    if(t>=29&&t<HIT)v*=.3;                 // 無音の溜め
+    if(t>=HIT)v=1;
+    m.material.opacity=v;beams[i].set(t,(i===n-1&&t<HIT)?v:v*.6);});
+  // カメラ：低い位置で最新の光を追う → 29.5 から真上へ上がる
+  let cx,cy,cz,lx,ly,lz;
+  const k=Math.max(0,Math.min(P.length-1,fi)),i0=Math.floor(k),i1=Math.min(P.length-1,i0+1),f=ease.inOutSine(k-i0);
+  const px=lerp(P[i0][0],P[i1][0],f),pz=lerp(P[i0][1],P[i1][1],f);
+  const low=[px+1.4,1.6,pz+3.2], lowL=[px,.15,pz];
+  if(t<T0){const s=ease.inOutSine(prog(t,0,T0));cx=lerp(0,low[0],s);cy=lerp(2.6,1.6,s);cz=lerp(6.5,low[2],s);lx=lerp(0,P[0][0],s);ly=.2;lz=lerp(0,P[0][1],s);}
+  else{const u=ease.inOutCubic?ease.inOutCubic(prog(t,29.5,3.5)):ease.inOutSine(prog(t,29.5,3.5));
+    cx=lerp(low[0],0,u);cy=lerp(low[1],14.2,u);cz=lerp(low[2],2.4,u);lx=lerp(lowL[0],0,u);ly=lerp(lowL[1],0,u);lz=lerp(lowL[2],.95,u);}
+  camera.position.set(cx,cy,cz);camera.lookAt(lx,ly,lz);
+  if(S.bokeh){S.bokeh.uniforms.focus.value=Math.hypot(cx-lx,cy-ly,cz-lz);S.bokeh.uniforms.aperture.value=t<29.5?.0008:.0003;}
+  const yr=Math.min(2025,1975+Math.max(0,n));
+  $('year').textContent=t<HIT?yr:'2026';$('year').style.opacity=(ease.outCubic(prog(t,T0,.3))*(1-prog(t,31,.5))).toFixed(3);
+  const ms=MS[n-1];$('ms').textContent=ms||'';$('ms').style.opacity=ms&&t<29?1:0;
+  $('intro').style.opacity=(ease.outCubic(prog(t,.4,.8))*(1-prog(t,3.4,.5))).toFixed(3);
+  $('co').style.opacity=ease.outCubic(prog(t,33.0,.8)).toFixed(3);$('span').style.opacity=ease.outCubic(prog(t,33.6,.8)).toFixed(3);
+  $('note').style.opacity=ease.outCubic(prog(t,34,.6)).toFixed(3);
+  S.render();
+};
+</script></body></html>
