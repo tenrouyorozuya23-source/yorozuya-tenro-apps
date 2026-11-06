@@ -4,7 +4,7 @@
 #ov{position:absolute;inset:0;color:#f3ece2;pointer-events:none}
 #t{position:absolute;left:96px;top:110px;font:600 132px/1 "Shippori Mincho";letter-spacing:.12em}
 #s{position:absolute;left:100px;top:270px;font:300 28px/1.6 "Noto Sans JP";letter-spacing:.28em;color:#c9bfb1}
-#b{position:absolute;left:100px;bottom:96px;text-shadow:0 0 18px #000;font:400 22px/1.6 "Noto Sans JP";letter-spacing:.3em;color:#8d857a}
+#b{position:absolute;left:100px;top:340px;font:400 22px/1.7 "Noto Sans JP";letter-spacing:.14em;color:#b3a998}
 </style></head><body><div id="ov"><div id="t">開場</div><div id="s">KAIJO — Bright Corporate</div><div id="b">TNR-B07 ・ 120 BPM ・ F major<br>Tenrou Studio BGM Library</div></div>
 <script type="module">
 // 「開場」ジャケット：暗いロビーで、背の高い両開きの扉が少し開き、中の暖かい光が床に長く伸びる
@@ -29,7 +29,7 @@ for(const sx of[-1,1]){const g=new THREE.Group();g.position.set(sx*1.0,0,-3.0);
   g.rotation.y=sx*-.62;scene.add(g);}
 // 扉の隙間から床に伸びる光
 C.spot(scene,{pos:[0,2.4,-6.5],target:[0,0,1],color:0xffcf95,intensity:420,angle:.42,penumbra:.25});
-C.spot(scene,{pos:[-3,4.5,4],target:[0,1.6,-3],color:0x8aa0c0,intensity:40,angle:.5,penumbra:1,shadow:false});
+C.spot(scene,{pos:[-3,4.5,4],target:[0,1.6,-3],color:0xc8b8a0,intensity:120,angle:.5,penumbra:1,shadow:false});
 await document.fonts.load('600 132px "Shippori Mincho"','開場');await document.fonts.load('300 28px "Noto Sans JP"','KAIJO');
 window.__ready=Promise.resolve();
 window.renderAt=t=>{camera.position.set(-.6-t*.02,1.1,5.6-t*.05);camera.lookAt(-1.05,1.45,-3);
