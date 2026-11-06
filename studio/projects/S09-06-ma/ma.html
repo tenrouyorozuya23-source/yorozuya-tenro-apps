@@ -42,8 +42,8 @@ window.renderAt=t=>{
   wash.intensity=dark?0:lit?6:lerp(34,24,prog(lt,0,3));
   top.intensity=lit?520:0;bm.set(t,lit?.85:0);
   // 同じカット：区間の頭から同じ寄りを繰り返す
-  const d=lerp(5.6,4.9,ease.inOutSine(prog(lt,0,4.5)))-(k===2?.35*ease.inOutCubic(prog(t,15,2.5)):0);
-  camera.position.set(.35,lerp(1.5,1.35,prog(lt,0,4.5)),d);camera.lookAt(0,.95,0);
+  const U=Math.min(1,.45*prog(lt,0,hit-s0)+.55*ease.inOutSine(prog(lt,0,hit-s0))),d=lerp(5.6,4.9,U)-(k===2?.35*ease.inOutCubic(prog(t,15,2.5)):0);
+  camera.position.set(lerp(.45,.25,U),lerp(1.5,1.35,U),d);camera.lookAt(0,.95,0);
   if(S.bokeh){S.bokeh.uniforms.focus.value=d;S.bokeh.uniforms.aperture.value=.0007;}
   op('q',t<4.3?1:0);
   $('lab').textContent=lab;$('sub').textContent=sub;
