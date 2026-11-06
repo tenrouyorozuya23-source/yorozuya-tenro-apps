@@ -1,0 +1,45 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><style>html,body{margin:0;background:#000;overflow:hidden}</style>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@600&display=block" rel="stylesheet">
+<script type="importmap">{"imports":{"three":"/node_modules/three/build/three.module.js","three/addons/":"/node_modules/three/examples/jsm/"}}</script></head><body>
+<script type="module">
+// 『硝子の庭』の舞台：中央に題名の板（板付き）、奥に細い硝子の板が林のように立つ。renderAt(n) の n=1,2,3 で照明が1段ずつ入る
+import * as C from '/tools/cine/cine.js';
+const W=innerWidth,H=innerHeight,desk=W>H;
+const S=C.createStage({width:W,height:H,exposure:1.0,fov:desk?26:34,envIntensity:0,dof:true});
+const {THREE,scene,camera}=S;
+if(S.bloom){S.bloom.threshold=1.5;S.bloom.strength=0;}
+scene.fog=new THREE.FogExp2(0,.045);scene.background=new THREE.Color(0);
+C.stageFloor(scene,{material:new THREE.MeshPhysicalMaterial({color:0x0c0b0a,roughness:.45,clearcoat:.3,clearcoatRoughness:.4})});
+// 硝子の林（ランダムだが固定の配置）
+let seed=7;const rnd=()=>(seed=(seed*16807)%2147483647)/2147483647;
+const gc=document.createElement('canvas');gc.width=8;gc.height=256;{const x=gc.getContext('2d');const g=x.createLinearGradient(0,0,0,256);g.addColorStop(0,'rgba(255,255,255,0)');g.addColorStop(.55,'rgba(255,255,255,.55)');g.addColorStop(1,'rgba(255,255,255,1)');x.fillStyle=g;x.fillRect(0,0,8,256);}
+const glassMat=new THREE.MeshStandardMaterial({color:0xb7c6d0,roughness:.15,metalness:0,transparent:true,opacity:.1,alphaMap:new THREE.CanvasTexture(gc),depthWrite:false,side:THREE.DoubleSide});
+const edgeMat=new THREE.MeshBasicMaterial({color:0xdfeaf2,transparent:true,opacity:0});const edges=[];
+const panes=[];
+for(let i=0;i<26;i++){const h=1.2+rnd()*2.2,w=.18+rnd()*.25;const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,.015),glassMat);
+  const x=(rnd()-.5)*7, z=-1.2-rnd()*3.2;if(Math.abs(x)<.7&&z>-1.8)continue;m.position.set(x,h/2,z);m.rotation.y=(rnd()-.5)*.9;scene.add(m);panes.push(m);
+  for(const sx of [-1,1]){const e=new THREE.Mesh(new THREE.BoxGeometry(.006,h,.016),edgeMat);e.position.set(sx*w/2,0,0);m.add(e);}
+  const tp=new THREE.Mesh(new THREE.BoxGeometry(w,.006,.016),edgeMat);tp.position.y=h/2;m.add(tp);}
+// 題名の板
+let title=null;
+(async()=>{await document.fonts.load('600 300px "Shippori Mincho"','硝子の庭');
+  const cv=document.createElement('canvas');cv.width=1400;cv.height=420;const x=cv.getContext('2d');x.fillStyle='#fff';x.font='600 300px "Shippori Mincho"';x.textAlign='center';x.textBaseline='middle';x.letterSpacing='40px';x.fillText('硝子の庭',720,215);
+  const tex=new THREE.CanvasTexture(cv);tex.colorSpace=THREE.SRGBColorSpace;tex.anisotropy=8;
+  title=new THREE.Mesh(new THREE.PlaneGeometry(1.6,.48),new THREE.MeshStandardMaterial({color:0xece4d6,map:tex,alphaMap:tex,alphaTest:.5,roughness:.6,side:THREE.DoubleSide}));
+  title.position.set(0,.26,0);scene.add(title);})();
+window.__ready=new Promise(r=>setTimeout(r,800));
+const top=C.spot(scene,{pos:[0,6.5,1.8],target:[0,0,0],color:0xffe2bd,intensity:0,angle:.15,penumbra:.6});
+const topB=C.beam(scene,{from:[0,6.5,1.8],to:[0,0,0],radius:.9,color:0xffe2bd,density:.16});
+const sl=C.spot(scene,{pos:[-5,2.2,-1.5],target:[0,1,-2.6],color:0xbcd4ff,intensity:0,angle:.45,penumbra:.8});
+const sr=C.spot(scene,{pos:[5,2.2,-1.5],target:[0,1,-2.6],color:0xffd9b0,intensity:0,angle:.45,penumbra:.8});
+const bk=C.spot(scene,{pos:[0,5,-7],target:[0,0,-3.2],color:0xffe9cf,intensity:0,angle:.4,penumbra:.9,shadow:false});
+const bkB=C.beam(scene,{from:[0,5,-7],to:[0,0,-2.6],radius:2.0,color:0xffe9cf,density:.12});
+window.renderAt=n=>{
+  top.intensity=n>=1?700:0;topB.set(0,n>=1?1:0);
+  sl.intensity=n>=2?260:0;sr.intensity=n>=2?220:0;
+  bk.intensity=n>=3?260:0;edgeMat.opacity=0;glassMat.opacity=n>=3?.45:n>=2?.32:.05;bkB.set(0,n>=3?1:0);
+  if(desk){camera.position.set(0,1.15,7.2);camera.lookAt(0,.9,-1);}else{camera.position.set(0,1.2,7.6);camera.lookAt(0,1.2,-1);}
+  if(S.bokeh){S.bokeh.uniforms.focus.value=7.2;S.bokeh.uniforms.aperture.value=.0007;}
+  S.render();
+};
+</script></body></html>
