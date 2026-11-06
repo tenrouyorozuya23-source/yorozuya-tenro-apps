@@ -19,3 +19,5 @@ projects/*/s[0-9].png
 projects/*/stills.jpg
 projects/*/crop.png
 projects/*/silent.wav
+projects/*/.tesseract-work/
+projects/P028-tesseract-test/*.png
