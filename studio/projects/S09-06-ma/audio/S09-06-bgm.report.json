@@ -1,0 +1,32 @@
+{
+ "id": "S09-06-bgm",
+ "title": "暗転の一拍（記事ショート用）",
+ "versions": {
+  "20s": {
+   "sec": 20.0,
+   "bpm": 120,
+   "fps_beat_exact": [
+    24,
+    30,
+    48,
+    60
+   ],
+   "silence": [
+    [
+     8.5,
+     9.0
+    ],
+    [
+     14.0,
+     15.0
+    ]
+   ],
+   "lufs": -14.0,
+   "tp": -2.9,
+   "low_minus_mid_db": 3.78,
+   "low_shelf_db": -4.4,
+   "limiter_db": 4.4,
+   "stereo_corr": 0.682
+  }
+ }
+}

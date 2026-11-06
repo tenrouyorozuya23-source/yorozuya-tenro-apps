@@ -1,0 +1,56 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><style>html,body{margin:0;background:#000;overflow:hidden}</style>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@600&family=Noto+Sans+JP:wght@400;500&display=block" rel="stylesheet">
+<script type="importmap">{"imports":{"three":"/node_modules/three/build/three.module.js","three/addons/":"/node_modules/three/examples/jsm/"}}</script><style>
+#ov{position:absolute;inset:0;color:#f1ece4;pointer-events:none}
+.t{position:absolute;left:0;right:0;text-align:center;opacity:0}
+#q{top:290px;font:400 34px/1.5 "Noto Sans JP";letter-spacing:.14em;color:#c9c0b2}
+#lab{top:350px;font:600 96px/1.2 "Shippori Mincho";letter-spacing:.08em}
+#sub{top:480px;font:400 36px/1 "Noto Sans JP";letter-spacing:.24em;text-indent:.24em;color:#c9c0b2}
+#end1{top:300px;font:600 96px/1.35 "Shippori Mincho";letter-spacing:.1em;text-indent:.1em}
+#end2{top:580px;font:400 34px/1.5 "Noto Sans JP";letter-spacing:.2em;text-indent:.2em;color:#c9c0b2}
+.dots{position:absolute;left:0;right:0;top:560px;text-align:center;font:400 30px/1 "Noto Sans JP";letter-spacing:.6em;text-indent:.6em;color:#8f877c;opacity:0}
+</style></head><body><div id="ov"><div class="t" id="q">同じカット、暗転の長さだけを変える</div>
+<div class="t" id="lab"></div><div class="t" id="sub"></div>
+<div class="t" id="end1">間が<br>緊張をつくる</div><div class="t" id="end2">暗転の一拍は、光を待たせる時間</div>
+<div class="dots" id="dots"></div></div>
+<script type="module">
+// S09-06 暗転の一拍：同じカット（暗い舞台→椅子にスポット）を3回。間なし（3.0）、0.5秒の暗転（9.0）、1.0秒の暗転（15.0）で比べる
+import * as C from '/tools/cine/cine.js';
+const {lerp,prog,ease}=C;
+const W=innerWidth,H=innerHeight;
+const S=C.createStage({width:W,height:H,exposure:1.0,fov:34,envIntensity:0,dof:true});
+const {THREE,scene,camera}=S;
+if(S.bloom){S.bloom.threshold=1.2;S.bloom.strength=.45;}
+scene.fog=new THREE.FogExp2(0,.05);scene.background=new THREE.Color(0);
+C.stageFloor(scene,{material:new THREE.MeshPhysicalMaterial({color:0x111111,roughness:.4,clearcoat:.35,clearcoatRoughness:.35})});
+const wood=new THREE.MeshPhysicalMaterial({color:0x8a6a4c,roughness:.5,clearcoat:.4,clearcoatRoughness:.3});
+const chair=new THREE.Group();const B=(w,h,d,x,y,z)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),wood);m.position.set(x,y,z);m.castShadow=m.receiveShadow=true;chair.add(m);};
+B(.46,.04,.44,0,.46,0);for(const sx of[-1,1])for(const sz of[-1,1])B(.035,.46,.035,sx*.2,.23,sz*.19);
+for(const sx of[-1,1])B(.035,.5,.035,sx*.2,.71,-.19);B(.44,.06,.03,0,.92,-.19);B(.44,.04,.025,0,.74,-.19);
+for(const sx of[-1,1])B(.03,.03,.38,sx*.2,.12,0);chair.rotation.y=-.35;scene.add(chair);
+const wash=C.spot(scene,{pos:[0,5,-5],target:[0,0,0],color:0x6f86b0,intensity:0,angle:.6,penumbra:1,shadow:false});
+const top=C.spot(scene,{pos:[0,5.5,1.0],target:[0,.3,0],color:0xffd2a0,intensity:0,angle:.26,penumbra:.45});
+const bm=C.beam(scene,{from:[0,5.5,1.0],to:[0,0,0],radius:.9,color:0xffd6a8,density:.18});
+await document.fonts.load('600 96px "Shippori Mincho"','間なし一拍の暗転二拍緊張をつくる');await document.fonts.load('400 34px "Noto Sans JP"','同じカット暗転の長さだけを変える0.5秒1.0秒は光を待たせる時間');
+window.__ready=Promise.resolve();
+const $=id=>document.getElementById(id);const op=(id,v)=>$(id).style.opacity=(+v).toFixed(3);
+// [開始, 暗転開始, 点灯, 見出し, 補足]
+const SEG=[[0,3.0,3.0,'間なし','暗転 0 秒'],[4.5,8.5,9.0,'一拍','暗転 0.5 秒'],[10.5,14.0,15.0,'二拍','暗転 1.0 秒']];
+window.renderAt=t=>{
+  let k=t<4.5?0:t<10.5?1:2;const [s0,bk,hit,lab,sub]=SEG[k];const lt=t-s0;
+  const dark=t>=bk&&t<hit, lit=t>=hit;
+  wash.intensity=dark?0:lit?6:lerp(34,24,prog(lt,0,3));
+  top.intensity=lit?520:0;bm.set(t,lit?.85:0);
+  // 同じカット：区間の頭から同じ寄りを繰り返す
+  const d=lerp(5.6,4.9,ease.inOutSine(prog(lt,0,4.5)))-(k===2?.35*ease.inOutCubic(prog(t,15,2.5)):0);
+  camera.position.set(.35,lerp(1.5,1.35,prog(lt,0,4.5)),d);camera.lookAt(0,.95,0);
+  if(S.bokeh){S.bokeh.uniforms.focus.value=d;S.bokeh.uniforms.aperture.value=.0007;}
+  op('q',t<4.3?1:0);
+  $('lab').textContent=lab;$('sub').textContent=sub;
+  const endOn=t>=15.6;
+  op('lab',endOn?0:(lt<.15&&k>0?prog(lt,0,.15):1));op('sub',endOn?0:1);
+  $('dots').textContent=['●','●　○','●　○　○'][k];op('dots',endOn?0:.9);
+  op('end1',endOn?ease.outCubic(prog(t,15.6,.4)):0);op('end2',t>=16.5?ease.outCubic(prog(t,16.5,.4)):0);
+  S.render();
+};
+</script></body></html>
