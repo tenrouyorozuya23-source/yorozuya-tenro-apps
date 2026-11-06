@@ -30,11 +30,11 @@ async function build(){
   nameM.position.set(0,1.75,-1);scene.add(nameM);
   const F=[['0.001','mm','測れる段差'],['24','時間','止めずに測る'],['3','拠点','2027年に開設']];
   F.forEach(([n,u,l],i)=>{const x0=(i-1)*1.55;
-    const slab=new THREE.Mesh(new THREE.BoxGeometry(1.35,.9,.04),new THREE.MeshStandardMaterial({color:0x0b0b0c,roughness:.35,metalness:.4}));slab.position.set(x0,.6,.2);scene.add(slab);
-    const tx=mk(1.3,.86,(x,w,h)=>{x.font='600 330px "Shippori Mincho"';const nw=x.measureText(n).width;x.font='500 110px "Noto Sans JP"';const uw=x.measureText(u).width;const sx=w/2-(nw+uw+30)/2;x.textAlign='left';x.font='600 330px "Shippori Mincho"';x.fillText(n,sx,h*.42);x.font='500 110px "Noto Sans JP"';x.fillText(u,sx+nw+30,h*.48);x.textAlign='center';x.font='400 96px "Noto Sans JP"';x.fillStyle='#bdb5a8';x.fillText(l,w/2,h*.82);},1600);
+    const slabM=new THREE.MeshStandardMaterial({color:0x0b0b0c,roughness:.35,metalness:.4,emissive:0x2a2219,emissiveIntensity:0});const slab=new THREE.Mesh(new THREE.BoxGeometry(1.35,.9,.04),slabM);slab.position.set(x0,.6,.2);scene.add(slab);
+    const tx=mk(1.3,.86,(x,w,h)=>{x.font='500 300px "Noto Sans JP"';const nw=x.measureText(n).width;x.font='500 110px "Noto Sans JP"';const uw=x.measureText(u).width;const sx=w/2-(nw+uw+30)/2;x.textAlign='left';x.font='500 300px "Noto Sans JP"';x.fillText(n,sx,h*.42);x.font='500 110px "Noto Sans JP"';x.fillText(u,sx+nw+30,h*.48);x.textAlign='center';x.font='400 96px "Noto Sans JP"';x.fillStyle='#bdb5a8';x.fillText(l,w/2,h*.82);},1600);
     const scr=new THREE.Mesh(new THREE.PlaneGeometry(1.3,.86),new THREE.MeshBasicMaterial({map:tx,color:0,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false}));scr.position.set(x0,.6,.223);scene.add(scr);
     const sp=C.spot(scene,{pos:[x0,3.2,2.4],target:[x0,.2,.2],color:0xfff0de,intensity:0,angle:.18,penumbra:.8,shadow:false});
-    panels.push({scr,sp,x0});});
+    panels.push({scr,sp,x0,slabM});});
 }
 const bg=document.createElement('canvas');bg.width=512;bg.height=256;{const x=bg.getContext('2d');const g=x.createRadialGradient(256,150,10,256,150,300);g.addColorStop(0,'rgba(255,214,170,.09)');g.addColorStop(1,'rgba(255,214,170,0)');x.fillStyle=g;x.fillRect(0,0,512,256);}
 const back=new THREE.Mesh(new THREE.PlaneGeometry(14,7),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(bg),transparent:true,opacity:0,depthWrite:false}));back.position.set(0,2.4,-3.5);scene.add(back);
@@ -51,13 +51,13 @@ window.renderAt=t=>{
   back.material.opacity=Math.min(1,.35+.65*ease.outCubic(prog(t,HIT,1.5)))*(t>=27&&t<ALL?.3:1)*(.9+.1*Math.sin(t*.9));
   clip.constant=t<HIT?-10:ly;                    // y < ly の部分だけ描く
   if(nameM){const sil=t>=27&&t<ALL;nameM.material.color.setScalar((t>=HIT?1:0)*(sil?.25:1)*(t<ALL?1-prog(t,PT[0]-.6,.5):1));}
-  panels.forEach((p,i)=>{let v=t>=PT[i]?1:0;if(t>=27&&t<ALL)v*=.2;if(t<ALL&&t>=PT[0]&&i!==[...PT].reverse().findIndex(x=>t>=x)*-1+2)v*=.45;
-    p.scr.material.color.setScalar(v);p.sp.intensity=40*v;});
+  panels.forEach((p,i)=>{let v=t>=PT[i]?1:0;if(t>=27&&t<ALL)v*=.2;const act=PT.filter(x=>t>=x).length-1;if(t<26&&i!==act)v=0;
+    const on=t>=PT[i]?Math.min(1,(t-PT[i])/.2):0;p.scr.material.color.setScalar(v*on);p.sp.intensity=40*v*on;p.slabM.emissiveIntensity=1.6*v*on;});
   // カメラ：名前に正対して寄る → 12秒から数字の画面を順に横移動 → 28秒で引いて全体
-  const cur=PT.filter(x=>t>=x).length-1;
+  const cur=PT.filter(x=>t>=x-.8).length-1;
   let cx=0,cy=1.5,cz=lerp(7.2,6.2,prog(t,0,12)),lx=0,ly2=1.55;
-  if(t>=PT[0]&&t<ALL){const tx=panels.length?panels[cur].x0:0, px=cur>0&&panels.length?panels[cur-1].x0:0, f=ease.inOutSine(prog(t,PT[cur],.8));cx=lerp(cur>0?px:0,tx,f)*.9;cy=lerp(1.5,.85,ease.inOutSine(prog(t,PT[0],1)));cz=lerp(6.2,3.6,ease.inOutSine(prog(t,PT[0],1)))-.15*prog(t,PT[cur],4);lx=cx/.9;ly2=lerp(1.55,.62,ease.inOutSine(prog(t,PT[0],1)));}
-  if(t>=ALL){const u=ease.inOutSine(prog(t,ALL,2.5));cx=lerp(panels.length?panels[2].x0*.9:0,0,u);cy=lerp(.85,1.45,u);cz=lerp(3.4,6.4,u)-.3*prog(t,31,9);lx=lerp(panels.length?panels[2].x0:0,0,u);ly2=lerp(.62,1.15,u);}
+  if(t>=PT[0]-.8&&t<26){const tx=panels.length?panels[cur].x0:0, px=cur>0&&panels.length?panels[cur-1].x0:0, f=ease.inOutSine(prog(t,PT[cur]-.8,.8));cx=lerp(cur>0?px:0,tx,f)*.9;cy=lerp(1.5,.85,ease.inOutSine(prog(t,PT[0]-.8,.8)));cz=lerp(6.2,3.6,ease.inOutSine(prog(t,PT[0]-.8,.8)))-.15*prog(t,PT[cur],4);lx=cx/.9;ly2=lerp(1.55,.62,ease.inOutSine(prog(t,PT[0]-.8,.8)));}
+  if(t>=26){const u=ease.inOutSine(prog(t,26,2.0));cx=lerp(panels.length?panels[2].x0*.9:0,0,u);cy=lerp(.85,1.45,u);cz=lerp(3.4,6.6,u)-.25*prog(t,30,10);lx=lerp(panels.length?panels[2].x0:0,0,u);ly2=lerp(.62,1.15,u);}
   camera.position.set(cx+.12*Math.sin(t*.5),cy+.05*Math.sin(t*.8),cz-.25*Math.sin(t*.3));camera.lookAt(lx,ly2,-.4);
   if(S.bokeh){S.bokeh.uniforms.focus.value=Math.hypot(cx-lx,cy-ly2,cz+.4);S.bokeh.uniforms.aperture.value=.0008;}
   $('pre').style.opacity=(ease.outCubic(prog(t,.4,.6))*(1-prog(t,11.5,.4))).toFixed(3);
