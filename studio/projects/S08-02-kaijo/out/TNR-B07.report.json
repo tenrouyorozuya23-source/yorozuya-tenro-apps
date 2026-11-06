@@ -1,0 +1,102 @@
+{
+ "id": "TNR-B07",
+ "title": "開場（コーポレート）",
+ "versions": {
+  "60s": {
+   "sec": 60.0,
+   "bpm": 120,
+   "fps_beat_exact": [
+    24,
+    30,
+    48,
+    60
+   ],
+   "silence": [
+    [
+     17.5,
+     18.0
+    ],
+    [
+     41.0,
+     42.0
+    ]
+   ],
+   "lufs": -14.0,
+   "tp": -2.5,
+   "low_minus_mid_db": 4.0,
+   "low_shelf_db": -4.1,
+   "limiter_db": 1.3,
+   "stereo_corr": 0.88
+  },
+  "30s": {
+   "sec": 30.0,
+   "bpm": 120,
+   "fps_beat_exact": [
+    24,
+    30,
+    48,
+    60
+   ],
+   "silence": [
+    [
+     9.5,
+     10.0
+    ],
+    [
+     19.0,
+     20.0
+    ]
+   ],
+   "lufs": -14.0,
+   "tp": -2.8,
+   "low_minus_mid_db": 4.0,
+   "low_shelf_db": -4.2,
+   "limiter_db": 1.9,
+   "stereo_corr": 0.886
+  },
+  "15s": {
+   "sec": 15.0,
+   "bpm": 120,
+   "fps_beat_exact": [
+    24,
+    30,
+    48,
+    60
+   ],
+   "silence": [
+    [
+     9.0,
+     10.0
+    ]
+   ],
+   "lufs": -14.1,
+   "tp": -2.6,
+   "low_minus_mid_db": 4.01,
+   "low_shelf_db": -4.6,
+   "limiter_db": 1.7,
+   "stereo_corr": 0.882
+  },
+  "6s": {
+   "sec": 6.0,
+   "bpm": 120,
+   "fps_beat_exact": [
+    24,
+    30,
+    48,
+    60
+   ],
+   "silence": [
+    [
+     3.5,
+     4.0
+    ]
+   ],
+   "lufs": -14.2,
+   "tp": -2.7,
+   "low_minus_mid_db": 4.1,
+   "low_shelf_db": -6.5,
+   "limiter_db": 2.9,
+   "stereo_corr": 0.852
+  }
+ }
+}

@@ -1,0 +1,37 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><style>html,body{margin:0;background:#000;overflow:hidden}</style>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@600&family=Noto+Sans+JP:wght@300;400&display=block" rel="stylesheet">
+<script type="importmap">{"imports":{"three":"/node_modules/three/build/three.module.js","three/addons/":"/node_modules/three/examples/jsm/"}}</script><style>
+#ov{position:absolute;inset:0;color:#f3ece2;pointer-events:none}
+#t{position:absolute;left:96px;top:110px;font:600 132px/1 "Shippori Mincho";letter-spacing:.12em}
+#s{position:absolute;left:100px;top:270px;font:300 28px/1.6 "Noto Sans JP";letter-spacing:.28em;color:#c9bfb1}
+#b{position:absolute;left:100px;bottom:96px;text-shadow:0 0 18px #000;font:400 22px/1.6 "Noto Sans JP";letter-spacing:.3em;color:#8d857a}
+</style></head><body><div id="ov"><div id="t">開場</div><div id="s">KAIJO — Bright Corporate</div><div id="b">TNR-B07 ・ 120 BPM ・ F major<br>Tenrou Studio BGM Library</div></div>
+<script type="module">
+// 「開場」ジャケット：暗いロビーで、背の高い両開きの扉が少し開き、中の暖かい光が床に長く伸びる
+import * as C from '/tools/cine/cine.js';
+const W=innerWidth,H=innerHeight;
+const S=C.createStage({width:W,height:H,exposure:1.0,fov:30,envIntensity:.05,dof:true});
+const {THREE,scene,camera}=S;
+if(S.bloom){S.bloom.threshold=1.1;S.bloom.strength=.5;}
+scene.fog=new THREE.FogExp2(0x050403,.03);scene.background=new THREE.Color(0x050403);
+C.stageFloor(scene,{material:new THREE.MeshPhysicalMaterial({color:0x14110e,roughness:.35,clearcoat:.5,clearcoatRoughness:.25})});
+const wallM=new THREE.MeshStandardMaterial({color:0x2a2420,roughness:.85});
+for(const sx of[-1,1]){const w=new THREE.Mesh(new THREE.BoxGeometry(5,6,.3),wallM);w.position.set(sx*3.5,3,-3.15);w.receiveShadow=w.castShadow=true;scene.add(w);}
+const lintel=new THREE.Mesh(new THREE.BoxGeometry(2,2.8,.3),wallM);lintel.position.set(0,4.6,-3.15);lintel.castShadow=true;scene.add(lintel);
+const glowM=new THREE.MeshBasicMaterial({color:new THREE.Color(0xffd29a).multiplyScalar(1.6)});
+const back=new THREE.Mesh(new THREE.PlaneGeometry(4,4),glowM);back.position.set(0,2,-5.5);scene.add(back);
+// 両開きの扉（木の板、少し開く）
+const doorM=new THREE.MeshPhysicalMaterial({color:0x3b2617,roughness:.45,clearcoat:.6,clearcoatRoughness:.3});
+const brass=new THREE.MeshStandardMaterial({color:0xc9a46a,metalness:1,roughness:.3});
+for(const sx of[-1,1]){const g=new THREE.Group();g.position.set(sx*1.0,0,-3.0);
+  const d=new THREE.Mesh(new THREE.BoxGeometry(.98,3.2,.07),doorM);d.position.set(-sx*.49,1.6,0);d.castShadow=true;g.add(d);
+  const h=new THREE.Mesh(new THREE.CylinderGeometry(.015,.015,.5,12),brass);h.position.set(-sx*.86,1.25,.07);g.add(h);
+  g.rotation.y=sx*-.62;scene.add(g);}
+// 扉の隙間から床に伸びる光
+C.spot(scene,{pos:[0,2.4,-6.5],target:[0,0,1],color:0xffcf95,intensity:420,angle:.42,penumbra:.25});
+C.spot(scene,{pos:[-3,4.5,4],target:[0,1.6,-3],color:0x8aa0c0,intensity:40,angle:.5,penumbra:1,shadow:false});
+await document.fonts.load('600 132px "Shippori Mincho"','開場');await document.fonts.load('300 28px "Noto Sans JP"','KAIJO');
+window.__ready=Promise.resolve();
+window.renderAt=t=>{camera.position.set(-.6-t*.02,1.1,5.6-t*.05);camera.lookAt(-1.05,1.45,-3);
+  if(S.bokeh){S.bokeh.uniforms.focus.value=8;S.bokeh.uniforms.aperture.value=.0005;}S.render();};
+</script></body></html>
