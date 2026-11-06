@@ -1728,7 +1728,7 @@ function setup_availability() {
 //   初回：appsscript.json に oauthScopes（script.projects・script.deployments ほか）を入れ、setup_selfDeploy() を1回実行
 // ============================================================
 // コードの目印（変更のたびに更新すると、?api=version で反映を確認できる）
-var CODE_REVISION = "2026-11-06-apply-seat-changes";
+var CODE_REVISION = "2026-11-06-R048-back-to-SS";
 
 var SELF_DEPLOY = {
   repo:   "tenrouyorozuya23-source/yorozuya-tenro-apps",
@@ -1839,8 +1839,68 @@ var MIGRATIONS = [
   { id: "2026-11-05-seat-caps-and-availability", run: function(){ fix_formText(); setup_availability(); } },
   { id: "2026-11-06-ss-overflow-apology-drafts",   run: function(){ createSsOverflowApologyDrafts(); } },
   { id: "2026-11-06-fix-T002-and-pending-moves",   run: function(){ fixShowTextT002(); updateRemainingSeats(); } },
-  { id: "2026-11-06-apply-ss-seat-changes",        run: function(){ applySsOverflowSeatChanges(); } }
+  { id: "2026-11-06-apply-ss-seat-changes",        run: function(){ applySsOverflowSeatChanges(); } },
+  { id: "2026-11-06-R048-back-to-SS",              run: function(){ returnToSsSeat("R-048"); } }
 ];
+
+// SS席にキャンセルが出たので、上限超過で S席にご案内した予約を SS席に戻し、お詫びとご案内のメールを「下書き」で作る（送信はしない）
+//   12/4(金) 18:30：塩田様の重複予約のキャンセルで SS席が1席空いた → SS席11枚目だった R-048 を戻す
+//   SS席の空きが足りないとき・すでに SS席のときは何もしない
+function returnToSsSeat(resNo) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName("予約一覧");
+  var data = sheet.getDataRange().getValues();
+  var hdr = data[0].map(String);
+  var c = function(name){ return hdr.indexOf(name); };
+  var row = -1;
+  for (var i = 1; i < data.length; i++) if (String(data[i][c("予約番号")]) === resNo) { row = i; break; }
+  if (row < 0) { Logger.log("⚠️ " + resNo + " が見つかりません"); return; }
+  var r = data[row];
+  var show = String(r[c("公演日時")]), count = toSeatCount(r[c("枚数")]), seat = String(r[c("席種")]);
+  if (seat === "SS席") { Logger.log("ℹ️ " + resNo + " はすでに SS席です"); return; }
+  pendingSeatMoves._cache = null;
+  var left = remainingSeatsFor(sheet, show, row + 1, "SS席");
+  if (left < count) { Logger.log("⚠️ " + show + " の SS席の空きが " + left + " 席のため、" + resNo + " を戻せません"); return; }
+  sheet.getRange(row + 1, c("席種") + 1).setValue("SS席");
+  var note = String(r[c("備考")] || "");
+  sheet.getRange(row + 1, c("備考") + 1).setValue("【11/6 SS席にキャンセルが出たため SS席に戻し】" + (note ? " " + note : ""));
+  var t = { resNo: resNo, name: String(r[c("お名前")]), mail: String(r[c("メールアドレス")] || ""), show: show, count: count, from: seat };
+  if (t.mail.indexOf("@") !== -1) {
+    GmailApp.createDraft(t.mail, "【" + CONFIG.title + "】SS席へのお戻しのご連絡（予約番号 " + resNo + "）",
+      withSignature(returnToSsMailBody(t)), mailOptions());
+  }
+  var log = ss.getSheetByName("SS超過のご連絡");
+  if (log && log.getLastRow() > 1) {
+    var nos = log.getRange(2, 1, log.getLastRow() - 1, 1).getValues();
+    for (var k = 0; k < nos.length; k++) if (String(nos[k][0]) === resNo) {
+      log.getRange(k + 2, 8).setValue("SS席（11/6 戻し）");
+      log.getRange(k + 2, 9).setValue(t.mail.indexOf("@") !== -1 ? "戻しの下書き作成済み" : "要個別連絡（メールアドレスなし）");
+      log.getRange(k + 2, 10).setValue("SS席に戻し済み");
+    }
+  }
+  pendingSeatMoves._cache = null;
+  updateRemainingSeats();
+  updateAttendanceSheets();
+  Logger.log("✅ " + resNo + " " + t.name + "：" + seat + " → SS席 に戻しました");
+}
+
+function returnToSsMailBody(t) {
+  var price = getSeatPrice("SS席");
+  return t.name + " 様\n\n" +
+    "いつも BSD presents 舞台「" + CONFIG.title + "」を応援いただき、誠にありがとうございます。\n\n" +
+    "先日、SS席の販売上限超過のため" + t.from + "へのご変更をお願いするご連絡を差し上げたばかりのところ、\n" +
+    "その後、同じ公演のSS席にキャンセルが出たため、お客様のお座席をSS席に戻させていただきました。\n" +
+    "ご連絡が行ったり来たりとなり、混乱させてしまい大変申し訳ございません。\n\n" +
+    "━━━━━━━━━━━━━━━━━━━━\n" +
+    "予約番号　：" + t.resNo + "\n" +
+    "公演日時　：" + t.show + "（開場 " + doorsOpenTime(t.show) + "）\n" +
+    "お座席　　：SS席" + (price ? "（" + yenText(price) + "）" : "") + " × " + t.count + "枚（当初のご予約どおり）\n" +
+    "━━━━━━━━━━━━━━━━━━━━\n\n" +
+    "SS席の特典「非売品・役者ブロマイド」は、当日受付にてお渡しいたします。\n" +
+    "チケット代は、SS席の料金を当日受付にて現金でお支払いください。\n\n" +
+    "なお、" + t.from + "のままをご希望の場合や、ご不明な点がございましたら、お手数ですがこのメールにご返信ください。\n" +
+    "このたびは度重なるご連絡となり、誠に申し訳ございません。当日のご来場を心よりお待ちしております。";
+}
 
 // SS席の上限超過分の予約を、お詫びメールでご案内した席種（S席／A席）に書き換える（2026/11/06 メール送信済み）
 //   備考の先頭に変更の記録を残し、シート「SS超過のご連絡」の J列に「席種変更済み」と書く
