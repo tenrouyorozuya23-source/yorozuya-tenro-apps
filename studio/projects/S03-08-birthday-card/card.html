@@ -2,10 +2,10 @@
 <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@600&family=Noto+Sans+JP:wght@300;400&display=block" rel="stylesheet">
 <style>html,body{margin:0;overflow:hidden;background:#000}canvas{display:block}
 #ov{position:absolute;inset:0;color:#efe9df;pointer-events:none;font-family:"Noto Sans JP"}
-#head{position:absolute;left:0;right:0;top:250px;text-align:center;font:300 42px/1 "Noto Sans JP";letter-spacing:.32em;text-indent:.32em;opacity:0}
-#date{position:absolute;left:0;right:0;top:1340px;text-align:center;font:600 120px/1 "Shippori Mincho";letter-spacing:.12em;text-indent:.12em;opacity:0;color:#e9e0d2}
+#head{position:absolute;left:0;right:0;top:276px;text-align:center;font:300 42px/1 "Noto Sans JP";letter-spacing:.32em;text-indent:.32em;opacity:0}
+#date{transform-origin:50% 50%;position:absolute;left:0;right:0;top:1340px;text-align:center;font:600 120px/1 "Shippori Mincho";letter-spacing:.12em;text-indent:.12em;opacity:0;color:#e9e0d2}
 #sub{position:absolute;left:0;right:0;top:1490px;text-align:center;font:300 40px/1.4 "Noto Sans JP";color:#a69d90;letter-spacing:.12em;opacity:0}
-#note{position:absolute;left:0;right:0;top:320px;text-align:center;font:400 30px/1 "Noto Sans JP";color:#8a8278;opacity:0}</style>
+#note{position:absolute;left:0;right:0;top:344px;text-align:center;font:400 26px/1 "Noto Sans JP";color:#6e6e73;opacity:0}</style>
 <script type="importmap">{"imports":{"three":"/node_modules/three/build/three.module.js","three/addons/":"/node_modules/three/examples/jsm/"}}</script>
 </head><body><div id="ov"><div id="head">生 誕 祭</div><div id="note">架空の人物のサンプルです</div><div id="date">11.06</div><div id="sub"></div></div>
 <script type="module">
@@ -38,8 +38,19 @@ async function makeName(){
 const wax=new THREE.MeshPhysicalMaterial({color:0xf2ece0,roughness:.45,transmission:.25,thickness:.05,emissive:0xffb070,emissiveIntensity:0});
 const candle=new THREE.Mesh(new THREE.CylinderGeometry(.028,.03,.22,48),wax);candle.position.set(0,.11,.15);candle.castShadow=true;scene.add(candle);
 const wick=new THREE.Mesh(new THREE.CylinderGeometry(.002,.002,.018,8),new THREE.MeshStandardMaterial({color:0x1a1210}));wick.position.set(0,.229,.15);scene.add(wick);
-const flameMat=new THREE.MeshBasicMaterial({color:0xffd9a0,transparent:true,opacity:1});
-const flame=new THREE.Mesh(new THREE.SphereGeometry(.016,24,16),flameMat);scene.add(flame);
+const fc=document.createElement('canvas');fc.width=128;fc.height=256;{const x=fc.getContext('2d');
+  const g=x.createRadialGradient(64,170,2,64,150,110);g.addColorStop(0,'rgba(255,250,235,1)');g.addColorStop(.18,'rgba(255,214,140,.95)');g.addColorStop(.45,'rgba(255,140,50,.45)');g.addColorStop(1,'rgba(255,90,20,0)');
+  x.fillStyle=g;x.beginPath();x.moveTo(64,6);x.bezierCurveTo(108,120,104,236,64,240);x.bezierCurveTo(24,236,20,120,64,6);x.fill();}
+const ft=new THREE.CanvasTexture(fc);ft.colorSpace=THREE.SRGBColorSpace;
+const flameMat=new THREE.SpriteMaterial({map:ft,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false});
+const flame=new THREE.Sprite(flameMat);scene.add(flame);
+// 煙：細い帯（吹き消したあと立ちのぼる）
+const sc=document.createElement('canvas');sc.width=64;sc.height=512;{const x=sc.getContext('2d');
+  for(let i=0;i<512;i++){const w=1.5+i/512*9, off=Math.sin(i*.035)*8*(i/512)+Math.sin(i*.011+1)*5*(i/512);const a=.5*(1-i/512)*(i<20?i/20:1);
+   x.fillStyle=`rgba(210,200,190,${a})`;x.fillRect(32+off-w/2,511-i,w,1);}}
+const st=new THREE.CanvasTexture(sc);
+const smokeMat=new THREE.MeshBasicMaterial({map:st,transparent:true,depthWrite:false,opacity:0,blending:THREE.AdditiveBlending});
+const smoke=new THREE.Mesh(new THREE.PlaneGeometry(.06,.5),smokeMat);smoke.position.set(0,.49,.15);scene.add(smoke);
 const core=new THREE.Mesh(new THREE.SphereGeometry(.0045,16,12),new THREE.MeshBasicMaterial({color:0xfff6e6}));scene.add(core);
 const L=new THREE.PointLight(0xffa458,0,0,2);L.castShadow=true;L.shadow.mapSize.set(2048,2048);L.shadow.radius=4;L.shadow.bias=-.001;scene.add(L);
 const BLOW=5.0;
@@ -47,15 +58,17 @@ const n1=t=>Math.sin(t*13.1)*.5+Math.sin(t*7.3+1)*.3+Math.sin(t*23.7+2)*.2;
 window.__ready=makeName();
 const $=id=>document.getElementById(id);$('date').textContent=D.date;$('sub').textContent=D.sub;
 window.renderAt=t=>{
-  const lit=ease.outCubic(prog(t,.15,.9));           // マッチで灯ったように 0.15 秒から
+  const lit=1;                                        // フレーム0から灯っている
   const out=t<BLOW?0:ease.outCubic(prog(t,BLOW,.25)); // 吹き消し
-  const lean=t>BLOW-.25&&t<BLOW+.2?ease.inOutSine(prog(t,BLOW-.25,.3))*.9:0; // 息で炎が倒れる
-  const fl=1+.12*n1(t);
+  const lean=ease.inOutSine(prog(t,BLOW-.15,.15))*(t<BLOW+.25?1:0); // 息の0.15秒前から炎が倒れる
+  const fl=1+.1*Math.sin(t*2*Math.PI*3.1)+.06*Math.sin(t*2*Math.PI*1.7+1)+.04*n1(t);
   const a=lit*(1-out);
-  const fh=.05*fl*(1-.6*lean), fy=.232+fh*.45;
-  flame.scale.set(1,fh/.032,1);flame.position.set(-.012*lean,fy,.15);flame.visible=a>.01;flameMat.opacity=a;
-  core.position.set(-.006*lean,.236,.15);core.visible=a>.01;
-  L.position.set(-.01*lean,.25,.15);L.intensity=2.4*a*fl;
+  const fh=.075*fl*(1-.5*lean), fy=.229+fh*.42;
+  flame.scale.set(.038*(1+.3*lean),fh,1);flame.position.set(-.02*lean,fy,.15);flameMat.rotation=.5*lean+.03*Math.sin(t*5.3);flame.visible=a>.01;flameMat.opacity=a;
+  const sm=t<BLOW?0:ease.outCubic(prog(t,BLOW,.4))*(1-ease.inOutSine(prog(t,BLOW+.6,1.8)));smokeMat.opacity=.55*sm;smoke.scale.y=.5+1.2*prog(t,BLOW,2.2);smoke.position.y=.23+.25*smoke.scale.y;
+  core.position.set(-.006*lean,.236,.15);core.visible=a>.2;
+  const ember=t<BLOW?0:.22*Math.exp(-(t-BLOW)/1.6);
+  L.position.set(-.01*lean,.25,.15);L.intensity=2.4*a*fl+ember*2.4;
   wax.emissiveIntensity=.12*a;
   const d=lerp(4.3,3.7,ease.inOutSine(prog(t,0,8))), y=lerp(.7,.62,ease.inOutSine(prog(t,0,8)));
   const az=lerp(-.07,.05,ease.inOutSine(prog(t,0,8)));
@@ -63,7 +76,7 @@ window.renderAt=t=>{
   if(S.bokeh){S.bokeh.uniforms.focus.value=d+.4;S.bokeh.uniforms.aperture.value=.0018;}
   const f=(el,a0,b,dur=.6)=>{el.style.opacity=(ease.outCubic(prog(t,a0,dur))*(1-prog(t,b,.4))).toFixed(3)};
   f($('head'),1.0,BLOW-.1);f($('note'),1.4,BLOW-.1);
-  f($('date'),5.833,99,.9);f($('sub'),6.1,99,.9);
+  f($('date'),5.833,99,.9);$('date').style.transform=`scale(${(1+.015*ease.inOutSine(prog(t,5.833,2.2))).toFixed(4)})`;f($('sub'),6.1,99,.9);
   if(plane){plane.material.color.setHex(0xece4d6);}
   S.render();
 };
