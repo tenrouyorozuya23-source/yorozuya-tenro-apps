@@ -1715,6 +1715,9 @@ function setup_availability() {
 //   ④ 新しいコードで ?api=migrate を呼んで、未実行の更新処理（MIGRATIONS）を実行する
 //   初回：appsscript.json に oauthScopes（script.projects・script.deployments ほか）を入れ、setup_selfDeploy() を1回実行
 // ============================================================
+// コードの目印（変更のたびに更新すると、?api=version で反映を確認できる）
+var CODE_REVISION = "2026-11-06-auto-deploy-fix";
+
 var SELF_DEPLOY = {
   repo:   "tenrouyorozuya23-source/yorozuya-tenro-apps",
   branch: "main",
@@ -1760,6 +1763,7 @@ function fetchSourcesFromGitHub() {
 function selfDeployFromGitHub(force) {
   var lock = LockService.getScriptLock();
   if (!lock.tryLock(10000)) return "別の更新が実行中です";
+  var version;
   try {
     var props = PropertiesService.getScriptProperties();
     var src = fetchSourcesFromGitHub();
@@ -1780,21 +1784,22 @@ function selfDeployFromGitHub(force) {
 
     // ②③ 版を作って Webアプリのデプロイを差し替え
     var stamp = Utilities.formatDate(new Date(), "Asia/Tokyo", "yyyy/MM/dd HH:mm");
-    var version = scriptApi("post", "/versions", { description: "GitHub自動反映 " + stamp });
+    version = scriptApi("post", "/versions", { description: "GitHub自動反映 " + stamp });
     scriptApi("put", "/deployments/" + webAppDeploymentId(), { deploymentConfig: {
       scriptId: ScriptApp.getScriptId(), versionNumber: version.versionNumber,
       manifestFileName: "appsscript", description: "GitHub自動反映 " + stamp
     }});
     props.setProperty("SELF_DEPLOY_HASH", hash);
-
-    // ④ 新しいコードで未実行の更新処理を実行
-    var mig = UrlFetchApp.fetch(CONFIG.webAppUrl + "?api=migrate", { muteHttpExceptions: true }).getContentText();
-    var msg = "版 " + version.versionNumber + " を反映・デプロイしました／更新処理: " + mig.slice(0, 300);
-    Logger.log("✅ " + msg);
-    return msg;
+    props.setProperty("SELF_DEPLOY_INFO", JSON.stringify({ version: version.versionNumber, at: stamp }));
   } finally {
     lock.releaseLock();
   }
+
+  // ④ 新しいコードで未実行の更新処理を実行（更新処理も同じロックを使うので、ロックを外してから呼ぶ）
+  var mig = UrlFetchApp.fetch(CONFIG.webAppUrl + "?api=migrate", { muteHttpExceptions: true }).getContentText();
+  var msg = "版 " + version.versionNumber + " を反映・デプロイしました／更新処理: " + mig.slice(0, 300);
+  Logger.log("✅ " + msg);
+  return msg;
 }
 
 // 5分ごとのトリガーから呼ばれる（エラーはログだけ残す）
@@ -2797,6 +2802,13 @@ function doGet(e) {
   if (e && e.parameter && e.parameter.api === "migrate") {
     return ContentService.createTextOutput(JSON.stringify(runMigrations()))
       .setMimeType(ContentService.MimeType.JSON);
+  }
+
+  // 自動反映の確認用：今動いているコードの版と反映日時
+  if (e && e.parameter && e.parameter.api === "version") {
+    var info = JSON.parse(PropertiesService.getScriptProperties().getProperty("SELF_DEPLOY_INFO") || "{}");
+    info.code = CODE_REVISION;
+    return ContentService.createTextOutput(JSON.stringify(info)).setMimeType(ContentService.MimeType.JSON);
   }
 
   // 予約サイト用：公演×席種の残席（JSON）。個人情報は含めない
