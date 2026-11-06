@@ -36,7 +36,8 @@ async function build(){
     const plate=new THREE.Mesh(new THREE.PlaneGeometry(w,w*cv.height/cv.width),new THREE.MeshBasicMaterial({map:tex,color:0,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false}));
     plate.position.set(0,y,-.58);scene.add(plate);
     const sp=C.spot(scene,{pos:[0,y+.4,-.4],target:[0,0,1.2],color:0xffe6c8,intensity:0,angle:.5,penumbra:1,shadow:false});
-    rows.push({led,plate,sp,head});
+    const bm=C.beam(scene,{from:[0,y+(head?.38:.16),-.62],to:[0,0,.6],radius:head?1.1:.8,color:0xffd2a0,density:.07});
+    rows.push({led,plate,sp,head,y,bm});
   });
 }
 window.__ready=build();
@@ -46,16 +47,19 @@ window.renderAt=t=>{
   rows.forEach((r,i)=>{const t0=r.head?TH:TA[i];let v=t>=t0?ease.outCubic(prog(t,t0,.12)):.06;
     if(t>=TH+1)v*=.88+.12*Math.sin(t*2.4+i);
     if(!r.head&&t>=TH)v*=.45;if(t>=19.5&&t<TH)v*=.2;if(t>=27.5&&t<28)v*=.6;
-    const c=r.head?new THREE.Color(1,.9,.76):new THREE.Color(.95,.9,.82);
-    r.plate.material.color.copy(c).multiplyScalar(v);r.led.material.color.copy(c).multiplyScalar(v*1.6);r.sp.intensity=(r.head?60:14)*v;});
+    const c=r.head?new THREE.Color(1,.86,.66):new THREE.Color(1,.9,.76);
+    r.plate.material.color.copy(c).multiplyScalar(v);r.led.material.color.copy(c).multiplyScalar(v*1.6);r.sp.intensity=(r.head?60:14)*v;r.bm.set(t,v*(r.head?1.2:.6));});
   // カメラ：上の段から下へゆっくりティルト＋前進。ヘッドライナーで引く
-  const k=t<TH?prog(t,0,TH):1;
-  const ly=t<TH?lerp(5.8,3.4,ease.inOutSine(k)):lerp(3.4,3.45,ease.inOutSine(prog(t,TH,3)));
-  const cz=t<TH?lerp(6.2,5.2,k):lerp(5.2,12.2,ease.inOutSine(prog(t,TH,3.5)));
-  camera.position.set(.35*Math.sin(t*.42),1.6+.15*Math.sin(t*.6),cz-.25*prog(t,24,6));camera.lookAt(0,ly,-.6);
-  if(S.bokeh){S.bokeh.uniforms.focus.value=cz+.6;S.bokeh.uniforms.aperture.value=.0007;}
-  $('pre').style.opacity=(1-prog(t,19.4,.2)).toFixed(3);
-  $('fest').style.opacity=ease.outCubic(prog(t,24,.5)).toFixed(3);$('date').style.opacity=ease.outCubic(prog(t,28,.3)).toFixed(3);
+  // カメラ：灯った行を常に画面の中央に（次の行へ 0.5 秒で降りる）→ ヘッドライナーで寄る → 24 秒から全体へ引く
+  const cur=t<TA[0]?-1:(t<TH?TA.filter(x=>t>=x).length-1:all.length-1);
+  const yOf=i=>i<0?6.1:rows[i]?rows[i].y:3;
+  const prevY=yOf(Math.max(-1,cur-1)),curY=yOf(cur),tc=cur<0?0:(cur===all.length-1?TH:TA[cur]);
+  let ly=lerp(prevY,curY,ease.inOutSine(prog(t,tc,.5))), cz=cur===all.length-1?lerp(5.0,4.2,ease.outCubic(prog(t,TH,1.5))):5.0;
+  if(t>=24){const u=ease.inOutSine(prog(t,24,2.2));ly=lerp(ly,3.45,u);cz=lerp(cz,12.2,u);}
+  camera.position.set(.3*Math.sin(t*.42),ly-.25+.08*Math.sin(t*.6),cz-.25*prog(t,26,4));camera.lookAt(0,ly,-.6);
+  if(S.bokeh){S.bokeh.uniforms.focus.value=Math.hypot(cz+.6,.25);S.bokeh.uniforms.aperture.value=.0007;}
+  $('pre').style.opacity=(1-prog(t,3.4,.4)).toFixed(3);
+  $('fest').style.opacity=ease.outCubic(prog(t,24,.5)).toFixed(3);$('date').style.opacity=ease.outCubic(prog(t,26.3,.3)).toFixed(3);
   $('note').style.opacity=ease.outCubic(prog(t,26,.4)).toFixed(3);
   S.render();
 };
