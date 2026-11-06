@@ -1,0 +1,61 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><title>S04-05 lineup</title>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@600&family=Noto+Sans+JP:wght@300;400;500&display=block" rel="stylesheet">
+<style>html,body{margin:0;overflow:hidden;background:#000}canvas{display:block}
+#ov{position:absolute;inset:0;color:#efe9df;pointer-events:none;font-family:"Noto Sans JP"}
+.t{position:absolute;left:0;right:0;text-align:center;opacity:0}
+#pre{top:270px;font:400 40px/1 "Noto Sans JP";letter-spacing:.34em;text-indent:.34em;color:#bdb5a8}
+#fest{top:240px;font:600 104px/1 "Shippori Mincho";letter-spacing:.14em;text-indent:.14em}
+#date{top:370px;font:400 34px/1.4 "Noto Sans JP";letter-spacing:.12em;color:#bdb5a8}
+#note{top:1462px;font:400 28px/1 "Noto Sans JP";color:#86868b}</style>
+<script type="importmap">{"imports":{"three":"/node_modules/three/build/three.module.js","three/addons/":"/node_modules/three/examples/jsm/"}}</script>
+</head><body><div id="ov"><div class="t" id="pre">LINE UP 第1弾</div><div class="t" id="fest">灯籠フェス</div><div class="t" id="date">2027.8.21 SAT — 22 SUN　海辺の野外ステージ</div><div class="t" id="note">架空のフェス・出演者のサンプルです</div></div>
+<script type="module">
+// 舞台の上に吊った LED バトン。出演者名が1組ずつ灯る。ヘッドライナーはインパクトで、最後にフェス名と日程
+import * as C from '/tools/cine/cine.js';
+const {lerp,prog,ease}=C;
+const ACTS=["ミナモ","鉄の羊","北緯三十五度","白昼夢研究会","夜光","六花ノ灯","凪野ソラ"],HEAD="残響室";
+const W=innerWidth,H=innerHeight;
+const S=C.createStage({width:W,height:H,exposure:1.0,fov:38,envIntensity:.04,dof:true});
+const {THREE,scene,camera}=S;
+if(S.bloom){S.bloom.threshold=2;S.bloom.strength=0;}
+scene.fog=new THREE.FogExp2(0,.04);scene.background=new THREE.Color(0);
+C.stageFloor(scene,{material:new THREE.MeshPhysicalMaterial({color:0x0c0c0d,roughness:.35,clearcoat:.5})});
+const metal=new THREE.MeshStandardMaterial({color:0x232325,roughness:.5,metalness:.8});
+const rows=[];
+const all=[...ACTS,HEAD];
+async function build(){
+  await document.fonts.load('600 200px "Shippori Mincho"',all.join(''));
+  all.forEach((name,i)=>{
+    const head=i===all.length-1, y=head?1.55:5.6-i*.52, w=head?2.6:1.9;
+    const bar=new THREE.Mesh(new THREE.BoxGeometry(w+.3,.05,.06),metal);bar.position.set(0,y+(head?.42:.2),-.6);scene.add(bar);
+    const led=new THREE.Mesh(new THREE.BoxGeometry(w+.2,.012,.015),new THREE.MeshBasicMaterial({color:0}));led.position.set(0,y+(head?.39:.17),-.565);scene.add(led);
+    const cv=document.createElement('canvas');cv.width=1600;cv.height=head?360:220;const x=cv.getContext('2d');
+    x.fillStyle='#000';x.fillRect(0,0,cv.width,cv.height);x.fillStyle='#fff';x.textAlign='center';x.textBaseline='middle';
+    x.font=`600 ${head?250:150}px "Shippori Mincho"`;x.letterSpacing=head?'40px':'24px';x.fillText(name,800,cv.height/2+8);
+    const tex=new THREE.CanvasTexture(cv);tex.colorSpace=THREE.SRGBColorSpace;
+    const plate=new THREE.Mesh(new THREE.PlaneGeometry(w,w*cv.height/cv.width),new THREE.MeshBasicMaterial({map:tex,color:0,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false}));
+    plate.position.set(0,y,-.58);scene.add(plate);
+    const sp=C.spot(scene,{pos:[0,y+.4,-.4],target:[0,0,1.2],color:0xffe6c8,intensity:0,angle:.5,penumbra:1,shadow:false});
+    rows.push({led,plate,sp,head});
+  });
+}
+window.__ready=build();
+const TA=[4,6,8,10,12,14,16], TH=20.0;
+const $=id=>document.getElementById(id);
+window.renderAt=t=>{
+  rows.forEach((r,i)=>{const t0=r.head?TH:TA[i];let v=t>=t0?ease.outCubic(prog(t,t0,.12)):0;
+    if(!r.head&&t>=TH)v*=.45;if(t>=19.5&&t<TH)v*=.2;if(t>=27.5&&t<28)v*=.6;
+    const c=r.head?new THREE.Color(1,.9,.76):new THREE.Color(.95,.9,.82);
+    r.plate.material.color.copy(c).multiplyScalar(v);r.led.material.color.copy(c).multiplyScalar(v*1.6);r.sp.intensity=(r.head?60:14)*v;});
+  // カメラ：上の段から下へゆっくりティルト＋前進。ヘッドライナーで引く
+  const k=t<TH?prog(t,0,TH):1;
+  const ly=t<TH?lerp(5.8,3.4,ease.inOutSine(k)):lerp(3.4,3.45,ease.inOutSine(prog(t,TH,3)));
+  const cz=t<TH?lerp(6.2,5.2,k):lerp(5.2,12.2,ease.inOutSine(prog(t,TH,3.5)));
+  camera.position.set(.25*Math.sin(t*.3),1.6,cz);camera.lookAt(0,ly,-.6);
+  if(S.bokeh){S.bokeh.uniforms.focus.value=cz+.6;S.bokeh.uniforms.aperture.value=.0007;}
+  $('pre').style.opacity=(1-prog(t,19.4,.2)).toFixed(3);
+  $('fest').style.opacity=ease.outCubic(prog(t,24,.5)).toFixed(3);$('date').style.opacity=ease.outCubic(prog(t,28,.3)).toFixed(3);
+  $('note').style.opacity=ease.outCubic(prog(t,26,.4)).toFixed(3);
+  S.render();
+};
+</script></body></html>
