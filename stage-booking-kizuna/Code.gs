@@ -1668,13 +1668,65 @@ function seatAvailability() {
     var left = showCapacity(show.dt) - used;
     var pending = pendingSeatMoves(show.dt);
     return {
-      show: show.dt,
+      show: show.dt, booked: used, capacity: showCapacity(show.dt),
       seats: CONFIG.seatTypes.map(function(st){
         var rem = Math.max(0, Math.min(left, seatCap(st.name, show.dt) - (bySeat[st.name] || 0) - (pending[st.name] || 0)));
-        return { seat: st.name, remaining: rem, label: availabilityLabel(rem) };
+        return { seat: st.name, remaining: rem, label: availabilityLabel(rem),
+                 booked: bySeat[st.name] || 0, cap: seatCap(st.name, show.dt), pending: pending[st.name] || 0 };
       })
     };
   });
+}
+
+// 売上管理シートの下に「席種別の残席」表を書く（予約一覧から毎回計算し直す。数式ではなく値）
+//   残席の更新・キャンセル・フォーム送信のたび、と1時間ごとに自動で更新される
+var SEAT_SUMMARY_TITLE = "🎟 席種別の残席（予約サイト・フォームと同じ計算）";
+function writeSeatSummary() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName("売上管理");
+  if (!sheet) return;
+  var av = seatAvailability();
+  var seats = CONFIG.seatTypes.map(function(st){ return st.name; });
+  // 既存の表の位置を探す（無ければ一番下の2行あけた所）
+  var colA = sheet.getRange(1, 1, Math.max(sheet.getLastRow(), 1), 1).getValues();
+  var top = -1;
+  for (var i = 0; i < colA.length; i++) if (String(colA[i][0]) === SEAT_SUMMARY_TITLE) { top = i + 1; break; }
+  if (top < 0) top = sheet.getLastRow() + 3;
+  var width = 1 + seats.length * 3 + 2;
+  var height = 3 + av.length + 2;
+  sheet.getRange(top, 1, height, width).breakApart().clear();
+
+  sheet.getRange(top, 1).setValue(SEAT_SUMMARY_TITLE).setFontWeight("bold").setFontSize(12);
+  sheet.getRange(top, 4).setValue("更新：" + Utilities.formatDate(new Date(), "Asia/Tokyo", "M/d HH:mm"))
+    .setFontColor("#6B6B67");
+  var h1 = ["公演日時"], h2 = [""];
+  seats.forEach(function(n){ h1.push(n, "", ""); h2.push("予約", "上限", "残り"); });
+  h1.push("全体", ""); h2.push("予約／定員", "残り");
+  sheet.getRange(top + 1, 1, 2, width).setValues([h1, h2]);
+  styleHeader(sheet.getRange(top + 1, 1, 2, width));
+  for (var k = 0; k < seats.length; k++) sheet.getRange(top + 1, 2 + k * 3, 1, 3).merge().setHorizontalAlignment("center");
+  sheet.getRange(top + 1, 2 + seats.length * 3, 1, 2).merge().setHorizontalAlignment("center");
+
+  var rows = av.map(function(a){
+    var r = [a.show];
+    a.seats.forEach(function(x){ r.push(x.booked, x.cap, x.remaining === 0 ? "満席" : x.remaining); });
+    r.push(a.booked + " ／ " + a.capacity, Math.max(0, a.capacity - a.booked));
+    return r;
+  });
+  var body = sheet.getRange(top + 3, 1, rows.length, width);
+  body.setValues(rows).setHorizontalAlignment("center");
+  sheet.getRange(top + 3, 1, rows.length, 1).setHorizontalAlignment("left");
+  // 残りの列に色：満席＝赤、3席以下＝黄、それ以外＝緑
+  av.forEach(function(a, i){
+    a.seats.forEach(function(x, k){
+      var cell = sheet.getRange(top + 3 + i, 4 + k * 3);
+      cell.setFontWeight("bold").setBackground(x.remaining === 0 ? "#F4C7C3" : x.remaining <= 3 ? "#FCE8B2" : "#D9EAD3");
+      if (x.booked > x.cap) sheet.getRange(top + 3 + i, 2 + k * 3).setFontColor("#C0392B").setFontWeight("bold");
+    });
+  });
+  sheet.getRange(top + 3 + rows.length, 1).setValue(
+    "※「残り」は予約サイト・フォームの残席表示と同じ数（キャンセル・キャンセル待ちは数えない）。予約数が上限を超えている席種は赤字。")
+    .setFontColor("#6B6B67");
 }
 
 // 予約サイトに返すデータ（1分キャッシュ）
@@ -1702,6 +1754,8 @@ function availabilityText() {
 
 // 予約フォームの「ご希望の公演日時」の説明欄に残席を表示する
 function updateFormAvailability() {
+  // 売上管理シートの「席種別の残席」表も一緒に更新（失敗してもフォームの更新は止めない）
+  try { writeSeatSummary(); } catch (err) { Logger.log("席種別の残席表の更新エラー: " + err.message); }
   var form = FormApp.openById(PropertiesService.getScriptProperties().getProperty("FORM_ID"));
   form.getItems(FormApp.ItemType.LIST).forEach(function(item){
     if (item.getTitle() === "ご希望の公演日時") item.setHelpText(availabilityText());
@@ -1728,7 +1782,7 @@ function setup_availability() {
 //   初回：appsscript.json に oauthScopes（script.projects・script.deployments ほか）を入れ、setup_selfDeploy() を1回実行
 // ============================================================
 // コードの目印（変更のたびに更新すると、?api=version で反映を確認できる）
-var CODE_REVISION = "2026-11-06-R048-back-to-SS";
+var CODE_REVISION = "2026-11-06-seat-summary";
 
 var SELF_DEPLOY = {
   repo:   "tenrouyorozuya23-source/yorozuya-tenro-apps",
@@ -1840,7 +1894,8 @@ var MIGRATIONS = [
   { id: "2026-11-06-ss-overflow-apology-drafts",   run: function(){ createSsOverflowApologyDrafts(); } },
   { id: "2026-11-06-fix-T002-and-pending-moves",   run: function(){ fixShowTextT002(); updateRemainingSeats(); } },
   { id: "2026-11-06-apply-ss-seat-changes",        run: function(){ applySsOverflowSeatChanges(); } },
-  { id: "2026-11-06-R048-back-to-SS",              run: function(){ returnToSsSeat("R-048"); } }
+  { id: "2026-11-06-R048-back-to-SS",              run: function(){ returnToSsSeat("R-048"); } },
+  { id: "2026-11-06-seat-summary-table",           run: function(){ writeSeatSummary(); } }
 ];
 
 // SS席にキャンセルが出たので、上限超過で S席にご案内した予約を SS席に戻し、お詫びとご案内のメールを「下書き」で作る（送信はしない）
