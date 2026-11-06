@@ -54,8 +54,8 @@ td.d{font:500 22px/1.2 "Shippori Mincho";white-space:nowrap}td .w{font-size:13px
 .pick select{background:#111;color:var(--ink);border:1px solid #3a3a3c;border-radius:12px;padding:12px 14px;font:400 16px "Noto Sans JP"}
 .final h2{margin-bottom:18px}.final p{color:var(--sub);margin:0 0 36px}
 footer{padding:30px 22px 120px;text-align:center;font-size:12px;color:var(--mute)}
-.sticky{position:fixed;left:0;right:0;bottom:0;z-index:15;display:none;padding:12px 16px calc(12px + env(safe-area-inset-bottom));background:rgba(0,0,0,.86);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid #1d1d1f;align-items:center;justify-content:space-between;gap:12px}
-.sticky span{font-size:13px;color:var(--sub);line-height:1.4}
+.sticky{position:fixed;left:0;right:0;bottom:0;z-index:15;display:none;transform:translateY(110%);transition:transform .35s;padding:12px 16px calc(12px + env(safe-area-inset-bottom));background:rgba(0,0,0,.86);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid #1d1d1f;align-items:center;justify-content:space-between;gap:12px}
+.sticky.show{transform:none}.sticky span{font-size:13px;color:var(--sub);line-height:1.4}
 .rv{opacity:0;transform:translateY(16px);transition:opacity .8s cubic-bezier(.2,.7,.2,1),transform .8s cubic-bezier(.2,.7,.2,1)}.rv.in{opacity:1;transform:none}
 @media(prefers-reduced-motion:reduce){.rv{opacity:1;transform:none;transition:none}.l2,.l3{opacity:1}}
 @media(max-width:734px){nav span{display:none}.cast{grid-template-columns:repeat(3,1fr)}.seats{grid-template-columns:1fr}.cue{display:none}
@@ -126,7 +126,8 @@ const h=document.getElementById('hero'),q=[1,2,3].map(i=>document.getElementById
 const ss=x=>x*x*(3-2*x),cl=x=>Math.min(1,Math.max(0,x));
 const f=()=>{const p=cl(-h.getBoundingClientRect().top/(h.offsetHeight-innerHeight));
  const a2=ss(cl((p-.12)/.2)),a3=ss(cl((p-.5)/.2));h.style.setProperty('--p',p.toFixed(3));h.style.setProperty('--a2',a2.toFixed(3));h.style.setProperty('--a3',a3.toFixed(3));
- q[1].classList.toggle('on',a2>.5);q[2].classList.toggle('on',a3>.5);};
+ q[1].classList.toggle('on',a2>.5);q[2].classList.toggle('on',a3>.5);
+ document.querySelector('.sticky').classList.toggle('show',h.getBoundingClientRect().bottom<innerHeight*.5);};
 addEventListener('scroll',f,{passive:true});f();
 const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{rootMargin:'0px 0px -8% 0px'});
 document.querySelectorAll('.rv').forEach((el,i)=>{el.style.transitionDelay=((i%6)*70)+'ms';io.observe(el)});
