@@ -39,7 +39,7 @@ const SEG=[[0,3.0,3.0,'間なし','暗転 0 秒'],[4.5,8.5,9.0,'一拍','暗転 
 window.renderAt=t=>{
   let k=t<4.5?0:t<10.5?1:2;const [s0,bk,hit,lab,sub]=SEG[k];const lt=t-s0;
   const dark=t>=bk&&t<hit, lit=t>=hit;
-  wash.intensity=dark?0:lit?6:lerp(34,24,prog(lt,0,3));
+  wash.intensity=dark?0:lit?6:lerp(34,24,prog(lt,0,3))*(1+.22*Math.cos(t*Math.PI));// 2拍で一息の呼吸（暗い待ちの間も絵が止まらない）
   top.intensity=lit?520:0;bm.set(t,lit?.85:0);
   // 同じカット：区間の頭から同じ寄りを繰り返す
   const U=Math.min(1,.45*prog(lt,0,hit-s0)+.55*ease.inOutSine(prog(lt,0,hit-s0))),d=lerp(5.6,4.9,U)-(k===2?.35*ease.inOutCubic(prog(t,15,2.5)):0);
