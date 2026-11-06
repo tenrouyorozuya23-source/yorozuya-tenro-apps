@@ -1728,7 +1728,7 @@ function setup_availability() {
 //   初回：appsscript.json に oauthScopes（script.projects・script.deployments ほか）を入れ、setup_selfDeploy() を1回実行
 // ============================================================
 // コードの目印（変更のたびに更新すると、?api=version で反映を確認できる）
-var CODE_REVISION = "2026-11-06-pending-seat-moves";
+var CODE_REVISION = "2026-11-06-apply-seat-changes";
 
 var SELF_DEPLOY = {
   repo:   "tenrouyorozuya23-source/yorozuya-tenro-apps",
@@ -1838,8 +1838,44 @@ function setup_selfDeploy() {
 var MIGRATIONS = [
   { id: "2026-11-05-seat-caps-and-availability", run: function(){ fix_formText(); setup_availability(); } },
   { id: "2026-11-06-ss-overflow-apology-drafts",   run: function(){ createSsOverflowApologyDrafts(); } },
-  { id: "2026-11-06-fix-T002-and-pending-moves",   run: function(){ fixShowTextT002(); updateRemainingSeats(); } }
+  { id: "2026-11-06-fix-T002-and-pending-moves",   run: function(){ fixShowTextT002(); updateRemainingSeats(); } },
+  { id: "2026-11-06-apply-ss-seat-changes",        run: function(){ applySsOverflowSeatChanges(); } }
 ];
+
+// SS席の上限超過分の予約を、お詫びメールでご案内した席種（S席／A席）に書き換える（2026/11/06 メール送信済み）
+//   備考の先頭に変更の記録を残し、シート「SS超過のご連絡」の J列に「席種変更済み」と書く
+function applySsOverflowSeatChanges() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName("予約一覧");
+  var hdr = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0].map(String);
+  var cSeat = hdr.indexOf("席種") + 1, cNote = hdr.indexOf("備考") + 1;
+  var targets = ssOverflowTargets();
+  var done = {};
+  targets.forEach(function(t){
+    sheet.getRange(t.row, cSeat).setValue(t.newSeat);
+    var note = String(sheet.getRange(t.row, cNote).getValue() || "");
+    sheet.getRange(t.row, cNote).setValue("【11/6 SS席→" + t.newSeat + "に変更（上限超過のお詫び・非売品ブロマイドは受付でお渡し）】" + (note ? " " + note : ""));
+    done[t.resNo] = true;
+    Logger.log("✅ " + t.resNo + " " + t.name + "：SS席 → " + t.newSeat);
+  });
+  var log = ss.getSheetByName("SS超過のご連絡");
+  if (log && log.getLastRow() > 1) {
+    log.getRange(1, 10).setValue("席種変更");
+    styleHeader(log.getRange(1, 10));
+    var nos = log.getRange(2, 1, log.getLastRow() - 1, 1).getValues();
+    log.getRange(2, 10, nos.length, 1).setValues(nos.map(function(r){ return [done[String(r[0])] ? "席種変更済み" : ""]; }));
+    // メールアドレスが無く下書きを作れなかった予約（T-002 など）も一覧に足す
+    targets.forEach(function(t){
+      if (nos.some(function(r){ return String(r[0]) === String(t.resNo); })) return;
+      log.appendRow([t.resNo, t.name, t.mail, t.cast, t.show, t.count, t.from + "〜" + t.to + "枚目", t.newSeat,
+        t.mail ? "" : "要個別連絡（メールアドレスなし）", "席種変更済み"]);
+    });
+  }
+  pendingSeatMoves._cache = null;
+  updateRemainingSeats();
+  updateAttendanceSheets();
+  Logger.log("✅ SS席の上限超過分 " + targets.length + " 件の席種を書き換えました");
+}
 
 // 取り置き T-002 の公演日時が手入力（「12/5土曜日 13時」）で、どの公演にも数えられていなかったのを正しい表記に直す
 function fixShowTextT002() {
