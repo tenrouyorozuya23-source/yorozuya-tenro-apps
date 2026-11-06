@@ -52,7 +52,7 @@ window.renderAt=t=>{
   const dayOn=ease.outCubic(prog(t,2.6,1.4))*(1-ease.inOutSine(prog(t,27.2,1.8)));
   const K=lerp(2300,5600,Math.pow(Math.max(0,el),.6));
   sun.color.copy(kelvin(K));sun.intensity=dayOn*lerp(3.6,2.1,Math.max(0,el));
-  sky.intensity=.25*dayOn*Math.max(.15,el)+.06;sky.color.copy(kelvin(lerp(9000,7000,el)));
+  sky.intensity=.25*dayOn*Math.max(.15,el)+.06+.5*(1-prog(t,0,4))*(1-dayOn);sky.color.copy(kelvin(lerp(9000,7000,el)));
   // 夜：無音の後のインパクトで窓が一斉に灯る
   const night=t>=HIT?1:0;
   winMat.color.setRGB(1.6*night,1.05*night,.55*night);interior.intensity=.25*night;
