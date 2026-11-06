@@ -1,0 +1,27 @@
+{
+ "id": "S06-03-bgm",
+ "title": "光の一日（建築フィルム用）",
+ "versions": {
+  "40s": {
+   "sec": 40.0,
+   "bpm": 80,
+   "fps_beat_exact": [
+    24,
+    48,
+    60
+   ],
+   "silence": [
+    [
+     29.25,
+     30.0
+    ]
+   ],
+   "lufs": -14.0,
+   "tp": -3.5,
+   "low_minus_mid_db": -7.97,
+   "low_shelf_db": 0.0,
+   "limiter_db": 0.1,
+   "stereo_corr": 0.443
+  }
+ }
+}

@@ -1,0 +1,157 @@
+{
+ "id": "S06-03-bgm",
+ "title": "光の一日（建築フィルム用）",
+ "genre": "cinematic",
+ "base": {
+  "bpm": 80,
+  "key": "D",
+  "seed": 33,
+  "brightness": 0.6,
+  "reverb": 0.5,
+  "reverb_sec": 3.4,
+  "drive": 0.15,
+  "sidechain": 0.3,
+  "progression": [
+   "Dm",
+   "Bb",
+   "Gm",
+   "A"
+  ],
+  "taiko_pattern": [
+   [
+    0,
+    1.0
+   ],
+   [
+    3,
+    0.5
+   ]
+  ],
+  "mix": {
+   "swell": 0.6,
+   "sub": 0.1,
+   "taiko": 0.6,
+   "bell": 0.3,
+   "impact": 0.6,
+   "riser": 0.35,
+   "ostinato": 0.3,
+   "braam": 0.5
+  },
+  "end_chord": "Dm",
+  "pre_end_chord": "Bb"
+ },
+ "versions": {
+  "40s": {
+   "length": 40.0,
+   "bars": 13,
+   "tail_sec": 3.0,
+   "melody": [
+    [
+     0,
+     0,
+     "A5",
+     3
+    ],
+    [
+     3,
+     0,
+     "A5",
+     3
+    ],
+    [
+     4,
+     0,
+     "F5",
+     2
+    ],
+    [
+     4,
+     2,
+     "G5",
+     2
+    ],
+    [
+     5,
+     0,
+     "D5",
+     4
+    ],
+    [
+     7,
+     0,
+     "A5",
+     2
+    ],
+    [
+     7,
+     2,
+     "C6",
+     2
+    ],
+    [
+     8,
+     0,
+     "D6",
+     4
+    ]
+   ],
+   "sections": [
+    {
+     "from": 0,
+     "to": 1,
+     "layers": [
+      "pad"
+     ]
+    },
+    {
+     "from": 1,
+     "to": 9,
+     "layers": [
+      "swell",
+      "sub",
+      "ostinato"
+     ]
+    },
+    {
+     "from": 10,
+     "to": 12,
+     "layers": [
+      "swell",
+      "sub",
+      "taiko",
+      "bell",
+      "ostinato"
+     ]
+    },
+    {
+     "from": 12,
+     "to": 13,
+     "layers": [
+      "pad"
+     ]
+    }
+   ],
+   "cues": [
+    {
+     "bar": 9,
+     "beat": 1,
+     "type": "riser",
+     "len_beats": 2
+    },
+    {
+     "bar": 10,
+     "beat": 0,
+     "type": "impact"
+    }
+   ],
+   "silence": [
+    [
+     9,
+     3,
+     1
+    ]
+   ]
+  }
+ },
+ "spec_version": "40s"
+}
