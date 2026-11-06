@@ -31,10 +31,10 @@ var CONFIG = {
 
   // 全7公演・各60席（dt は開演時刻。フォームの選択肢・受付シート名に使われる）
   shows: [
-    // seatCaps＝この公演だけの席種の上限（CONFIG.seatTypes の cap より優先）
-    //   12/4 18:30：S席は既存1席で満席扱い ／ 12/5 13:00：S席は既存2席＋残り2席（2026/11/05 指示）
-    { dt: "12/4(金) 18:30", cap: 60, seatCaps: { "S席": 1 } },
-    { dt: "12/5(土) 13:00", cap: 60, seatCaps: { "S席": 4 } },
+    // seatCaps＝この公演だけの席種の上限を変えるときに使う（例 seatCaps: { "S席": 8 }）。無ければ CONFIG.seatTypes の cap
+    //   SS席の上限超過分は「移動予定」として変更先の席種（S席／A席）から先に差し引く → pendingSeatMoves()
+    { dt: "12/4(金) 18:30", cap: 60 },
+    { dt: "12/5(土) 13:00", cap: 60 },
     { dt: "12/5(土) 18:30", cap: 60 },
     { dt: "12/6(日) 13:00", cap: 60 },
     { dt: "12/6(日) 18:30", cap: 60 },
@@ -1519,6 +1519,15 @@ function seatCap(seatType, showDt) {
   return Infinity;
 }
 
+// SS席の上限超過分（まだ SS席のままの予約）を、変更先の席種ごとに数える：{ "S席": n, "A席": m }
+//   お客様の席種を予約一覧で書き換えれば超過ではなくなるので、二重には数えない
+function pendingSeatMoves(showDt) {
+  var cache = pendingSeatMoves._cache || (pendingSeatMoves._cache = ssOverflowTargets());
+  var out = {};
+  cache.forEach(function(t){ if (sameShow(t.show, showDt)) out[t.newSeat] = (out[t.newSeat] || 0) + t.count; });
+  return out;
+}
+
 // 残席（excludeRow の行は数えない。1始まりの行番号）
 //   seatType を渡すと、公演全体の残席と、その席種の残り（上限 − 予約済み）の少ない方を返す
 function remainingSeatsFor(sheet, showDt, excludeRow, seatType) {
@@ -1534,7 +1543,7 @@ function remainingSeatsFor(sheet, showDt, excludeRow, seatType) {
     if (seatType && String(data[i][cSeat]) === String(seatType)) usedSeat += n;
   }
   var left = showCapacity(showDt) - used;
-  return seatType ? Math.min(left, seatCap(seatType, showDt) - usedSeat) : left;
+  return seatType ? Math.min(left, seatCap(seatType, showDt) - usedSeat - (pendingSeatMoves(showDt)[seatType] || 0)) : left;
 }
 
 // キャンセル待ちを申込順に繰り上げる（空きに収まる予約だけ本予約にしてメールを送る）
@@ -1567,6 +1576,8 @@ function promoteWaitlist(showDt) {
         }
       }
       var left = showCapacity(dt) - used;
+      var pend = pendingSeatMoves(dt);
+      Object.keys(pend).forEach(function(k){ usedBySeat[k] = (usedBySeat[k] || 0) + pend[k]; });
       waits.sort(function(a, b){ return new Date(data[a][c.ts]) - new Date(data[b][c.ts]); });
       waits.forEach(function(i){
         var n = toSeatCount(data[i][c.count]), seat = String(data[i][c.seat]);
@@ -1655,10 +1666,11 @@ function seatAvailability() {
       bySeat[seat] = (bySeat[seat] || 0) + n;
     }
     var left = showCapacity(show.dt) - used;
+    var pending = pendingSeatMoves(show.dt);
     return {
       show: show.dt,
       seats: CONFIG.seatTypes.map(function(st){
-        var rem = Math.max(0, Math.min(left, seatCap(st.name, show.dt) - (bySeat[st.name] || 0)));
+        var rem = Math.max(0, Math.min(left, seatCap(st.name, show.dt) - (bySeat[st.name] || 0) - (pending[st.name] || 0)));
         return { seat: st.name, remaining: rem, label: availabilityLabel(rem) };
       })
     };
@@ -1716,7 +1728,7 @@ function setup_availability() {
 //   初回：appsscript.json に oauthScopes（script.projects・script.deployments ほか）を入れ、setup_selfDeploy() を1回実行
 // ============================================================
 // コードの目印（変更のたびに更新すると、?api=version で反映を確認できる）
-var CODE_REVISION = "2026-11-06-ss-overflow-drafts";
+var CODE_REVISION = "2026-11-06-pending-seat-moves";
 
 var SELF_DEPLOY = {
   repo:   "tenrouyorozuya23-source/yorozuya-tenro-apps",
@@ -1825,8 +1837,22 @@ function setup_selfDeploy() {
 // ============================================================
 var MIGRATIONS = [
   { id: "2026-11-05-seat-caps-and-availability", run: function(){ fix_formText(); setup_availability(); } },
-  { id: "2026-11-06-ss-overflow-apology-drafts",   run: function(){ createSsOverflowApologyDrafts(); } }
+  { id: "2026-11-06-ss-overflow-apology-drafts",   run: function(){ createSsOverflowApologyDrafts(); } },
+  { id: "2026-11-06-fix-T002-and-pending-moves",   run: function(){ fixShowTextT002(); updateRemainingSeats(); } }
 ];
+
+// 取り置き T-002 の公演日時が手入力（「12/5土曜日 13時」）で、どの公演にも数えられていなかったのを正しい表記に直す
+function fixShowTextT002() {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("予約一覧");
+  var data = sheet.getDataRange().getValues();
+  var hdr = data[0].map(String), cNo = hdr.indexOf("予約番号"), cShow = hdr.indexOf("公演日時");
+  for (var i = 1; i < data.length; i++) {
+    if (String(data[i][cNo]) === "T-002" && String(data[i][cShow]).indexOf("12/5土曜日") === 0) {
+      sheet.getRange(i + 1, cShow + 1).setValue("12/5(土) 13:00");
+      Logger.log("✅ T-002 の公演日時を 12/5(土) 13:00 に直しました");
+    }
+  }
+}
 
 // ============================================================
 // SS席の上限（10席）超過分のお客様へ、お詫びと席種変更のお願いのメールを「下書き」で作る（送信はしない）
