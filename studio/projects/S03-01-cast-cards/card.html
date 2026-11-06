@@ -4,7 +4,7 @@
 #ov{position:absolute;inset:0;color:#efe9df;pointer-events:none;font-family:"Noto Sans JP"}
 #troupe{position:absolute;left:0;right:0;top:300px;text-align:center;font:300 34px/1 "Noto Sans JP";letter-spacing:.3em;text-indent:.3em;opacity:0}
 #role{position:absolute;left:0;right:0;top:400px;text-align:center;font:300 44px/1.3 "Noto Sans JP";letter-spacing:.06em;opacity:0}
-#note{position:absolute;left:0;right:0;top:470px;text-align:center;font:400 28px/1.4 "Noto Sans JP";color:#9d958a;letter-spacing:.04em;opacity:0}</style>
+#note{position:absolute;left:0;right:0;top:480px;text-align:center;font:400 30px/1.4 "Noto Sans JP";color:#9d958a;letter-spacing:.04em;opacity:0}</style>
 <script type="importmap">{"imports":{"three":"/node_modules/three/build/three.module.js","three/addons/":"/node_modules/three/examples/jsm/"}}</script>
 </head><body><div id="ov"><div id="troupe">灯守座<span style="margin:0 .6em">·</span>解禁</div><div id="role"></div><div id="note">架空の劇団のサンプルです</div></div>
 <script type="module">
@@ -50,15 +50,15 @@ const BB=C.beam(scene,{from:[0,4.8,-2.6],to:[0,-1.2,-1.6],radius:.75,color:0xffe
 const bk=C.spot(scene,{pos:[0,4.8,-2.6],target:[0,0,-1.2],color:0xffe2bd,intensity:0,angle:.24,penumbra:1,shadow:false});
 const V=(x,y,z)=>new THREE.Vector3(x,y,z);
 window.__ready=makeName();
-const $=id=>document.getElementById(id);$('role').textContent=D.role;
+const $=id=>document.getElementById(id);$('role').textContent=D.role;if(D.troupe)$('troupe').innerHTML=D.troupe;
 window.renderAt=t=>{
   // 0.0 暗転（板付きの輪郭だけ）→ 0.6 明転（拍）→ 2.4 役名 → 6.6 溶暗に向かう
-  const k=ease.outCubic(prog(t,.6,.5))*(1-ease.inOutSine(prog(t,7.2,.8)));
+  const k=(.1+.9*ease.outCubic(prog(t,.6,.6)))*(1-ease.inOutSine(prog(t,7.2,.8)));
   const sil=ease.inOutSine(prog(t,4.87,.7))*(1-ease.inOutSine(prog(t,7.2,.8)));
   top.intensity=620*k*(1-.97*sil); B.set(t,Math.max(.04*(1-prog(t,.6,.3)),k*(1-.5*sil)));
-  bk.intensity=220*sil;BB.set(t,Math.max(.6*(1-prog(t,.6,.4)),1.1*sil)); front.intensity=14*ease.outCubic(prog(t,.9,1.2))*(1-prog(t,7.2,.8))*(1-sil);
-  const d=lerp(5.6,4.9,ease.inOutSine(prog(t,0,8)));
-  if(plane){const fo=1-ease.inOutSine(prog(t,7.1,.8));plane.material.color.setHex(0xece4d6).multiplyScalar(fo);}
+  bk.intensity=300*sil;BB.set(t,1.4*sil); front.intensity=14*ease.outCubic(prog(t,.9,1.2))*(1-prog(t,7.2,.8))*(1-sil);
+  const d=lerp(5.9,4.6,ease.inOutSine(prog(t,0,8)));
+  if(plane){const fo=1-ease.inOutSine(prog(t,7.1,.8));plane.material.color.setHex(0xece4d6).multiplyScalar(fo*(1-.8*ease.inOutSine(prog(t,4.87,.7))));}
   const ped=lerp(1.12,.98,ease.inOutSine(prog(t,0,8)));const az=lerp(.12,-.05,ease.inOutSine(prog(t,0,8)));camera.position.set(Math.sin(az)*d,ped,Math.cos(az)*d);camera.lookAt(0,ped-.26,0);
   if(S.bokeh){const rf=ease.inOutSine(prog(t,.7,1.8));S.bokeh.uniforms.focus.value=lerp(1.2,d,rf);S.bokeh.uniforms.aperture.value=lerp(.006,.0008,rf);}
   const f=(el,a,b)=>{el.style.opacity=(ease.outCubic(prog(t,a,.6))*(1-prog(t,b,.5))).toFixed(3)};
