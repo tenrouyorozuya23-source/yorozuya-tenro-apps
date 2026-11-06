@@ -43,7 +43,8 @@ window.__ready=build();
 const TA=[4,6,8,10,12,14,16], TH=20.0;
 const $=id=>document.getElementById(id);
 window.renderAt=t=>{
-  rows.forEach((r,i)=>{const t0=r.head?TH:TA[i];let v=t>=t0?ease.outCubic(prog(t,t0,.12)):0;
+  rows.forEach((r,i)=>{const t0=r.head?TH:TA[i];let v=t>=t0?ease.outCubic(prog(t,t0,.12)):.06;
+    if(t>=TH+1)v*=.88+.12*Math.sin(t*2.4+i);
     if(!r.head&&t>=TH)v*=.45;if(t>=19.5&&t<TH)v*=.2;if(t>=27.5&&t<28)v*=.6;
     const c=r.head?new THREE.Color(1,.9,.76):new THREE.Color(.95,.9,.82);
     r.plate.material.color.copy(c).multiplyScalar(v);r.led.material.color.copy(c).multiplyScalar(v*1.6);r.sp.intensity=(r.head?60:14)*v;});
@@ -51,7 +52,7 @@ window.renderAt=t=>{
   const k=t<TH?prog(t,0,TH):1;
   const ly=t<TH?lerp(5.8,3.4,ease.inOutSine(k)):lerp(3.4,3.45,ease.inOutSine(prog(t,TH,3)));
   const cz=t<TH?lerp(6.2,5.2,k):lerp(5.2,12.2,ease.inOutSine(prog(t,TH,3.5)));
-  camera.position.set(.25*Math.sin(t*.3),1.6,cz);camera.lookAt(0,ly,-.6);
+  camera.position.set(.35*Math.sin(t*.42),1.6+.15*Math.sin(t*.6),cz-.25*prog(t,24,6));camera.lookAt(0,ly,-.6);
   if(S.bokeh){S.bokeh.uniforms.focus.value=cz+.6;S.bokeh.uniforms.aperture.value=.0007;}
   $('pre').style.opacity=(1-prog(t,19.4,.2)).toFixed(3);
   $('fest').style.opacity=ease.outCubic(prog(t,24,.5)).toFixed(3);$('date').style.opacity=ease.outCubic(prog(t,28,.3)).toFixed(3);
