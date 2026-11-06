@@ -1716,7 +1716,7 @@ function setup_availability() {
 //   初回：appsscript.json に oauthScopes（script.projects・script.deployments ほか）を入れ、setup_selfDeploy() を1回実行
 // ============================================================
 // コードの目印（変更のたびに更新すると、?api=version で反映を確認できる）
-var CODE_REVISION = "2026-11-06-auto-deploy-fix";
+var CODE_REVISION = "2026-11-06-ss-overflow-drafts";
 
 var SELF_DEPLOY = {
   repo:   "tenrouyorozuya23-source/yorozuya-tenro-apps",
@@ -1824,8 +1824,94 @@ function setup_selfDeploy() {
 //   新しい「1回だけ実行」の処理を作ったら、関数を書いてここに id を足す（id は変えない）。
 // ============================================================
 var MIGRATIONS = [
-  { id: "2026-11-05-seat-caps-and-availability", run: function(){ fix_formText(); setup_availability(); } }
+  { id: "2026-11-05-seat-caps-and-availability", run: function(){ fix_formText(); setup_availability(); } },
+  { id: "2026-11-06-ss-overflow-apology-drafts",   run: function(){ createSsOverflowApologyDrafts(); } }
 ];
+
+// ============================================================
+// SS席の上限（10席）超過分のお客様へ、お詫びと席種変更のお願いのメールを「下書き」で作る（送信はしない）
+//   公演ごとに、本予約済みの SS席を申込順（タイムスタンプ→行の順）に数え、11枚目以降を含む予約が対象
+//   変更先：S席。ただし 12/4(金) 18:30 の 20・21枚目は A席
+//   結果はシート「SS超過のご連絡」に一覧で残す（メールアドレスが無い予約は下書きを作らず、一覧に「要個別連絡」と書く）
+// ============================================================
+var SS_OVERFLOW_LIMIT = 10;
+var SS_OVERFLOW_TO_A = { "12/4(金) 18:30": [20, 21] };  // この枚目は A席へ
+
+function ssOverflowTargets() {
+  var data = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("予約一覧").getDataRange().getValues();
+  var hdr = data[0].map(String);
+  var c = function(h){ return hdr.indexOf(h); };
+  var targets = [];
+  CONFIG.shows.forEach(function(show){
+    var rows = [];
+    for (var i = 1; i < data.length; i++) {
+      if (!sameShow(data[i][c("公演日時")], show.dt)) continue;
+      if (String(data[i][c("席種")]) !== "SS席" || String(data[i][c("ステータス")]) !== STATUS_CONFIRMED) continue;
+      rows.push(i);
+    }
+    rows.sort(function(a, b){
+      var ta = new Date(data[a][c("タイムスタンプ")]).getTime() || 0, tb = new Date(data[b][c("タイムスタンプ")]).getTime() || 0;
+      return ta - tb || a - b;
+    });
+    var cum = 0;
+    rows.forEach(function(i){
+      var n = toSeatCount(data[i][c("枚数")]);
+      var from = cum + 1, to = cum + n;
+      cum = to;
+      if (to <= SS_OVERFLOW_LIMIT) return;
+      var toA = (SS_OVERFLOW_TO_A[show.dt] || []).filter(function(k){ return k >= from && k <= to; }).length > 0;
+      targets.push({
+        row: i + 1, show: show.dt, resNo: data[i][c("予約番号")], name: data[i][c("お名前")],
+        mail: String(data[i][c("メールアドレス")] || "").trim(), count: n, from: from, to: to,
+        newSeat: toA ? "A席" : "S席", cast: String(data[i][c("取り扱いキャスト")] || "").replace(/\s*【.+】/, "")
+      });
+    });
+  });
+  return targets;
+}
+
+function ssOverflowMailBody(t) {
+  var newPrice = getSeatPrice(t.newSeat), oldPrice = getSeatPrice("SS席");
+  return t.name + " 様\n\n" +
+    "この度は BSD presents 舞台「" + CONFIG.title + "」にご予約いただき、誠にありがとうございます。\n\n" +
+    "誠に申し訳ございません。予約システムのエラーにより、下記公演のSS席について、販売上限を超えてご予約を受け付けてしまっておりました。\n" +
+    "本来であればすぐにご連絡すべきところ、ご連絡が遅くなりましたこと、心よりお詫び申し上げます。\n\n" +
+    "楽しみにお待ちいただいている中、大変恐縮ではございますが、" + t.newSeat + "へのご変更をご案内させていただきたく存じます。\n\n" +
+    "━━━━━━━━━━━━━━━━━━━━\n" +
+    "予約番号　　　：" + t.resNo + "\n" +
+    "公演日時　　　：" + t.show + "（開場 " + doorsOpenTime(t.show) + "）\n" +
+    "ご予約の席種　：SS席" + (oldPrice ? "（" + yenText(oldPrice) + "）" : "") + " × " + t.count + "枚\n" +
+    "ご変更後の席種：" + t.newSeat + (newPrice ? "（" + yenText(newPrice) + "）" : "") + " × " + t.count + "枚\n" +
+    "━━━━━━━━━━━━━━━━━━━━\n\n" +
+    "なお、SS席の特典「非売品・役者ブロマイド」は、お詫びとして受付にてお客様へお渡しいたします。\n" +
+    "チケット代は、ご変更後の席種の料金を当日受付にて現金でお支払いください。\n\n" +
+    "ご不明な点やご希望がございましたら、お手数ですがこのメールにご返信ください。\n" +
+    "このたびはご迷惑をおかけし、誠に申し訳ございません。何卒よろしくお願い申し上げます。";
+}
+
+function createSsOverflowApologyDrafts() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var targets = ssOverflowTargets();
+  var opts = mailOptions();
+  var out = [["予約番号", "お名前", "メールアドレス", "取り扱いキャスト", "公演日時", "枚数", "SS席の順番", "変更先", "下書き"]];
+  targets.forEach(function(t){
+    var state;
+    if (t.mail.indexOf("@") === -1) {
+      state = "要個別連絡（メールアドレスなし）";
+    } else {
+      GmailApp.createDraft(t.mail, "【" + CONFIG.title + "】お詫びとお座席変更のお願い（予約番号 " + t.resNo + "）",
+        withSignature(ssOverflowMailBody(t)), opts);
+      state = "下書き作成済み";
+    }
+    out.push([t.resNo, t.name, t.mail, t.cast, t.show, t.count, t.from + "〜" + t.to + "枚目", t.newSeat, state]);
+  });
+  var sheet = ss.getSheetByName("SS超過のご連絡") || ss.insertSheet("SS超過のご連絡");
+  sheet.clearContents();
+  sheet.getRange(1, 1, out.length, out[0].length).setValues(out);
+  styleHeader(sheet.getRange(1, 1, 1, out[0].length));
+  sheet.setFrozenRows(1);
+  Logger.log("✅ SS席超過のお詫びメールの下書きを " + (out.length - 1) + " 件分処理しました（シート「SS超過のご連絡」）");
+}
 
 function runMigrations() {
   var lock = LockService.getScriptLock();
