@@ -1,0 +1,5 @@
+# Cloudflare Pages 用のキャッシュ設定（公開先が決まったら有効になる）
+/img/*
+  Cache-Control: public, max-age=31536000, immutable
+/*.html
+  Cache-Control: public, max-age=300

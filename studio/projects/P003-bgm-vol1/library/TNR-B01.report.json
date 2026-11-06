@@ -1,0 +1,94 @@
+{
+ "id": "TNR-B01",
+ "title": "Bright Hall（Corporate）",
+ "versions": {
+  "30s": {
+   "sec": 30.0,
+   "bpm": 120,
+   "fps_beat_exact": [
+    24,
+    30,
+    48,
+    60
+   ],
+   "silence": [
+    [
+     19.5,
+     20.0
+    ],
+    [
+     27.5,
+     28.0
+    ]
+   ],
+   "lufs": -14.2,
+   "tp": -2.3,
+   "low_minus_mid_db": 3.82,
+   "low_shelf_db": -3.7,
+   "limiter_db": 1.7,
+   "stereo_corr": 0.853
+  },
+  "loop": {
+   "sec": 16.0,
+   "bpm": 120,
+   "fps_beat_exact": [
+    24,
+    30,
+    48,
+    60
+   ],
+   "silence": [],
+   "lufs": -14.1,
+   "tp": -2.5,
+   "low_minus_mid_db": 3.96,
+   "low_shelf_db": -6.5,
+   "limiter_db": 1.2,
+   "stereo_corr": 0.842,
+   "seam_ratio": 0.222
+  },
+  "15s": {
+   "sec": 15.0,
+   "bpm": 120,
+   "fps_beat_exact": [
+    24,
+    30,
+    48,
+    60
+   ],
+   "silence": [
+    [
+     11.5,
+     12.0
+    ]
+   ],
+   "lufs": -14.2,
+   "tp": -2.4,
+   "low_minus_mid_db": 3.94,
+   "low_shelf_db": -6.8,
+   "limiter_db": 2.2,
+   "stereo_corr": 0.824
+  },
+  "6s": {
+   "sec": 6.0,
+   "bpm": 120,
+   "fps_beat_exact": [
+    24,
+    30,
+    48,
+    60
+   ],
+   "silence": [
+    [
+     3.5,
+     4.0
+    ]
+   ],
+   "lufs": -14.0,
+   "tp": -3.0,
+   "low_minus_mid_db": 4.01,
+   "low_shelf_db": -4.2,
+   "limiter_db": 0.2,
+   "stereo_corr": 0.861
+  }
+ }
+}

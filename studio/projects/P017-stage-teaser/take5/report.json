@@ -1,0 +1,107 @@
+{
+ "file": "P017-stage-teaser.mp4",
+ "duration": 15.0,
+ "fps": 30.0,
+ "width": 1080,
+ "height": 1920,
+ "frames": 450,
+ "has_audio": true,
+ "color": {
+  "color_space": "bt709",
+  "color_primaries": "bt709",
+  "color_transfer": "bt709",
+  "color_range": "tv"
+ },
+ "black": [
+  [
+   6.93333,
+   7.76667
+  ]
+ ],
+ "freeze": [],
+ "loudness": {
+  "integrated_lufs": -13.9,
+  "true_peak_dbfs": -1.0,
+  "lra": 7.7
+ },
+ "sync": [
+  {
+   "kind": "beat",
+   "t": 0,
+   "audio_ms": 40.2
+  },
+  {
+   "kind": "beat",
+   "t": 2.322
+  },
+  {
+   "kind": "beat",
+   "t": 4.667
+  },
+  {
+   "kind": "beat",
+   "t": 6.873,
+   "audio_ms": -0.3,
+   "visual_f": 1,
+   "visual_diff": 3.31
+  },
+  {
+   "kind": "beat",
+   "t": 9.172,
+   "audio_ms": -0.5,
+   "visual_f": 0,
+   "visual_diff": 16.57
+  },
+  {
+   "kind": "beat",
+   "t": 11.447,
+   "audio_ms": 0.0
+  },
+  {
+   "kind": "beat",
+   "t": 13.7,
+   "visual_f": 1,
+   "visual_diff": 15.94
+  },
+  {
+   "kind": "blackout",
+   "t": 6.873,
+   "audio_ms": -0.3,
+   "visual_f": 1,
+   "visual_diff": 3.31
+  },
+  {
+   "kind": "curtain_start",
+   "t": 7.454,
+   "audio_ms": 5.0
+  },
+  {
+   "kind": "hero_spot",
+   "t": 9.172,
+   "audio_ms": -0.5,
+   "visual_f": 0,
+   "visual_diff": 16.57
+  },
+  {
+   "kind": "title_in",
+   "t": 9.729
+  },
+  {
+   "kind": "end_card",
+   "t": 13.7,
+   "visual_f": 1,
+   "visual_diff": 15.94
+  }
+ ],
+ "summary": {
+  "audio_ms_median": -0.3,
+  "audio_ms_absmax": 40.2,
+  "audio_matched": "7/12",
+  "visual_f_median": 1.0,
+  "visual_matched": "6/12",
+  "visual_off": []
+ },
+ "warnings": [
+  "黒味あり: [[6.93333, 7.76667]]"
+ ]
+}

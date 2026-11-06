@@ -38,7 +38,26 @@ def rope():  # 綱元の擦過音：帯域を絞ったノイズが 1.2 秒かけ
     sm = np.convolve(nz, np.ones(24)/24, 'same') - np.convolve(nz, np.ones(160)/160, 'same')
     e = np.sin(np.pi*np.clip(tt/1.6, 0, 1)) ** 1.5 * (1 + .25*np.sin(2*np.pi*5.5*tt))
     return sm * e * .5
-SND = {'relay_click': relay, 'lamp_thunk': lamp, 'fly_rope': rope}
+def tail():  # タイトルの残響：低い倍音の鐘のような減衰（-18dBFS 程度）
+    L = int(2.8*sr); tt = np.arange(L)/sr
+    tone = sum(a*np.sin(2*np.pi*f*tt) for f, a in [(164.8, .5), (247.2, .3), (329.6, .18), (493.9, .08)])
+    return tone * env(L, .005, .9) * .16
+def relay_soft():  # 再点灯：小さなリレー音を2回（揺らぎに合わせる）
+    L = int(.6*sr); r = np.zeros(L); a = relay()*.45
+    for d in (0, .2): i = int(d*sr); r[i:i+len(a)] += a[:L-i]
+    return r
+def flick():  # 電球の揺らぎ：フィラメントが鳴る小さなチリッという音
+    L = int(.12*sr); tt = np.arange(L)/sr
+    return (rng.standard_normal(L)*env(L,.0005,.006)*.4 + np.sin(2*np.pi*3100*tt)*env(L,.0003,.01)*.3) * .25
+def hum():  # 電球の低いハム（倍音で小型スピーカーでも聞こえる）
+    tt = np.arange(n)/sr
+    return sum(a*np.sin(2*np.pi*f*tt) for f,a in [(120,.5),(240,.3),(360,.15)]) * 10**(-30/20)
+SND = {'flick': flick, 'relay_click': relay, 'lamp_thunk': lamp, 'fly_rope': rope, 'tail': tail, 'relay_soft': relay_soft}
+# 冒頭 0〜3 秒を持ち上げ（SNS の音あり再生で劇場の空気が伝わるように）＋電球のハム
+a0, a1, gdb = tl['intro_gain_db']
+ig = np.where(t < a1, 10**(gdb/20), 1.0); kk = (t >= a1) & (t < a1 + 1.0); ig[kk] = 10**(gdb*(1-(t[kk]-a1))/20)
+a *= ig[:, None]
+hm = hum() * np.clip(1 - (t - 6.6)/.27, 0, 1); a += hm[:, None]
 for s in tl['sfx']:
     snd = SND[s['type']]()
     i = int(round(s['t'] * sr)); j = min(n, i + len(snd))

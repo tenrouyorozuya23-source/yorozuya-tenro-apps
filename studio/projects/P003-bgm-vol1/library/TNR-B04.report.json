@@ -1,0 +1,90 @@
+{
+ "id": "TNR-B04",
+ "title": "神楽灯 Kagura Light（和風）",
+ "versions": {
+  "30s": {
+   "sec": 30.0,
+   "bpm": 80,
+   "fps_beat_exact": [
+    24,
+    48,
+    60
+   ],
+   "silence": [
+    [
+     5.25,
+     6.0
+    ],
+    [
+     20.25,
+     21.0
+    ]
+   ],
+   "lufs": -14.0,
+   "tp": -2.5,
+   "low_minus_mid_db": 2.36,
+   "low_shelf_db": 0.0,
+   "limiter_db": 0.2,
+   "stereo_corr": 0.747
+  },
+  "loop": {
+   "sec": 24.0,
+   "bpm": 80,
+   "fps_beat_exact": [
+    24,
+    48,
+    60
+   ],
+   "silence": [],
+   "lufs": -14.0,
+   "tp": -3.3,
+   "low_minus_mid_db": 2.57,
+   "low_shelf_db": 0.0,
+   "limiter_db": 0.1,
+   "stereo_corr": 0.791,
+   "seam_ratio": 0.092
+  },
+  "15s": {
+   "sec": 15.0,
+   "bpm": 80,
+   "fps_beat_exact": [
+    24,
+    48,
+    60
+   ],
+   "silence": [
+    [
+     2.25,
+     3.0
+    ]
+   ],
+   "lufs": -14.0,
+   "tp": -3.4,
+   "low_minus_mid_db": 1.5,
+   "low_shelf_db": 0.0,
+   "limiter_db": 0.1,
+   "stereo_corr": 0.79
+  },
+  "6s": {
+   "sec": 6.0,
+   "bpm": 80,
+   "fps_beat_exact": [
+    24,
+    48,
+    60
+   ],
+   "silence": [
+    [
+     2.25,
+     3.0
+    ]
+   ],
+   "lufs": -14.0,
+   "tp": -3.1,
+   "low_minus_mid_db": 3.8,
+   "low_shelf_db": 0.0,
+   "limiter_db": 0.1,
+   "stereo_corr": 0.88
+  }
+ }
+}

@@ -1,0 +1,72 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>柊木 透 — 舞台俳優</title><meta name="description" content="舞台俳優 柊木 透（架空の人物によるサイトの見本）。出演歴・宣材・リール・お問い合わせ。">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" media="print" onload="this.media='all'" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600&family=Noto+Sans+JP:wght@300;400;500&display=swap">
+<style>
+:root{--bg:#000;--ink:#f5f5f7;--sub:#a1a1a6;--mute:#6e6e73;--line:#1d1d1f;--warm:#ffd9ad}
+*{box-sizing:border-box}html{background:var(--bg)}body{margin:0;background:var(--bg);color:var(--ink);font:400 17px/1.7 "Noto Sans JP",system-ui,sans-serif;-webkit-font-smoothing:antialiased;word-break:auto-phrase}
+.nb{display:inline-block}a{color:inherit}
+nav{position:fixed;inset:0 0 auto;z-index:10;display:flex;justify-content:space-between;align-items:center;height:52px;padding:0 max(22px,calc(50% - 490px));font-size:12px;letter-spacing:.08em;color:var(--sub);background:rgba(0,0,0,.72);backdrop-filter:saturate(180%) blur(20px)}
+nav b{font:600 15px/1 "Shippori Mincho",serif;letter-spacing:.12em;color:var(--ink)}nav ul{display:flex;gap:28px;margin:0;padding:0;list-style:none}nav a{text-decoration:none}
+/* ヒーロー：暗転（蓄光のバミリだけ）→ スクロールでスポットが立ち位置に落ちる */
+.hero{height:220vh;position:relative}
+.hero .pin{position:sticky;top:0;height:100vh;overflow:hidden}
+.hero picture,.hero img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.hero .lit{opacity:var(--lit,0)}
+.hero h1{position:absolute;left:0;right:0;top:19vh;margin:0;text-align:center;font:600 clamp(56px,9vw,120px)/1 "Shippori Mincho",serif;letter-spacing:.16em;text-indent:.16em;color:var(--ink);opacity:var(--lit,0)}
+.hero .en{position:absolute;left:0;right:0;top:calc(19vh + clamp(56px,9vw,120px) + 22px);text-align:center;font-size:13px;letter-spacing:.42em;text-indent:.42em;color:var(--sub);opacity:var(--lit,0)}
+.hero .cue{position:absolute;left:0;right:0;top:38vh;text-align:center;font-size:15px;letter-spacing:.2em;color:var(--mute);opacity:calc(1 - var(--lit,0)*2)}
+.wrap{max-width:980px;margin:0 auto;padding:0 22px}
+section{padding:160px 0}
+.eyebrow{font-size:14px;letter-spacing:.24em;color:var(--warm);margin:0 0 18px}
+h2{font:600 clamp(40px,6vw,72px)/1.16 "Shippori Mincho",serif;letter-spacing:.04em;margin:0 0 40px}
+.lead{font-size:clamp(19px,2.1vw,24px);line-height:1.8;color:var(--sub);max-width:34em;margin:0}
+.lead strong{color:var(--ink);font-weight:500}
+.facts{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin-top:96px;border-top:1px solid var(--line)}
+.facts div{padding:28px 0 0}.facts dt{font-size:12px;letter-spacing:.16em;color:var(--mute)}.facts dd{margin:10px 0 0;font:500 clamp(28px,3.4vw,40px)/1.1 "Shippori Mincho",serif}
+.facts dd small{font:400 14px/1 "Noto Sans JP";color:var(--sub);margin-left:4px}
+/* 出演歴：台本の頁のように、年ごとに1枚 */
+.credits{display:grid;gap:2px;margin-top:24px}
+.credit{display:grid;grid-template-columns:120px 1fr auto;gap:32px;align-items:baseline;padding:30px 0;border-top:1px solid var(--line)}
+.credit time{font:500 15px/1 "Noto Sans JP";color:var(--mute);letter-spacing:.08em}
+.credit h3{margin:0;font:600 clamp(24px,2.8vw,32px)/1.3 "Shippori Mincho",serif;letter-spacing:.04em}
+.credit p{margin:6px 0 0;font-size:15px;color:var(--sub)}
+.credit .role{font:500 17px/1.3 "Shippori Mincho",serif;color:var(--ink);text-align:right;white-space:nowrap}
+.credit .role span{display:block;font:400 12px/1.6 "Noto Sans JP";color:var(--mute);letter-spacing:.12em}
+.note{margin-top:120px;font-size:12px;color:var(--mute);text-align:center}
+@media(max-width:734px){nav ul li:not(:first-child):not(:last-child){display:none}nav ul{gap:18px}.hero .cue{padding:0 32px;font-size:14px;letter-spacing:.1em;line-height:2}.facts{grid-template-columns:1fr 1fr;row-gap:36px}section{padding:112px 0}
+ .credit{grid-template-columns:1fr auto;gap:8px 16px}.credit time{grid-column:1/-1}.hero h1{top:16vh}}
+</style></head><body>
+<nav><b>柊木 透</b><ul><li><a href="#works">出演歴</a></li><li><a href="#">宣材</a></li><li><a href="#">リール</a></li><li><a href="#">お問い合わせ</a></li></ul></nav>
+<header class="hero" id="hero"><div class="pin">
+ <picture><source media="(max-width:734px)" srcset="img/stage-m0.webp"><img src="img/stage-d0.webp" alt="" width="1600" height="1000" fetchpriority="high"></picture>
+ <picture class="lit"><source media="(max-width:734px)" srcset="img/stage-m1.webp"><img src="img/stage-d1.webp" alt="暗い舞台の床に、蓄光テープで貼られたT字の立ち位置の印。真上から一灯のスポットが落ちている" width="1600" height="1000"></picture>
+ <p class="cue">暗転中。<span class="nb">光っているのは、</span><span class="nb">立ち位置の印だけ。</span></p>
+ <h1>柊木 透</h1><p class="en">HIIRAGI TORU — STAGE ACTOR</p>
+</div></header>
+<main>
+<section><div class="wrap">
+ <p class="eyebrow">PROFILE</p>
+ <h2><span class="nb">光が来る場所に、</span><span class="nb">先に立っている。</span></h2>
+ <p class="lead"><strong>小劇場から始めて12年。</strong><span class="nb">台詞の少ない役ほど、</span><span class="nb">立ち方と間で</span><span class="nb">語ってきました。</span><span class="nb">2024年からは</span><span class="nb">映像とオーディオドラマにも。</span></p>
+ <dl class="facts"><div><dt>舞台出演</dt><dd>38<small>本</small></dd></div><div><dt>主演</dt><dd>7<small>本</small></dd></div><div><dt>身長</dt><dd>178<small>cm</small></dd></div><div><dt>特技</dt><dd style="font-size:clamp(20px,2.2vw,26px)">殺陣・<span class="nb">津軽三味線</span></dd></div></dl>
+</div></section>
+<section id="works"><div class="wrap">
+ <p class="eyebrow">WORKS</p>
+ <h2>出演歴</h2>
+ <div class="credits">
+  <article class="credit"><time>2026.10</time><div><h3>硝子の庭</h3><p>灯守座 第24回公演・作 演出 朝霧 遼</p></div><p class="role">伊織<span>主演</span></p></article>
+  <article class="credit"><time>2026.03</time><div><h3>星屑通りの夜明け</h3><p>星屑通り製作委員会・ミュージカル</p></div><p class="role">古書店の店主<span>出演</span></p></article>
+  <article class="credit"><time>2025.11</time><div><h3>無風地帯</h3><p>劇団 北緯三十五度・二人芝居</p></div><p class="role">兄<span>主演</span></p></article>
+  <article class="credit"><time>2025.06</time><div><h3>月を売る男</h3><p>オーディオドラマ・全6話</p></div><p class="role">月売り<span>声の出演</span></p></article>
+ </div>
+ <p class="note">これは架空の俳優・劇団・作品によるサイトの見本です。</p>
+</div></section>
+</main>
+<script>
+// スクロール量で明転（0→1）。明るさの切り替えは不透明度の重ね合わせ（下の暗転画像は常に表示＝LCP を遅らせない）
+const h=document.getElementById('hero');
+const f=()=>{const r=h.getBoundingClientRect();const p=Math.min(1,Math.max(0,(-r.top)/(innerHeight*.6)));h.style.setProperty('--lit',(p*p*(3-2*p)).toFixed(3))};
+addEventListener('scroll',f,{passive:true});f();
+</script>
+</body></html>

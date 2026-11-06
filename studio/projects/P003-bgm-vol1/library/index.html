@@ -1,0 +1,62 @@
+<title>天狼 BGM Vol.1</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;600&family=JetBrains+Mono:wght@400&display=swap">
+<style>
+/* 舞台袖の調整卓：黒地に琥珀の灯り1色。曲ごとに1枚の「キュー票」として縦に並べる */
+:root{--bg:#0b0a09;--panel:#151311;--line:#2b2722;--ink:#f1ece4;--sub:#a39a8e;--amber:#e9ae62;
+  --jp:"Noto Sans JP","Hiragino Sans",system-ui,sans-serif;--mono:"JetBrains Mono",ui-monospace,Menlo,monospace;color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:400 16px/1.75 var(--jp);margin:0;font-feature-settings:"palt"}
+.wrap{max-width:980px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:48px 80px;display:flex;flex-direction:column;gap:40px}
+h1,h2{margin:0;text-wrap:balance;font-weight:600;letter-spacing:-.01em}
+h1{font-size:clamp(36px,6vw,56px);line-height:1.15}
+.lead{margin:12px 0 0;color:var(--sub);max-width:40em}
+.note{border-left:2px solid var(--amber);padding:4px 0 4px 16px;color:var(--ink);max-width:44em}
+.note p{margin:0 0 6px}.note p:last-child{margin:0;color:var(--sub);font-size:14px}
+.track{display:flex;flex-direction:column;gap:16px;padding-top:32px;border-top:1px solid var(--line)}
+.code{margin:0;font:400 13px/1.4 var(--mono);color:var(--amber);letter-spacing:.04em}
+.track h2{font-size:clamp(26px,4vw,34px);line-height:1.25;margin-top:4px}
+.spec{margin:4px 0 0;color:var(--sub);font-size:15px}
+.track img{width:100%;height:auto;border-radius:6px;background:var(--panel)}
+.vers{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.ver{display:grid;grid-template-columns:64px minmax(0,1fr);align-items:center;gap:4px 14px}
+.vname{font-weight:600}
+audio{width:100%;height:40px;min-width:0}
+.meta{grid-column:2;font:400 12.5px/1.4 var(--mono);color:var(--sub);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+footer{color:var(--sub);font-size:13px;border-top:1px solid var(--line);padding-top:20px}
+@media (max-width:480px){.ver{grid-template-columns:1fr}.meta{grid-column:1}}
+</style>
+<div class="wrap">
+  <header>
+    <p class="code">TENRO STUDIO ・ ORIGINAL BGM LIBRARY</p>
+    <h1>天狼 BGM Vol.1</h1>
+    <p class="lead">外部の音源を使わず、すべて数値合成で作った自作 BGM です。5ジャンル × 4つの尺（30秒・継ぎ目のないループ・15秒・6秒）。どの版も -14 LUFS にそろえてあり、映像の小節頭に合わせやすい拍情報つきです</p>
+  </header>
+  <section class="note" aria-label="確認のお願い">
+    <p>まだ完成品として数えていません。別エージェントの審査は 6.2 点ですが、審査役は音を聴けないため、音色の質は判定できませんでした。耳で聴いて、使える曲・直してほしい点を管理アプリの P003 に書いていただけると、次のサイクルで反映します</p>
+    <p>「間」：各曲に、小節頭の直前1拍の完全な無音（暗転）を入れています。無音の時刻は各版の数値の欄にあります</p>
+  </section>
+  <article class="track" id="b01">
+  <header><p class="code">TNR-B01 ・ Corporate</p><h2>Bright Hall</h2><p class="spec">120 BPM ・ D ・ 企業紹介・採用動画・製品の説明</p></header>
+  <img src="img/TNR-B01.spec.png" width="1320" height="352" alt="Bright Hall 30秒版のスペクトログラム（白い縦線は小節頭）" loading="lazy">
+  <ul class="vers"><li class="ver"><span class="vname">30秒</span><audio controls preload="none" src="audio/TNR-B01_30s.mp4" aria-label="Bright Hall 30秒"></audio><span class="meta">-14.2 LUFS ・ TP -2.3 ・ 無音 19.5〜20秒、27.5〜28秒</span></li><li class="ver"><span class="vname">ループ</span><audio controls preload="none" src="audio/TNR-B01_loop.mp4" aria-label="Bright Hall ループ"></audio><span class="meta">-14.1 LUFS ・ TP -2.5 ・ 継ぎ目 0.22</span></li><li class="ver"><span class="vname">15秒</span><audio controls preload="none" src="audio/TNR-B01_15s.mp4" aria-label="Bright Hall 15秒"></audio><span class="meta">-14.2 LUFS ・ TP -2.4 ・ 無音 11.5〜12秒</span></li><li class="ver"><span class="vname">6秒</span><audio controls preload="none" src="audio/TNR-B01_6s.mp4" aria-label="Bright Hall 6秒"></audio><span class="meta">-14.0 LUFS ・ TP -3.0 ・ 無音 3.5〜4秒</span></li></ul>
+</article><article class="track" id="b02">
+  <header><p class="code">TNR-B02 ・ Lo-fi</p><h2>Green Room</h2><p class="spec">80 BPM ・ F ・ Web の背景・作業動画・楽屋のメイキング</p></header>
+  <img src="img/TNR-B02.spec.png" width="1320" height="352" alt="Green Room 30秒版のスペクトログラム（白い縦線は小節頭）" loading="lazy">
+  <ul class="vers"><li class="ver"><span class="vname">30秒</span><audio controls preload="none" src="audio/TNR-B02_30s.mp4" aria-label="Green Room 30秒"></audio><span class="meta">-14.2 LUFS ・ TP -2.8 ・ 無音 17.25〜18秒、26.25〜27秒</span></li><li class="ver"><span class="vname">ループ</span><audio controls preload="none" src="audio/TNR-B02_loop.mp4" aria-label="Green Room ループ"></audio><span class="meta">-14.1 LUFS ・ TP -2.8 ・ 継ぎ目 0.07</span></li><li class="ver"><span class="vname">15秒</span><audio controls preload="none" src="audio/TNR-B02_15s.mp4" aria-label="Green Room 15秒"></audio><span class="meta">-14.2 LUFS ・ TP -2.8 ・ 無音 11.25〜12秒</span></li><li class="ver"><span class="vname">6秒</span><audio controls preload="none" src="audio/TNR-B02_6s.mp4" aria-label="Green Room 6秒"></audio><span class="meta">-14.2 LUFS ・ TP -2.8 ・ 無音 2.25〜3秒</span></li></ul>
+</article><article class="track" id="b03">
+  <header><p class="code">TNR-B03 ・ Cinematic</p><h2>House Lights Down</h2><p class="spec">80 BPM ・ D ・ 舞台の予告・トレーラー・暗転からの開示</p></header>
+  <img src="img/TNR-B03.spec.png" width="1320" height="352" alt="House Lights Down 30秒版のスペクトログラム（白い縦線は小節頭）" loading="lazy">
+  <ul class="vers"><li class="ver"><span class="vname">30秒</span><audio controls preload="none" src="audio/TNR-B03_30s.mp4" aria-label="House Lights Down 30秒"></audio><span class="meta">-14.2 LUFS ・ TP -2.8 ・ 無音 8.25〜9秒、20.25〜21秒</span></li><li class="ver"><span class="vname">ループ</span><audio controls preload="none" src="audio/TNR-B03_loop.mp4" aria-label="House Lights Down ループ"></audio><span class="meta">-14.0 LUFS ・ TP -4.3 ・ 継ぎ目 0.23</span></li><li class="ver"><span class="vname">15秒</span><audio controls preload="none" src="audio/TNR-B03_15s.mp4" aria-label="House Lights Down 15秒"></audio><span class="meta">-14.0 LUFS ・ TP -3.1 ・ 無音 5.25〜6秒</span></li><li class="ver"><span class="vname">6秒</span><audio controls preload="none" src="audio/TNR-B03_6s.mp4" aria-label="House Lights Down 6秒"></audio><span class="meta">-14.0 LUFS ・ TP -3.4 ・ 無音 2.25〜3秒</span></li></ul>
+</article><article class="track" id="b04">
+  <header><p class="code">TNR-B04 ・ 和風</p><h2>神楽灯 Kagura Light</h2><p class="spec">80 BPM ・ D ・ 和の公演・旅館や老舗・季節の告知</p></header>
+  <img src="img/TNR-B04.spec.png" width="1320" height="352" alt="神楽灯 Kagura Light 30秒版のスペクトログラム（白い縦線は小節頭）" loading="lazy">
+  <ul class="vers"><li class="ver"><span class="vname">30秒</span><audio controls preload="none" src="audio/TNR-B04_30s.mp4" aria-label="神楽灯 Kagura Light 30秒"></audio><span class="meta">-14.0 LUFS ・ TP -2.5 ・ 無音 5.25〜6秒、20.25〜21秒</span></li><li class="ver"><span class="vname">ループ</span><audio controls preload="none" src="audio/TNR-B04_loop.mp4" aria-label="神楽灯 Kagura Light ループ"></audio><span class="meta">-14.0 LUFS ・ TP -3.3 ・ 継ぎ目 0.09</span></li><li class="ver"><span class="vname">15秒</span><audio controls preload="none" src="audio/TNR-B04_15s.mp4" aria-label="神楽灯 Kagura Light 15秒"></audio><span class="meta">-14.0 LUFS ・ TP -3.4 ・ 無音 2.25〜3秒</span></li><li class="ver"><span class="vname">6秒</span><audio controls preload="none" src="audio/TNR-B04_6s.mp4" aria-label="神楽灯 Kagura Light 6秒"></audio><span class="meta">-14.0 LUFS ・ TP -3.1 ・ 無音 2.25〜3秒</span></li></ul>
+</article><article class="track" id="b05">
+  <header><p class="code">TNR-B05 ・ Future bass</p><h2>Afterglow</h2><p class="spec">160 BPM ・ A ・ SNS 広告・音楽イベントの告知・若い層向け</p></header>
+  <img src="img/TNR-B05.spec.png" width="1320" height="352" alt="Afterglow 30秒版のスペクトログラム（白い縦線は小節頭）" loading="lazy">
+  <ul class="vers"><li class="ver"><span class="vname">30秒</span><audio controls preload="none" src="audio/TNR-B05_30s.mp4" aria-label="Afterglow 30秒"></audio><span class="meta">-14.0 LUFS ・ TP -2.2 ・ 無音 11.625〜12秒、20.625〜21秒</span></li><li class="ver"><span class="vname">ループ</span><audio controls preload="none" src="audio/TNR-B05_loop.mp4" aria-label="Afterglow ループ"></audio><span class="meta">-14.0 LUFS ・ TP -2.2 ・ 継ぎ目 0.16</span></li><li class="ver"><span class="vname">15秒</span><audio controls preload="none" src="audio/TNR-B05_15s.mp4" aria-label="Afterglow 15秒"></audio><span class="meta">-14.1 LUFS ・ TP -2.2 ・ 無音 2.625〜3秒</span></li><li class="ver"><span class="vname">6秒</span><audio controls preload="none" src="audio/TNR-B05_6s.mp4" aria-label="Afterglow 6秒"></audio><span class="meta">-14.2 LUFS ・ TP -2.3 ・ 無音 4.125〜4.5秒</span></li></ul>
+</article>
+  <footer>合同会社萬屋天狼（天狼スタジオ）制作。音源は自社の映像・広告・Web に使う目的のサンプルです</footer>
+</div>
