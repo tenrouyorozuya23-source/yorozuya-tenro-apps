@@ -12,17 +12,17 @@ const D=window.__DATA||{name:"宵待 ルカ",en:"YOIMACHI RUKA",lines:["配信�
 const W=innerWidth,H=innerHeight;
 const S=C.createStage({width:W,height:H,exposure:1.0,fov:28,envIntensity:0,dof:true});
 const {THREE,scene,camera}=S;
-if(S.bloom){S.bloom.threshold=.7;S.bloom.strength=.45;S.bloom.radius=.5;}
+if(S.bloom){S.bloom.threshold=.95;S.bloom.strength=.35;S.bloom.radius=.5;}
 scene.fog=new THREE.FogExp2(0,.12);scene.background=new THREE.Color(0);
 // 机（黒い天板、少し艶）
 const desk=new THREE.Mesh(new THREE.BoxGeometry(4,.04,2),new THREE.MeshPhysicalMaterial({color:0x14161a,roughness:.25,clearcoat:.8,clearcoatRoughness:.15}));
 desk.position.set(0,-.02,0);desk.receiveShadow=true;scene.add(desk);
 // 板（すりガラス）
 const PW=.62,PH=.86,PT=.012;
-const glass=new THREE.Mesh(new THREE.BoxGeometry(PW,PH,PT),new THREE.MeshPhysicalMaterial({color:0xc8d6e0,roughness:.42,transmission:.85,thickness:.012,ior:1.49,metalness:0}));
-glass.position.set(0,PH/2+.035,0);glass.castShadow=true;scene.add(glass);
+const glass=new THREE.Mesh(new THREE.BoxGeometry(PW,PH,PT),new THREE.MeshPhysicalMaterial({color:0xc8d6e0,roughness:.35,transmission:.9,thickness:.012,ior:1.49,metalness:0}));
+glass.position.set(0,PH/2+.002,0);glass.castShadow=true;scene.add(glass);
 // 台座（板を立てる黒い溝の台）
-const base=new THREE.Mesh(new THREE.BoxGeometry(PW+.04,.035,.07),new THREE.MeshStandardMaterial({color:0x111111,roughness:.5,metalness:.4}));base.position.set(0,.0175,0);base.castShadow=true;scene.add(base);
+const base=new THREE.Mesh(new THREE.BoxGeometry(PW+.04,.035,.07),new THREE.MeshStandardMaterial({color:0x111111,roughness:.5,metalness:.4}));base.position.set(0,.0175,0);
 // 彫った文字（板の中に置く発光の面。エッジから入った光で光る）
 let etch=null;
 async function makeEtch(){
@@ -31,29 +31,34 @@ async function makeEtch(){
     x.fillStyle='#000';x.fillRect(0,0,cv.width,cv.height);x.fillStyle='#fff';x.textAlign='center';draw(x);
     const tex=new THREE.CanvasTexture(cv);tex.colorSpace=THREE.SRGBColorSpace;tex.anisotropy=8;
     const mat=new THREE.MeshBasicMaterial({map:tex,color:0x000000,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false});
-    const m=new THREE.Mesh(new THREE.PlaneGeometry(PW*.94,PW*.94*cv.height/cv.width),mat);m.position.set(0,PH/2+.035,PT/2+.0005);scene.add(m);return m;};
+    const m=new THREE.Mesh(new THREE.PlaneGeometry(PW*.94,PW*.94*cv.height/cv.width),mat);m.position.set(0,PH/2+.002,PT/2+.0005);scene.add(m);return m;};
   etch=mk(x=>{x.font='600 190px "Shippori Mincho"';x.fillText(D.name,620,700);x.font='500 46px "Noto Sans JP"';x.letterSpacing='14px';x.fillText(D.en,620,800);});
   etch.userData.info=mk(x=>{x.fillRect(470,880,300,3);x.font='400 58px "Noto Sans JP"';x.letterSpacing='4px';D.lines.forEach((l,i)=>x.fillText(l,620,1040+i*100));});
 }
 // モニタの光（画面の左手前・青白い）と、板の縁に当たる光の筋
 const mon=C.spot(scene,{pos:[-1.3,.55,1.1],target:[0,.4,0],color:0x9cc8ff,intensity:0,angle:.55,penumbra:1,shadow:true});
-const monGlow=new THREE.Mesh(new THREE.PlaneGeometry(.9,.55),new THREE.MeshBasicMaterial({color:0x9cc8ff,transparent:true,opacity:0}));
-monGlow.position.set(-1.6,.45,1.2);monGlow.lookAt(0,.4,0);scene.add(monGlow);
-const edge=new THREE.Mesh(new THREE.BoxGeometry(.004,PH,PT*1.05),new THREE.MeshBasicMaterial({color:0xcfe6ff,transparent:true,opacity:0}));edge.position.set(-PW/2,PH/2+.035,0);scene.add(edge);
+const gt=(w,h,f)=>{const c=document.createElement('canvas');c.width=w;c.height=h;f(c.getContext('2d'),w,h);return new THREE.CanvasTexture(c);};
+const glowTex=gt(256,256,(x,w,h)=>{const g=x.createRadialGradient(w/2,h/2,0,w/2,h/2,w/2);g.addColorStop(0,'rgba(156,200,255,.9)');g.addColorStop(.4,'rgba(156,200,255,.35)');g.addColorStop(1,'rgba(156,200,255,0)');x.fillStyle=g;x.fillRect(0,0,w,h);});
+const monGlow=new THREE.Mesh(new THREE.PlaneGeometry(1.4,1.0),new THREE.MeshBasicMaterial({map:glowTex,transparent:true,opacity:0,blending:THREE.AdditiveBlending,depthWrite:false}));
+monGlow.position.set(-.9,.75,-1.6);scene.add(monGlow);
+const edge=new THREE.Mesh(new THREE.BoxGeometry(.004,PH,PT*1.05),new THREE.MeshBasicMaterial({color:0xcfe6ff,transparent:true,opacity:0}));edge.position.set(-PW/2,PH/2+.002,0);scene.add(edge);
+const swTex=(()=>{const c=document.createElement('canvas');c.width=128;c.height=8;const x=c.getContext('2d');const g=x.createLinearGradient(0,0,128,0);g.addColorStop(0,'rgba(207,230,255,0)');g.addColorStop(.5,'rgba(207,230,255,.8)');g.addColorStop(1,'rgba(207,230,255,0)');x.fillStyle=g;x.fillRect(0,0,128,8);return new THREE.CanvasTexture(c);})();
+const sweep=new THREE.Mesh(new THREE.PlaneGeometry(.16,PH*.96),new THREE.MeshBasicMaterial({map:swTex,transparent:true,opacity:0,blending:THREE.AdditiveBlending,depthWrite:false}));
+sweep.position.set(-PW/2,PH/2,PT/2+.001);scene.add(sweep);
 window.__ready=makeEtch();
 const ON=0.0, NAME=3.0, INFO=6.0;
 window.renderAt=t=>{
   // モニタはフレーム0で点く（短いちらつき）→ 3.0 で文字が光る（拍）→ 6.0 で情報の行（拍）
-  const flick=t<.25?(Math.sin(t*90)>0?.4:.15):1;
-  const m=ease.outCubic(prog(t,ON,.35))*flick;
-  mon.intensity=5*m;monGlow.material.opacity=.0*m;edge.material.opacity=.55*m;
-  const nk=t>=NAME?Math.min(1,.65+.35*prog(t,NAME,.4)):0, ik=t>=INFO?Math.min(1,.6+.4*prog(t,INFO,.4)):0;
-  if(etch){const c=new THREE.Color(0xd6ebff);etch.material.color.copy(c.multiplyScalar(.15*m+.85*nk));
+  const m=1;
+  mon.intensity=5*m;monGlow.material.opacity=.35;edge.material.opacity=.35;
+  const sw=prog(t,INFO,.45);sweep.position.x=lerp(-PW/2,PW/2,ease.inOutSine(sw));sweep.material.opacity=t>=INFO&&sw<1?.35*Math.sin(Math.PI*sw):0;
+  const nk=t>=NAME?Math.min(1,.65+.35*prog(t,NAME,.4)):0, ik=ease.inOutSine(prog(t,INFO,.45));
+  if(etch){const c=new THREE.Color(0xd6ebff);etch.material.color.copy(c.multiplyScalar(.12+.6*nk));
 }
   // 情報の行は INFO まで隠す（文字の下半分を暗く）: 同じテクスチャなので名前と行を別強度にするため2枚目を使う
-  if(etch&&etch.userData.info){etch.userData.info.material.color.setScalar(.9*ik);}
+  if(etch&&etch.userData.info){etch.userData.info.material.color.setScalar(.65*ik);}
   // カメラ：右手前から回り込みながら寄る（モニタと逆側）＋最後にラックフォーカス
-  const k=ease.inOutSine(prog(t,0,10));
+  const k=Math.min(1,t/9.2)*.85+.15*prog(t,0,10);
   const az=lerp(.5,.16,k), d=lerp(4.0,3.3,k), y=lerp(.75,.6,k);
   camera.position.set(Math.sin(az)*d,y,Math.cos(az)*d);camera.lookAt(0,.47,0);
   if(S.bokeh){S.bokeh.uniforms.focus.value=d;S.bokeh.uniforms.aperture.value=lerp(.004,.0015,prog(t,2.5,1.2));}
