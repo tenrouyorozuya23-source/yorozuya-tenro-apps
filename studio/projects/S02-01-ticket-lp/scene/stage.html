@@ -37,7 +37,7 @@ const bkB=C.beam(scene,{from:[0,5,-7],to:[0,0,-2.6],radius:2.0,color:0xffe9cf,de
 window.renderAt=n=>{
   top.intensity=n>=1?700:0;topB.set(0,n>=1?1:0);
   sl.intensity=n>=2?260:0;sr.intensity=n>=2?220:0;
-  bk.intensity=n>=3?260:0;edgeMat.opacity=0;glassMat.opacity=n>=3?.45:n>=2?.32:.05;bkB.set(0,n>=3?1:0);
+  bk.intensity=n>=3?110:0;edgeMat.opacity=0;glassMat.opacity=n>=3?.45:n>=2?.32:.05;bkB.set(0,n>=3?1:0);
   if(desk){camera.position.set(0,1.15,7.2);camera.lookAt(0,.9,-1);}else{camera.position.set(0,1.2,7.6);camera.lookAt(0,1.2,-1);}
   if(S.bokeh){S.bokeh.uniforms.focus.value=7.2;S.bokeh.uniforms.aperture.value=.0007;}
   S.render();
