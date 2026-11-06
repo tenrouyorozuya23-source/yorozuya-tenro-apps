@@ -1,0 +1,11 @@
+{"id":"S09-02-bgm","title":"色温度（記事ショート用）","genre":"Ambient Pluck",
+ "base":{"bpm":120,"key":"A","seed":41,"brightness":0.5,"reverb":0.42,"drive":0.1,"sidechain":0.15,
+  "progression":["Amaj7","Amaj7","F#m7","Dmaj9","Bm7","Bm7","Dmaj7","E6","Amaj9","Amaj9"],
+  "mix":{"pad":0.42,"pluck":0.34,"sub":0.2,"impact":0.5,"chime":0.42,"stab":0.4,"riser":0.25},
+  "end_chord":"Amaj9","pre_end_chord":"E6","melody":[]},
+ "versions":{"20s":{"length":20.0,"bars":10,"tail_sec":2.5,
+  "sections":[{"from":0,"to":3,"layers":["pad","pluck"]},{"from":3,"to":6,"layers":["pad","pluck","sub"]},{"from":6,"to":9,"layers":["pad","pluck","sub"]},{"from":9,"to":10,"layers":["pad"]}],
+  "cues":[{"bar":0,"beat":0,"type":"impact"},{"bar":3,"beat":0,"type":"chime","note":81},{"bar":5,"beat":0,"type":"riser","len_beats":4},{"bar":6,"beat":2,"type":"impact"},{"bar":6,"beat":2,"type":"chime","note":76},{"bar":9,"beat":0,"type":"stab"}],
+  "silence":[[6,0,2]],
+  "automation":[[0,-2],[6,-1],[12,-1],[13,1.5],[18,0],[20,0]]}},
+ "spec_version":"20s","max_low_mid_db":4.0}

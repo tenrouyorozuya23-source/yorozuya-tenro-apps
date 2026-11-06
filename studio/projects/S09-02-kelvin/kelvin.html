@@ -1,0 +1,65 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><style>html,body{margin:0;background:#000;overflow:hidden}</style>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@600&family=Noto+Sans+JP:wght@400;500&display=block" rel="stylesheet">
+<script type="importmap">{"imports":{"three":"/node_modules/three/build/three.module.js","three/addons/":"/node_modules/three/examples/jsm/"}}</script><style>
+#ov{position:absolute;inset:0;color:#f1ece4;pointer-events:none}
+.t{position:absolute;left:0;right:0;text-align:center;opacity:0}
+#q{top:300px;font:500 40px/1.5 "Noto Sans JP";letter-spacing:.12em}
+#k{top:380px;font:600 132px/1 "Shippori Mincho";letter-spacing:.04em}
+#kn{top:530px;font:400 36px/1 "Noto Sans JP";letter-spacing:.3em;text-indent:.3em;color:#c9c0b2}
+#mood{top:620px;font:500 46px/1.4 "Noto Sans JP";letter-spacing:.2em;text-indent:.2em}
+#end1{top:330px;font:600 84px/1.35 "Shippori Mincho";letter-spacing:.1em;text-indent:.1em}
+#end2{top:600px;font:400 34px/1.5 "Noto Sans JP";letter-spacing:.2em;text-indent:.2em;color:#c9c0b2}
+.l{position:absolute;top:1430px;font:600 64px/1 "Shippori Mincho";opacity:0}
+</style></head><body><div id="ov">
+<div class="t" id="q">同じ椅子、光の色だけを変える</div>
+<div class="t" id="k"></div><div class="t" id="kn"></div><div class="t" id="mood"></div>
+<div class="t" id="end1">色温度で、<br>物語が変わる。</div><div class="t" id="end2">暖かい記憶か、冷たい不在か</div>
+<div class="l" id="lw" style="left:120px;color:#ffc58a">3200K</div><div class="l" id="lc" style="right:120px;color:#bcd2ff">5600K</div>
+</div>
+<script type="module">
+// S09-02 色温度の比較：同じ椅子を 3200K（0〜6秒）と 5600K（6〜12秒）で照らし、無音の暗転のあと 13.0 秒に左右から両方を当てて並べる
+import * as C from '/tools/cine/cine.js';
+const {lerp,prog,ease}=C;
+const W=innerWidth,H=innerHeight;
+const S=C.createStage({width:W,height:H,exposure:1.0,fov:34,envIntensity:0,dof:true});
+const {THREE,scene,camera}=S;
+if(S.bloom){S.bloom.threshold=1.2;S.bloom.strength=.4;}
+scene.fog=new THREE.FogExp2(0,.05);scene.background=new THREE.Color(0);
+C.stageFloor(scene,{material:new THREE.MeshPhysicalMaterial({color:0x111111,roughness:.4,clearcoat:.35,clearcoatRoughness:.35})});
+// 椅子（S01-01 と同じ型。色の差が見えるよう座面と背は生成りの木）
+const wood=new THREE.MeshPhysicalMaterial({color:0xb8a58c,roughness:.55,clearcoat:.35,clearcoatRoughness:.35});
+const chair=new THREE.Group();const B=(w,h,d,x,y,z)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),wood);m.position.set(x,y,z);m.castShadow=m.receiveShadow=true;chair.add(m);};
+B(.46,.04,.44,0,.46,0);for(const sx of[-1,1])for(const sz of[-1,1])B(.035,.46,.035,sx*.2,.23,sz*.19);
+for(const sx of[-1,1])B(.035,.5,.035,sx*.2,.71,-.19);B(.44,.06,.03,0,.92,-.19);B(.44,.04,.025,0,.74,-.19);
+for(const sx of[-1,1])B(.03,.03,.38,sx*.2,.12,0);chair.rotation.y=-.35;scene.add(chair);
+// 白い紗幕（色の違いが壁に出るように）
+const wall=new THREE.Mesh(new THREE.PlaneGeometry(10,6),new THREE.MeshStandardMaterial({color:0x9a9a9a,roughness:.95}));wall.position.set(0,3,-2.6);wall.receiveShadow=true;scene.add(wall);
+const WARM=0xffb46e, COOL=0xbcd3ff;
+const top=C.spot(scene,{pos:[0,5.5,1.2],target:[0,.3,0],color:WARM,intensity:0,angle:.3,penumbra:.5});
+const bm=C.beam(scene,{from:[0,5.5,1.2],to:[0,0,0],radius:1.0,color:WARM,density:.16});
+const sw=C.spot(scene,{pos:[-3.4,3.2,.6],target:[.15,.35,-.1],color:WARM,intensity:0,angle:.3,penumbra:.45});
+const sc=C.spot(scene,{pos:[3.4,3.2,.6],target:[-.15,.35,-.1],color:COOL,intensity:0,angle:.3,penumbra:.45});
+await document.fonts.load('600 132px "Shippori Mincho"','3200K5600K色温度で物語が変わる');await document.fonts.load('500 40px "Noto Sans JP"','同じ椅子光の色だけを変える暖かい記憶冷たい不在電球色昼光色懐かしさ緊張感');
+window.__ready=Promise.resolve();
+const $=id=>document.getElementById(id);const op=(id,v)=>$(id).style.opacity=(+v).toFixed(3);
+const SW=6.0, DK=12.0, HERO=13.0;
+window.renderAt=t=>{
+  const ph=t<SW?0:t<DK?1:t<HERO?2:3;
+  const col=new THREE.Color(ph===1?COOL:WARM);
+  top.color.copy(col);bm.mesh.material.uniforms.color.value.copy(col);
+  top.intensity=ph<2?(ph===1?330:380):0; bm.set(t,ph<2?.8:0);
+  sw.intensity=ph===3?260:0; sc.intensity=ph===3?300:0;
+  // カメラ：ゆっくり回り込みながら寄る（止まらない）
+  const a=lerp(-.28,.22,prog(t,0,20)), d=lerp(5.4,4.5,ease.inOutSine(prog(t,0,20)));
+  camera.position.set(Math.sin(a)*d,lerp(1.5,1.3,prog(t,0,20)),Math.cos(a)*d);camera.lookAt(0,.95,0);
+  if(S.bokeh){S.bokeh.uniforms.focus.value=d;S.bokeh.uniforms.aperture.value=.0007;}
+  op('q',t<5.4?Math.min(1,prog(t,0,.15)*1)*(1-prog(t,5.2,.2)):0);
+  $('k').textContent=ph===1?'5600K':'3200K';$('kn').textContent=ph===1?'昼光色':'電球色';
+  op('k',ph<2?(ph===0?1:1):0);op('kn',ph<2?1:0);
+  $('mood').textContent=ph===1?'緊張感・不在・朝':'懐かしさ・記憶・夜';
+  op('mood',ph===0?ease.outCubic(prog(t,1,.3)):ph===1?ease.outCubic(prog(t,SW+.5,.3)):0);
+  op('lw',ph===3?1:0);op('lc',ph===3?1:0);
+  op('end1',ph===3?ease.outCubic(prog(t,HERO+.6,.4)):0);op('end2',ph===3?ease.outCubic(prog(t,HERO+1.2,.4)):0);
+  S.render();
+};
+</script></body></html>
