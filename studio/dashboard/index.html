@@ -325,7 +325,7 @@ async function addNote(id,ta){
 function renderWorks(){
   const counts={};works.forEach(w=>counts[w.category]=(counts[w.category]||0)+1);
   chips($('#catw'),wcat,k=>{wcat=k;renderWorks()},counts);
-  $('#n-works').textContent=works.length;
+  $('#n-works').textContent=works.filter(w=>w.grade==='完成品'||w.grade==='一級').length+' / 100';
   const list=works.filter(w=>wcat==='all'||w.category===wcat);
   if(!works.length){$('#works').innerHTML='<div class="empty" style="grid-column:1/-1">完成品はまだありません。計画が「完成」になるとここに並びます。</div>';return}
   $('#works').innerHTML=list.map(w=>{
@@ -336,7 +336,7 @@ function renderWorks(){
     const specs=[sp.duration&&`${sp.duration}s`,sp.width&&`${sp.width}×${sp.height}`,sp.fps&&`${sp.fps}fps`,sp.lufs!=null&&`${sp.lufs} LUFS`,w.music&&w.music.bpm&&`${w.music.bpm} BPM`,w.music&&w.music.key&&`Key ${w.music.key}`].filter(Boolean);
     const audio=w.audioAsset?`<audio controls preload="none" src="/_blob/${esc(w.audioAsset)}"></audio>`:'';
     return `<article class="work"><div class="media" style="--ar:${esc(ar)}">${media}</div><div class="wbody">
-      <div class="meta" style="justify-content:flex-start"><span class="cat">${esc(CATS[w.category]||w.category)}</span><span class="take">${esc(w.planId||'')} · ${fmt(w.completedAt)}</span></div>
+      <div class="meta" style="justify-content:flex-start"><span class="cat">${esc(CATS[w.category]||w.category)}</span>${w.grade?`<span class="pill ${w.grade==='一級'?'p-done':w.grade==='完成品'?'p-run':'p-backlog'}">${esc(w.grade)}${w.score!=null?' '+esc(w.score):''}</span>`:''}<span class="take">${esc(w.planId||'')} · ${fmt(w.completedAt)}</span></div>
       <h3>${esc(w.title)}</h3><p>${esc(w.summary||'')}</p>
       ${w.music&&w.music.title?`<p>BGM：${esc(w.music.title)}（自作）</p>`:''}${audio}
       ${specs.length?`<div class="specs">${specs.map(s=>`<span>${esc(s)}</span>`).join('')}</div>`:''}
