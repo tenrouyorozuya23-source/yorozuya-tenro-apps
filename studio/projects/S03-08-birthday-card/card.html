@@ -1,0 +1,70 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><title>S03-08 birthday card</title>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@600&family=Noto+Sans+JP:wght@300;400&display=block" rel="stylesheet">
+<style>html,body{margin:0;overflow:hidden;background:#000}canvas{display:block}
+#ov{position:absolute;inset:0;color:#efe9df;pointer-events:none;font-family:"Noto Sans JP"}
+#head{position:absolute;left:0;right:0;top:250px;text-align:center;font:300 42px/1 "Noto Sans JP";letter-spacing:.32em;text-indent:.32em;opacity:0}
+#date{position:absolute;left:0;right:0;top:1340px;text-align:center;font:600 120px/1 "Shippori Mincho";letter-spacing:.12em;text-indent:.12em;opacity:0;color:#e9e0d2}
+#sub{position:absolute;left:0;right:0;top:1490px;text-align:center;font:300 40px/1.4 "Noto Sans JP";color:#a69d90;letter-spacing:.12em;opacity:0}
+#note{position:absolute;left:0;right:0;top:320px;text-align:center;font:400 30px/1 "Noto Sans JP";color:#8a8278;opacity:0}</style>
+<script type="importmap">{"imports":{"three":"/node_modules/three/build/three.module.js","three/addons/":"/node_modules/three/examples/jsm/"}}</script>
+</head><body><div id="ov"><div id="head">生 誕 祭</div><div id="note">架空の人物のサンプルです</div><div id="date">11.06</div><div id="sub"></div></div>
+<script type="module">
+// 一本の蝋燭の灯が名前を照らす（蝋燭の影が名前の板に映る）。拍で吹き消すと無音、鈴の音で日付が残る
+import * as C from '/tools/cine/cine.js';
+const {clamp,lerp,prog,ease}=C;
+const D=window.__DATA||{name:"凪野 ソラ",date:"11.06",sub:"凪野ソラ 生誕祭 2026"};
+const W=innerWidth,H=innerHeight;
+const S=C.createStage({width:W,height:H,exposure:1.0,fov:30,envIntensity:0,dof:true});
+const {THREE,scene,camera}=S;
+if(S.bloom){S.bloom.threshold=.85;S.bloom.strength=.5;S.bloom.radius=.35;}
+scene.fog=new THREE.FogExp2(0,.06);scene.background=new THREE.Color(0);
+C.stageFloor(scene,{material:new THREE.MeshStandardMaterial({color:0x0c0b0a,roughness:.8})});
+// 名前の板（縦書きの明朝、アルファ切り抜き）
+let plane=null;
+async function makeName(){
+  await document.fonts.load('600 400px "Shippori Mincho"',D.name);
+  const cv=document.createElement('canvas');const chars=[...D.name.replace(/\s/g,'')];
+  const fs=420,gap=40;cv.width=560;cv.height=chars.length*(fs+gap)+gap;
+  const x=cv.getContext('2d');x.fillStyle='#fff';x.font=`600 ${fs}px "Shippori Mincho"`;x.textAlign='center';x.textBaseline='middle';
+  chars.forEach((ch,i)=>x.fillText(ch,cv.width/2,gap+fs/2+i*(fs+gap)));
+  const tex=new THREE.CanvasTexture(cv);tex.colorSpace=THREE.SRGBColorSpace;tex.anisotropy=8;
+  const h=Math.min(.95,.24*chars.length), w=h*cv.width/cv.height;
+  const mat=new THREE.MeshStandardMaterial({color:0xece4d6,map:tex,alphaMap:tex,alphaTest:.5,roughness:.7,side:THREE.DoubleSide});
+  plane=new THREE.Mesh(new THREE.PlaneGeometry(w,h),mat);plane.position.set(0,h/2+.36,-.55);plane.receiveShadow=true;scene.add(plane);
+  // 名前の後ろに薄い壁（蝋燭の影と光の滲みを受ける）
+  const wall=new THREE.Mesh(new THREE.PlaneGeometry(6,4),new THREE.MeshStandardMaterial({color:0x17140f,roughness:.95}));wall.position.set(0,2,-.62);wall.receiveShadow=true;scene.add(wall);
+}
+// 蝋燭（白い蝋・燭台なし）と芯と炎
+const wax=new THREE.MeshPhysicalMaterial({color:0xf2ece0,roughness:.45,transmission:.25,thickness:.05,emissive:0xffb070,emissiveIntensity:0});
+const candle=new THREE.Mesh(new THREE.CylinderGeometry(.028,.03,.22,48),wax);candle.position.set(0,.11,.15);candle.castShadow=true;scene.add(candle);
+const wick=new THREE.Mesh(new THREE.CylinderGeometry(.002,.002,.018,8),new THREE.MeshStandardMaterial({color:0x1a1210}));wick.position.set(0,.229,.15);scene.add(wick);
+const flameMat=new THREE.MeshBasicMaterial({color:0xffd9a0,transparent:true,opacity:1});
+const flame=new THREE.Mesh(new THREE.SphereGeometry(.016,24,16),flameMat);scene.add(flame);
+const core=new THREE.Mesh(new THREE.SphereGeometry(.0045,16,12),new THREE.MeshBasicMaterial({color:0xfff6e6}));scene.add(core);
+const L=new THREE.PointLight(0xffa458,0,0,2);L.castShadow=true;L.shadow.mapSize.set(2048,2048);L.shadow.radius=4;L.shadow.bias=-.001;scene.add(L);
+const BLOW=5.0;
+const n1=t=>Math.sin(t*13.1)*.5+Math.sin(t*7.3+1)*.3+Math.sin(t*23.7+2)*.2;
+window.__ready=makeName();
+const $=id=>document.getElementById(id);$('date').textContent=D.date;$('sub').textContent=D.sub;
+window.renderAt=t=>{
+  const lit=ease.outCubic(prog(t,.15,.9));           // マッチで灯ったように 0.15 秒から
+  const out=t<BLOW?0:ease.outCubic(prog(t,BLOW,.25)); // 吹き消し
+  const lean=t>BLOW-.25&&t<BLOW+.2?ease.inOutSine(prog(t,BLOW-.25,.3))*.9:0; // 息で炎が倒れる
+  const fl=1+.12*n1(t);
+  const a=lit*(1-out);
+  const fh=.05*fl*(1-.6*lean), fy=.232+fh*.45;
+  flame.scale.set(1,fh/.032,1);flame.position.set(-.012*lean,fy,.15);flame.visible=a>.01;flameMat.opacity=a;
+  core.position.set(-.006*lean,.236,.15);core.visible=a>.01;
+  L.position.set(-.01*lean,.25,.15);L.intensity=2.4*a*fl;
+  wax.emissiveIntensity=.12*a;
+  const d=lerp(4.3,3.7,ease.inOutSine(prog(t,0,8))), y=lerp(.7,.62,ease.inOutSine(prog(t,0,8)));
+  const az=lerp(-.07,.05,ease.inOutSine(prog(t,0,8)));
+  camera.position.set(Math.sin(az)*d,y,.15+Math.cos(az)*d);camera.lookAt(0,.62,-.2);
+  if(S.bokeh){S.bokeh.uniforms.focus.value=d+.4;S.bokeh.uniforms.aperture.value=.0018;}
+  const f=(el,a0,b,dur=.6)=>{el.style.opacity=(ease.outCubic(prog(t,a0,dur))*(1-prog(t,b,.4))).toFixed(3)};
+  f($('head'),1.0,BLOW-.1);f($('note'),1.4,BLOW-.1);
+  f($('date'),5.833,99,.9);f($('sub'),6.1,99,.9);
+  if(plane){plane.material.color.setHex(0xece4d6);}
+  S.render();
+};
+</script></body></html>
