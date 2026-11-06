@@ -21,3 +21,4 @@ projects/*/crop.png
 projects/*/silent.wav
 projects/*/.tesseract-work/
 projects/P028-tesseract-test/*.png
+projects/*/*.log

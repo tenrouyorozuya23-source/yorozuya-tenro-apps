@@ -497,7 +497,8 @@
     "coneAngle": 24,
     "coneFeather": 0.5,
     "sourceRadius": 6
-   }
+   },
+   "volumeFactor": 0.0
   }
  },
  {
@@ -522,7 +523,7 @@
     1400,
     1800
    ],
-   "density": 0.045,
+   "density": 0.028,
    "scatteringColor": [
     1,
     1,
