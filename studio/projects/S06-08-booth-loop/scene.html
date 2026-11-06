@@ -1,0 +1,44 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><title>S06-08 booth loop</title>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@600&family=Noto+Sans+JP:wght@300;400&display=block" rel="stylesheet">
+<style>html,body{margin:0;overflow:hidden;background:#000}canvas{display:block}
+#ov{position:absolute;inset:0;color:#f2efe9;pointer-events:none;font-family:"Noto Sans JP"}
+.t{position:absolute;left:0;right:0;text-align:center}
+#copy{top:300px;font:600 84px/1.3 "Shippori Mincho";letter-spacing:.08em;text-indent:.08em}
+#co{top:1360px;font:400 36px/1 "Noto Sans JP";letter-spacing:.4em;text-indent:.4em;color:#b9b4ab}
+#spec{top:1420px;font:300 28px/1 "Noto Sans JP";letter-spacing:.14em;color:#8a857d}
+#note{top:1470px;font:400 24px/1 "Noto Sans JP";color:#6e6e73}</style>
+<script type="importmap">{"imports":{"three":"/node_modules/three/build/three.module.js","three/addons/":"/node_modules/three/examples/jsm/"}}</script>
+</head><body><div id="ov"><div class="t" id="copy">1ミクロンを、<br>量産する</div><div class="t" id="co">灯野精工</div><div class="t" id="spec">精密旋削部品　公差 ±0.001mm</div><div class="t" id="note">架空の企業・製品のサンプルです</div></div>
+<script type="module">
+// 展示会ブースの縦型サイネージ用ループ（30秒で継ぎ目なし）。旋削した金属部品が1回転し、帯状の光が面を撫でる
+import * as C from '/tools/cine/cine.js';
+const {lerp}=C;
+const W=innerWidth,H=innerHeight,TAU=Math.PI*2,LOOP=30;
+const S=C.createStage({width:W,height:H,exposure:1.05,fov:26,envIntensity:.45,dof:true});
+const {THREE,scene,camera}=S;
+if(S.bloom){S.bloom.threshold=1.1;S.bloom.strength=.2;S.bloom.radius=.3;}
+scene.fog=null;scene.background=new THREE.Color(0);
+// 旋削部品の断面（半径, 高さ）を回して作る：フランジ・溝・段付き軸・面取り
+const prof=[[0,-.62],[.18,-.62],[.2,-.6],[.2,-.42],[.17,-.4],[.17,-.36],[.2,-.34],[.2,-.18],[.46,-.18],[.5,-.14],[.5,-.06],[.46,-.02],[.3,-.02],[.3,.02],[.44,.02],[.44,.1],[.4,.14],[.26,.14],[.26,.5],[.24,.52],[.13,.52],[.13,.3],[0,.3]].map(([r,y])=>new THREE.Vector2(r,y));
+const metal=new THREE.MeshPhysicalMaterial({color:0xcfcbc4,metalness:1,roughness:.3,clearcoat:.2,clearcoatRoughness:.3,envMapIntensity:1});
+const part=new THREE.Mesh(new THREE.LatheGeometry(prof,256),metal);part.castShadow=true;part.receiveShadow=true;
+// フランジの穴（6つ）
+const g=new THREE.Group();g.add(part);
+const hole=new THREE.MeshStandardMaterial({color:0x050505,roughness:.6});
+for(let i=0;i<6;i++){const a=i/6*TAU;const h=new THREE.Mesh(new THREE.CylinderGeometry(.035,.035,.081,32),hole);h.position.set(Math.cos(a)*.38,-.1,Math.sin(a)*.38);g.add(h);}
+g.rotation.x=.42;scene.add(g);
+// 光：上からのキー、帯状のリム（ループに合わせて回る）
+const key=new THREE.DirectionalLight(0xfff3e4,2.2);key.position.set(1.5,3,2);scene.add(key);
+const rim=new THREE.SpotLight(0xffffff,0,0,.35,.8,2);scene.add(rim);scene.add(rim.target);
+const floor=new THREE.Mesh(new THREE.CircleGeometry(3,96),new THREE.MeshBasicMaterial({color:0x030303}));floor.rotation.x=-Math.PI/2;floor.position.y=-.95;floor.receiveShadow=true;scene.add(floor);
+window.__ready=document.fonts.ready;
+window.renderAt=t=>{
+  const p=(t%LOOP)/LOOP;
+  g.rotation.y=p*TAU;                                     // 30秒で1回転（継ぎ目なし）
+  const a=p*TAU;rim.position.set(Math.cos(a)*3,1.2+.4*Math.sin(2*a),Math.sin(a)*3-1);rim.target.position.set(0,0,0);rim.intensity=40;
+  key.intensity=2.0+.3*Math.sin(2*a);
+  camera.position.set(.08*Math.sin(a),.45+.04*Math.sin(2*a),7.8);camera.lookAt(0,-.12,0);
+  if(S.bokeh){S.bokeh.uniforms.focus.value=7.8;S.bokeh.uniforms.aperture.value=.0005;}
+  S.render();
+};
+</script></body></html>
