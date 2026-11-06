@@ -14,7 +14,7 @@
 import * as C from '/tools/cine/cine.js';
 const {lerp,prog,ease}=C;
 const M=[["雪村 しずく","白藍",0x9fc4e8],["春日 もも","桜",0xf2a7b8],["若葉 ゆい","若葉",0xa9d98a],["柚月 ひなた","山吹",0xf2c14e],["藤咲 あや","藤",0xb79ae0],["緋山 ほのか","緋",0xf0715a]];
-const T0=3.0, SL=1.5, FIN=T0+SL*M.length, STAB=13.5, GAP=.78;
+const T0=1.5, SL=1.5, FIN=T0+SL*M.length, STAB=13.5, GAP=.72;
 const W=innerWidth,H=innerHeight;
 const S=C.createStage({width:W,height:H,exposure:1.0,fov:30,envIntensity:0,dof:true});
 const {THREE,scene,camera}=S;
@@ -47,27 +47,30 @@ async function build(){
 window.__ready=build();
 const $=id=>document.getElementById(id);
 const white=new THREE.Color(0xffe6c8);
+const introSpot=C.spot(scene,{pos:[0,6.4,3.2],target:[0,0,1.1],color:0xffe6c8,intensity:0,angle:.16,penumbra:.7,shadow:false});
+const introBeam=C.beam(scene,{from:[0,6.4,3.2],to:[0,0,1.1],radius:.6,color:0xffe6c8,density:.16});
 window.renderAt=t=>{
   const cur=Math.floor((t-T0)/SL), fin=ease.inOutSine(prog(t,FIN,1.2));
   // カメラ：イントロは全体を引きで暗く → 拍ごとに横移動（0.35秒で移って止まる）→ 最後に引く
   let cx=X(0), d=5.6;
-  if(t<T0){cx=0;d=lerp(9.5,8.6,prog(t,0,T0));}
-  else if(t<FIN){const k=Math.min(cur,M.length-1), mv=ease.outCubic(prog(t,T0+k*SL,.35));cx=lerp(k?X(k-1):0,X(k),mv);d=lerp(k?5.4:8.6,5.4,k?1:mv)-.25*prog(t,T0+k*SL,SL);}
-  else{cx=lerp(X(M.length-1),0,fin);d=lerp(5.15,14.5,fin);}
+  if(t<T0){cx=0;d=lerp(9.0,8.2,prog(t,0,T0));}
+  else if(t<FIN){const k=Math.min(cur,M.length-1), mv=ease.outCubic(prog(t,T0+k*SL,.35));cx=lerp(k?X(k-1):0,X(k),mv);d=lerp(k?5.4:8.2,5.4,k?1:mv)-.45*prog(t,T0+k*SL,SL);}
+  else{cx=lerp(X(M.length-1),0,fin)+.04*Math.sin(t*.8);d=lerp(4.95,16.8,fin)-.25*prog(t,FIN+1.2,3);}
   const cy=t<FIN?1.05:lerp(1.05,2.2,fin);
   camera.position.set(cx,cy,d);camera.lookAt(cx,t<FIN?.78:lerp(.78,.55,fin),0);
   if(S.bokeh){S.bokeh.uniforms.focus.value=d;S.bokeh.uniforms.aperture.value=.0012;}
   M.forEach(([,, col],i)=>{
-    const on=t>=T0+i*SL?ease.outCubic(prog(t,T0+i*SL,.12)):0;
-    const active=t<FIN?(i===cur?1:.0):1;
-    const k=on*(t<FIN?active:1);
-    const c=new THREE.Color(col).lerp(white,fin);
+    const on=t>=T0+i*SL?1:0;
+    const active=t<FIN?(i===cur?1:0):(t>=FIN+.375*i+.375?1:0);
+    const k=on*active*(t<FIN?Math.min(1,.55+.45*prog(t,T0+i*SL,.05)):1);
+    const c=new THREE.Color(col);
     spots[i].color.copy(c);beams[i].mesh.material.uniforms.color.value.copy(c);
-    spots[i].intensity=(t<FIN?720:520)*k*(t>=FIN?fin:1);beams[i].set(t,k*(t>=FIN?fin*.8:1));
-    planes[i]&&planes[i].material.color.setHex(0xece4d6);
+    spots[i].intensity=(t<FIN?720:620)*k;beams[i].set(t,k*(t>=FIN?.85:1));
+    planes[i]&&planes[i].material.color.setHex(0xece4d6).multiplyScalar(t<T0?.06:(t<FIN?(i===cur?1:.1):(t>=FIN+.375*i+.375?1:.1)));
   });
+  const ik=1-prog(t,T0-.05,.05);introSpot.intensity=520*ik;introBeam.set(t,ik);
   const f=(el,a,b,dur=.4)=>{el.style.opacity=(ease.outCubic(prog(t,a,dur))*(1-prog(t,b,.25))).toFixed(3)};
-  f($('grp'),.4,T0-.3,.8);f($('grpsub'),.8,T0-.3,.8);
+  f($('grp'),-1,T0-.15,.01);f($('grpsub'),.25,T0-.15,.3);
   if(t>=T0&&t<FIN){const m=M[cur];$('col').textContent=`${m[1]}　${m[0].split(' ')[1]}`;$('col').style.color='#'+new THREE.Color(m[2]).lerp(new THREE.Color(0xffffff),.35).getHexString();
     $('col').style.opacity=(ease.outCubic(prog(t,T0+cur*SL+.1,.25))*(1-prog(t,T0+cur*SL+SL-.18,.15))).toFixed(3);}else $('col').style.opacity=0;
   if(t>=STAB-.05){$('grp').style.opacity=ease.outCubic(prog(t,STAB,.3));$('grpsub').style.opacity=0;}
