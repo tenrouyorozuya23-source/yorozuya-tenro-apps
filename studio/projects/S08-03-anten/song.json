@@ -3,65 +3,261 @@
  "title": "暗転（ティザー用）",
  "genre": "Cinematic Tension",
  "base": {
-  "bpm": 80, "key": "C", "seed": 61,
-  "brightness": 0.45, "reverb": 0.55, "reverb_sec": 4.0, "drive": 0.12, "sidechain": 0.2,
-  "progression": ["Cm", "Cm", "Ab", "G"],
-  "taiko_pattern": [[0, 1.0], [0.75, 0.45]],
-  "mix": {"swell": 0.62, "sub": 0.16, "pad": 0.3, "taiko": 0.5, "impact": 0.6, "riser": 0.32, "ostinato": 0.24, "braam": 0.5},
-  "end_chord": "Cm", "pre_end_chord": "G",
-  "melody": []
+  "bpm": 120,
+  "key": "C",
+  "seed": 62,
+  "brightness": 0.25,
+  "reverb": 0.5,
+  "reverb_sec": 4.0,
+  "drive": 0.12,
+  "sidechain": 0.2,
+  "progression": [
+   "Cm",
+   "Cm",
+   "Ab",
+   "G"
+  ],
+  "taiko_pattern": [
+   [
+    0,
+    1.0
+   ],
+   [
+    0.75,
+    0.45
+   ]
+  ],
+  "mix": {
+   "swell": 0.55,
+   "sub": 0.2,
+   "pad": 0.42,
+   "impact": 0.55,
+   "riser": 0.28,
+   "chime": 0.5
+  },
+  "end_chord": "Cm",
+  "pre_end_chord": "G",
+  "melody": [],
+  "chime_intervals": [
+   0,
+   12
+  ]
  },
  "versions": {
   "30s": {
-   "length": 30.0, "bars": 10, "tail_sec": 3.5,
+   "length": 30.0,
+   "bars": 15,
+   "tail_sec": 3.5,
    "sections": [
-    {"from": 0, "to": 2, "layers": ["swell", "sub"]},
-    {"from": 2, "to": 5, "layers": ["swell", "sub", "pad", "ostinato"]},
-    {"from": 5, "to": 8, "layers": ["swell", "sub", "pad", "ostinato", "taiko"]},
-    {"from": 8, "to": 9, "layers": ["swell", "sub", "taiko"]},
-    {"from": 9, "to": 10, "layers": ["swell"]}
+    {
+     "from": 0,
+     "to": 3,
+     "layers": [
+      "pad",
+      "sub"
+     ]
+    },
+    {
+     "from": 3,
+     "to": 10,
+     "layers": [
+      "pad",
+      "sub",
+      "swell"
+     ]
+    },
+    {
+     "from": 10,
+     "to": 14,
+     "layers": [
+      "pad",
+      "sub",
+      "swell"
+     ]
+    },
+    {
+     "from": 14,
+     "to": 15,
+     "layers": [
+      "pad"
+     ]
+    }
    ],
    "cues": [
-    {"bar": 0, "beat": 0, "type": "chime", "note": 72},
-    {"bar": 2, "beat": 0, "type": "impact"},
-    {"bar": 7, "beat": 0, "type": "riser", "len_beats": 3},
-    {"bar": 8, "beat": 0, "type": "impact"},
-    {"bar": 8, "beat": 0, "type": "braam", "note": 36},
-    {"bar": 9, "beat": 0, "type": "chime", "note": 72}
+    {
+     "bar": 0,
+     "beat": 0,
+     "type": "impact"
+    },
+    {
+     "bar": 7,
+     "beat": 0,
+     "type": "impact"
+    },
+    {
+     "bar": 9,
+     "beat": 0,
+     "type": "riser",
+     "len_beats": 4
+    },
+    {
+     "bar": 10,
+     "beat": 2,
+     "type": "impact"
+    },
+    {
+     "bar": 10,
+     "beat": 2,
+     "type": "chime",
+     "note": 72
+    }
    ],
-   "silence": [[4, 3, 1], [7, 3, 1]],
-   "automation": [[0, -5], [6, -2], [21, 1], [27, 1], [30, 0]]
+   "silence": [
+    [
+     6,
+     3,
+     1
+    ],
+    [
+     10,
+     0,
+     2
+    ]
+   ],
+   "automation": [
+    [
+     0,
+     -4
+    ],
+    [
+     13,
+     -2
+    ],
+    [
+     20,
+     0
+    ],
+    [
+     21,
+     2
+    ],
+    [
+     26,
+     1
+    ],
+    [
+     30,
+     0
+    ]
+   ]
   },
   "15s": {
-   "length": 15.0, "bars": 5, "tail_sec": 3.0,
+   "length": 15.0,
+   "bars": 8,
+   "tail_sec": 3.0,
    "sections": [
-    {"from": 0, "to": 1, "layers": ["swell", "sub"]},
-    {"from": 1, "to": 3, "layers": ["swell", "sub", "pad", "ostinato", "taiko"]},
-    {"from": 3, "to": 4, "layers": ["swell", "sub", "taiko"]},
-    {"from": 4, "to": 5, "layers": ["swell"]}
+    {
+     "from": 0,
+     "to": 2,
+     "layers": [
+      "pad",
+      "sub"
+     ]
+    },
+    {
+     "from": 2,
+     "to": 7,
+     "layers": [
+      "pad",
+      "sub",
+      "swell"
+     ]
+    },
+    {
+     "from": 7,
+     "to": 8,
+     "layers": [
+      "pad"
+     ]
+    }
    ],
    "cues": [
-    {"bar": 0, "beat": 0, "type": "chime", "note": 72},
-    {"bar": 2, "beat": 0, "type": "riser", "len_beats": 3},
-    {"bar": 3, "beat": 0, "type": "impact"},
-    {"bar": 3, "beat": 0, "type": "braam", "note": 36},
-    {"bar": 4, "beat": 0, "type": "chime", "note": 72}
+    {
+     "bar": 0,
+     "beat": 0,
+     "type": "impact"
+    },
+    {
+     "bar": 3,
+     "beat": 0,
+     "type": "riser",
+     "len_beats": 4
+    },
+    {
+     "bar": 5,
+     "beat": 0,
+     "type": "impact"
+    },
+    {
+     "bar": 5,
+     "beat": 0,
+     "type": "chime",
+     "note": 72
+    }
    ],
-   "silence": [[2, 3, 1]]
+   "silence": [
+    [
+     4,
+     2,
+     2
+    ]
+   ]
   },
   "6s": {
-   "length": 6.0, "bars": 2, "tail_sec": 3.0,
+   "length": 6.0,
+   "bars": 3,
+   "tail_sec": 3.0,
    "sections": [
-    {"from": 0, "to": 1, "layers": ["swell", "sub", "ostinato"]},
-    {"from": 1, "to": 2, "layers": ["swell", "sub"]}
+    {
+     "from": 0,
+     "to": 3,
+     "layers": [
+      "pad",
+      "sub"
+     ]
+    }
    ],
    "cues": [
-    {"bar": 0, "beat": 0, "type": "chime", "note": 72},
-    {"bar": 0, "beat": 1, "type": "riser", "len_beats": 2},
-    {"bar": 1, "beat": 0, "type": "impact"},
-    {"bar": 1, "beat": 0, "type": "braam", "note": 36}
+    {
+     "bar": 0,
+     "beat": 0,
+     "type": "impact"
+    },
+    {
+     "bar": 0,
+     "beat": 2,
+     "type": "riser",
+     "len_beats": 3
+    },
+    {
+     "bar": 1,
+     "beat": 2,
+     "type": "impact"
+    },
+    {
+     "bar": 1,
+     "beat": 2,
+     "type": "chime",
+     "note": 72
+    }
    ],
-   "silence": [[0, 3, 1]]
+   "silence": [
+    [
+     1,
+     1,
+     1
+    ]
+   ]
   }
  },
  "spec_version": "30s"

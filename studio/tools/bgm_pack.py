@@ -114,9 +114,10 @@ def limit(x, ceil_db=-2.4, look=0.004, rel=0.09, loop=False):
 def zero(st, sil):
     """意図した無音を、帯域補正・リミッターの後にもう一度デジタルゼロにする（フィルタのにじみを消す）"""
     f = int(0.004 * SR)
+    fi = int(0.018 * SR)                  # 無音への入りは 18ms で絞る（3ms だと耳でチッと聞こえる恐れ。S08-03 審査）
     for t0, t1 in sil:
         i0, i1 = int(t0 * SR), int(t1 * SR)
-        st[max(0, i0 - f):i0] *= np.linspace(1, 0, min(f, i0))[:, None]
+        st[max(0, i0 - fi):i0] *= np.linspace(1, 0, min(fi, i0))[:, None] ** 2
         st[i0:i1] = 0
         st[i1:i1 + f] *= np.linspace(0, 1, len(st[i1:i1 + f]))[:, None]
     return st
