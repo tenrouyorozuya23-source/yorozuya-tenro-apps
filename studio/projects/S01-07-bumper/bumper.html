@@ -1,0 +1,69 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><style>html,body{margin:0;background:#000;overflow:hidden}</style>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@600&display=block" rel="stylesheet">
+<script type="importmap">{"imports":{"three":"/node_modules/three/build/three.module.js","three/addons/":"/node_modules/three/examples/jsm/"}}</script><style>
+#ov{position:absolute;inset:0;color:#efe9df;pointer-events:none;font-family:"Noto Sans JP"}
+.t{position:absolute;left:0;right:0;text-align:center;opacity:0}
+#pre{top:120px;font:300 30px/1 "Noto Sans JP";letter-spacing:.3em;text-indent:.3em;color:#bdb5a8}
+#num{top:860px;font:500 64px/1 "Shippori Mincho";letter-spacing:.06em}
+#date{top:950px;font:400 30px/1 "Noto Sans JP";color:#a69d90;letter-spacing:.16em}
+#cue{display:none}</style>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400&display=block" rel="stylesheet"></head><body><div id="ov"><div class="t" id="pre">初日まで</div><div class="t" id="num"></div><div class="t" id="date">灯守座『硝子の庭』 2026.12.11 初日</div><div class="t" id="cue"></div></div>
+<script type="module">
+// 『硝子の庭』の舞台：中央に題名の板（板付き）、奥に細い硝子の板が林のように立つ。renderAt(n) の n=1,2,3 で照明が1段ずつ入る
+import * as C from '/tools/cine/cine.js';
+const {lerp,prog,ease}=C;
+const W=innerWidth,H=innerHeight,desk=W>H;
+const S=C.createStage({width:W,height:H,exposure:1.0,fov:desk?26:34,envIntensity:0,dof:true});
+const {THREE,scene,camera}=S;
+if(S.bloom){S.bloom.threshold=1.5;S.bloom.strength=0;}
+scene.fog=new THREE.FogExp2(0,.045);scene.background=new THREE.Color(0);
+C.stageFloor(scene,{material:new THREE.MeshPhysicalMaterial({color:0x0c0b0a,roughness:.45,clearcoat:.3,clearcoatRoughness:.4})});
+// 硝子の林（ランダムだが固定の配置）
+let seed=7;const rnd=()=>(seed=(seed*16807)%2147483647)/2147483647;
+const gc=document.createElement('canvas');gc.width=8;gc.height=256;{const x=gc.getContext('2d');const g=x.createLinearGradient(0,0,0,256);g.addColorStop(0,'rgba(255,255,255,0)');g.addColorStop(.55,'rgba(255,255,255,.55)');g.addColorStop(1,'rgba(255,255,255,1)');x.fillStyle=g;x.fillRect(0,0,8,256);}
+const glassMat=new THREE.MeshStandardMaterial({color:0xb7c6d0,roughness:.15,metalness:0,transparent:true,opacity:.1,alphaMap:new THREE.CanvasTexture(gc),depthWrite:false,side:THREE.DoubleSide});
+const edgeMat=new THREE.MeshBasicMaterial({color:0xdfeaf2,transparent:true,opacity:0});const edges=[];
+const panes=[];
+for(let i=0;i<26;i++){const h=1.2+rnd()*2.2,w=.18+rnd()*.25;const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,.015),glassMat);
+  const x=(rnd()-.5)*7, z=-1.2-rnd()*3.2;if(Math.abs(x)<.7&&z>-1.8)continue;m.position.set(x,h/2,z);m.rotation.y=(rnd()-.5)*.9;scene.add(m);panes.push(m);
+  for(const sx of [-1,1]){const e=new THREE.Mesh(new THREE.BoxGeometry(.006,h,.016),edgeMat);e.position.set(sx*w/2,0,0);m.add(e);}
+  const tp=new THREE.Mesh(new THREE.BoxGeometry(w,.006,.016),edgeMat);tp.position.y=h/2;m.add(tp);}
+// 題名の板
+let title=null;
+(async()=>{await document.fonts.load('600 300px "Shippori Mincho"','硝子の庭');
+  const cv=document.createElement('canvas');cv.width=1400;cv.height=420;const x=cv.getContext('2d');x.fillStyle='#fff';x.font='600 300px "Shippori Mincho"';x.textAlign='center';x.textBaseline='middle';x.letterSpacing='40px';x.fillText('硝子の庭',720,215);
+  const tex=new THREE.CanvasTexture(cv);tex.colorSpace=THREE.SRGBColorSpace;tex.anisotropy=8;
+  title=new THREE.Mesh(new THREE.PlaneGeometry(1.6,.48),new THREE.MeshStandardMaterial({color:0xece4d6,map:tex,alphaMap:tex,alphaTest:.5,roughness:.6,side:THREE.DoubleSide}));
+  title.position.set(0,.26,0);scene.add(title);})();
+window.__ready=new Promise(r=>setTimeout(r,800));
+const L=[];
+const add=(name,o,beam)=>{const l=C.spot(scene,{color:0xffe2bd,intensity:0,penumbra:.7,...o});const bm=beam?C.beam(scene,beam):null;L.push({name,l,bm,max:o.max});};
+add('Q1 トップ',{pos:[0,6.5,1.8],target:[0,0,0],angle:.15,max:700},{from:[0,6.5,1.8],to:[0,0,0],radius:.9,color:0xffe2bd,density:.16});
+add('Q2 サイド上手',{pos:[-5,2.2,-1.5],target:[0,1,-2.6],color:0xbcd4ff,angle:.45,max:260});
+add('Q3 サイド下手',{pos:[5,2.2,-1.5],target:[0,1,-2.6],color:0xffd9b0,angle:.45,max:220});
+add('Q4 バック',{pos:[0,5,-7],target:[0,0,-3.2],color:0xffe9cf,angle:.4,shadow:false,max:110},{from:[0,5,-7],to:[0,0,-2.6],radius:2.0,color:0xffe9cf,density:.12});
+add('Q5 フロント',{pos:[0,3.2,6],target:[0,.4,0],color:0xfff0de,angle:.12,shadow:false,max:30});
+add('Q6 フット',{pos:[0,.15,2.2],target:[0,1.6,-3],color:0xffcf9a,angle:.5,shadow:false,max:60});
+add('Q7 全灯',{pos:[0,7,-1],target:[0,0,-1.5],color:0xfff3e6,angle:.6,shadow:false,max:160},{from:[0,7,-1],to:[0,0,-1.6],radius:3.2,color:0xfff3e6,density:.06});
+const $=id=>document.getElementById(id);
+$('pre').textContent='灯守座 第24回公演';$('num').textContent='2026.12.11 — 12.20';$('date').textContent='港町ホール　チケット発売中';
+window.renderAt=t=>{
+  // 拍1（0.0）灯体の点だけ → 拍2（0.75）スポットが開いて題名 → 3.0 インパクトで横と奥の明かり＋日付
+  const open=ease.outCubic(prog(t,.75,.35)), on=t>=3.0?1:0;
+  L.forEach((x,i)=>{let v=0;
+    if(i===0){v=t<.75?.9*ease.outCubic(prog(t,0,.15)):(t>=2.25&&t<3.0?.35:1);x.l.angle=lerp(.025,.15,open);}
+    else if(i===1||i===2||i===3)v=on;
+    x.l.intensity=x.max*v;if(x.bm)x.bm.set(t,i===0?v*(.25+.75*open):v);});
+  
+  edgeMat.opacity=0;glassMat.opacity=on?.38:.05;
+  const d=lerp(7.6,6.9,ease.inOutSine(prog(t,0,6)));
+  camera.position.set(0,1.15,d);camera.lookAt(0,.95,-1);
+  if(S.bokeh){S.bokeh.uniforms.focus.value=d;S.bokeh.uniforms.aperture.value=.0007;}
+  $('pre').style.opacity=ease.outCubic(prog(t,1.0,.4))*(1-prog(t,2.2,.1))+ (t>=3.0?ease.outCubic(prog(t,3.0,.3)):0);
+  $('num').style.opacity=ease.outCubic(prog(t,3.0,.25)).toFixed(3);
+  $('date').style.opacity=ease.outCubic(prog(t,3.3,.4)).toFixed(3);
+  S.render();
+};
+// 灯体の点（フレーム0から見える小さな光）
+const dot=new THREE.Mesh(new THREE.SphereGeometry(.045,16,12),new THREE.MeshBasicMaterial({color:0xffe2bd,transparent:true,opacity:0}));dot.position.set(0,6.4,1.75);scene.add(dot);
+</script></body></html>
