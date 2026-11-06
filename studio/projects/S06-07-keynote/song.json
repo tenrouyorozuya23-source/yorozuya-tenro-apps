@@ -1,0 +1,212 @@
+{
+ "id": "S06-07-bgm",
+ "title": "新しい光（発表会オープニング用）",
+ "genre": "corporate",
+ "base": {
+  "bpm": 120,
+  "key": "D",
+  "seed": 21,
+  "brightness": 0.6,
+  "reverb": 0.28,
+  "drive": 0.2,
+  "sidechain": 0.45,
+  "progression": [
+   "Bm7",
+   "Gmaj9",
+   "Dmaj7",
+   "A6"
+  ],
+  "mix": {
+   "bass": 0.4,
+   "pluck": 0.4,
+   "bell": 0.32,
+   "pad": 0.42,
+   "kick": 0.62
+  },
+  "end_chord": "Dmaj9",
+  "pre_end_chord": "A6"
+ },
+ "versions": {
+  "40s": {
+   "length": 40.0,
+   "bars": 20,
+   "tail_sec": 2.5,
+   "melody": [
+    [
+     2,
+     0,
+     "F#5",
+     1
+    ],
+    [
+     2,
+     1,
+     "A5",
+     1
+    ],
+    [
+     2,
+     2,
+     "B5",
+     2
+    ],
+    [
+     3,
+     0,
+     "A5",
+     4
+    ],
+    [
+     6,
+     0,
+     "D6",
+     1
+    ],
+    [
+     6,
+     1,
+     "C#6",
+     1
+    ],
+    [
+     6,
+     2,
+     "B5",
+     2
+    ],
+    [
+     7,
+     0,
+     "A5",
+     4
+    ],
+    [
+     14,
+     0,
+     "F#5",
+     1
+    ],
+    [
+     14,
+     1,
+     "A5",
+     1
+    ],
+    [
+     14,
+     2,
+     "D6",
+     2
+    ],
+    [
+     15,
+     0,
+     "C#6",
+     4
+    ],
+    [
+     18,
+     0,
+     "D6",
+     4
+    ]
+   ],
+   "sections": [
+    {
+     "from": 0,
+     "to": 2,
+     "layers": [
+      "pad"
+     ]
+    },
+    {
+     "from": 2,
+     "to": 6,
+     "layers": [
+      "pad",
+      "pluck",
+      "bell"
+     ]
+    },
+    {
+     "from": 6,
+     "to": 13,
+     "layers": [
+      "kick",
+      "hat",
+      "bass",
+      "pad",
+      "pluck"
+     ]
+    },
+    {
+     "from": 14,
+     "to": 19,
+     "layers": [
+      "kick",
+      "clap",
+      "hat",
+      "openhat",
+      "bass",
+      "pad",
+      "pluck",
+      "bell"
+     ]
+    },
+    {
+     "from": 19,
+     "to": 20,
+     "layers": [
+      "pad"
+     ]
+    }
+   ],
+   "cues": [
+    {
+     "bar": 2,
+     "beat": 0,
+     "type": "impact"
+    },
+    {
+     "bar": 6,
+     "beat": 0,
+     "type": "chime"
+    },
+    {
+     "bar": 8,
+     "beat": 0,
+     "type": "chime"
+    },
+    {
+     "bar": 10,
+     "beat": 0,
+     "type": "chime"
+    },
+    {
+     "bar": 12,
+     "beat": 2,
+     "type": "riser",
+     "len_beats": 4
+    },
+    {
+     "bar": 14,
+     "beat": 0,
+     "type": "impact"
+    },
+    {
+     "bar": 19,
+     "beat": 0,
+     "type": "stab"
+    }
+   ],
+   "silence": [
+    [
+     13,
+     2,
+     2
+    ]
+   ]
+  }
+ },
+ "spec_version": "40s"
+}

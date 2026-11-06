@@ -1,0 +1,28 @@
+{
+ "id": "S06-07-bgm",
+ "title": "新しい光（発表会オープニング用）",
+ "versions": {
+  "40s": {
+   "sec": 40.0,
+   "bpm": 120,
+   "fps_beat_exact": [
+    24,
+    30,
+    48,
+    60
+   ],
+   "silence": [
+    [
+     27.0,
+     28.0
+    ]
+   ],
+   "lufs": -14.1,
+   "tp": -2.3,
+   "low_minus_mid_db": 3.98,
+   "low_shelf_db": -4.4,
+   "limiter_db": 1.7,
+   "stereo_corr": 0.844
+  }
+ }
+}

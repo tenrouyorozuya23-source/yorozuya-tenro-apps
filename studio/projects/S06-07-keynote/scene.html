@@ -1,0 +1,64 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><title>S06-07 keynote</title>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@600&family=Noto+Sans+JP:wght@300;400;500&display=block" rel="stylesheet">
+<style>html,body{margin:0;overflow:hidden;background:#000}canvas{display:block}
+#ov{position:absolute;inset:0;color:#efe9df;pointer-events:none;font-family:"Noto Sans JP"}
+.t{position:absolute;left:0;right:0;text-align:center;opacity:0}
+#pre{top:140px;font:400 34px/1 "Noto Sans JP";letter-spacing:.34em;text-indent:.34em;color:#bdb5a8}
+#date{top:880px;font:400 40px/1 "Noto Sans JP";letter-spacing:.2em;text-indent:.2em;color:#d8d2c8}
+#note{left:auto;right:130px;top:auto;bottom:70px;text-align:right;font:400 26px/1 "Noto Sans JP";color:#86868b}</style>
+<script type="importmap">{"imports":{"three":"/node_modules/three/build/three.module.js","three/addons/":"/node_modules/three/examples/jsm/"}}</script>
+</head><body><div id="ov"><div class="t" id="pre">灯野精工　新事業発表</div><div class="t" id="date">2027年4月　始動</div><div class="t" id="note">架空の企業・事業・数字のサンプルです</div></div>
+<script type="module">
+// 暗い会場に一本の光の線。インパクトで線が上へ走り、新事業の名前が光で組み上がる。3つの数字がそれぞれの画面に1つずつ立つ
+import * as C from '/tools/cine/cine.js';
+const {lerp,prog,ease}=C;
+const W=innerWidth,H=innerHeight;
+const S=C.createStage({width:W,height:H,exposure:1.0,fov:30,envIntensity:0,dof:true});
+const {THREE,scene,camera,renderer}=S;
+renderer.localClippingEnabled=true;
+if(S.bloom){S.bloom.threshold=2;S.bloom.strength=0;}
+scene.fog=new THREE.FogExp2(0,.05);scene.background=new THREE.Color(0);
+C.stageFloor(scene,{material:new THREE.MeshPhysicalMaterial({color:0x090909,roughness:.3,clearcoat:.6,clearcoatRoughness:.2})});
+const mk=(w,h,draw,cw=2048)=>{const ch=Math.round(cw*h/w);const cv=document.createElement('canvas');cv.width=cw;cv.height=ch;const x=cv.getContext('2d');x.fillStyle='#000';x.fillRect(0,0,cw,ch);x.fillStyle='#fff';x.textAlign='center';x.textBaseline='middle';draw(x,cw,ch);const t=new THREE.CanvasTexture(cv);t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=8;return t;};
+// 名前（光の線の通過で上から現れる＝クリッピング）
+const clip=new THREE.Plane(new THREE.Vector3(0,-1,0),0);
+let nameM,panels=[];
+async function build(){
+  await document.fonts.load('600 200px "Shippori Mincho"','光計測事業ルミナ');await document.fonts.load('500 100px "Noto Sans JP"','0.001mm24時間3拠点');
+  const nt=mk(3.2,1.0,(x,w,h)=>{x.font='600 300px "Shippori Mincho"';x.letterSpacing='60px';x.fillText('光計測事業',w/2,h*.42);x.font='500 90px "Noto Sans JP"';x.letterSpacing='40px';x.fillStyle='#cfc8bc';x.fillText('LUMINA GAUGE',w/2,h*.82);});
+  nameM=new THREE.Mesh(new THREE.PlaneGeometry(3.2,1.0),new THREE.MeshBasicMaterial({map:nt,color:0xffffff,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false,clippingPlanes:[clip]}));
+  nameM.position.set(0,1.75,-1);scene.add(nameM);
+  const F=[['0.001','mm','測れる段差'],['24','時間','止めずに測る'],['3','拠点','2027年に開設']];
+  F.forEach(([n,u,l],i)=>{const x0=(i-1)*1.55;
+    const slab=new THREE.Mesh(new THREE.BoxGeometry(1.35,.9,.04),new THREE.MeshStandardMaterial({color:0x0b0b0c,roughness:.35,metalness:.4}));slab.position.set(x0,.6,.2);scene.add(slab);
+    const tx=mk(1.3,.86,(x,w,h)=>{x.font='600 330px "Shippori Mincho"';const nw=x.measureText(n).width;x.font='500 110px "Noto Sans JP"';const uw=x.measureText(u).width;const sx=w/2-(nw+uw+30)/2;x.textAlign='left';x.font='600 330px "Shippori Mincho"';x.fillText(n,sx,h*.42);x.font='500 110px "Noto Sans JP"';x.fillText(u,sx+nw+30,h*.48);x.textAlign='center';x.font='400 96px "Noto Sans JP"';x.fillStyle='#bdb5a8';x.fillText(l,w/2,h*.82);},1600);
+    const scr=new THREE.Mesh(new THREE.PlaneGeometry(1.3,.86),new THREE.MeshBasicMaterial({map:tx,color:0,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false}));scr.position.set(x0,.6,.223);scene.add(scr);
+    const sp=C.spot(scene,{pos:[x0,3.2,2.4],target:[x0,.2,.2],color:0xfff0de,intensity:0,angle:.18,penumbra:.8,shadow:false});
+    panels.push({scr,sp,x0});});
+}
+window.__ready=build();
+// 光の線（水平の細い発光体）
+const line=new THREE.Mesh(new THREE.BoxGeometry(1,.012,.012),new THREE.MeshBasicMaterial({color:0xfff3e0}));scene.add(line);
+const lineL=new THREE.PointLight(0xffe2bd,0,4,2);scene.add(lineL);
+const PT=[12,16,20], HIT=4, ALL=28;
+const $=id=>document.getElementById(id);
+window.renderAt=t=>{
+  // 0〜4秒：中央の点から線が左右へ伸びる → 4.0 で上へ走り、通った所から名前が現れる → 消える
+  const grow=ease.outCubic(prog(t,0,3.8)), up=ease.inOutSine(prog(t,HIT,1.4));
+  const ly=lerp(1.12,2.4,up);line.scale.x=lerp(.02,3.6,grow)*(1-prog(t,HIT+1.3,.3));line.position.set(0,ly,-1);lineL.position.set(0,ly,-.8);lineL.intensity=t<HIT+1.6?1.2:0;
+  clip.constant=t<HIT?-10:ly;                    // y < ly の部分だけ描く
+  if(nameM){const sil=t>=27&&t<ALL;nameM.material.color.setScalar((t>=HIT?1:0)*(sil?.25:1)*(t<ALL?1-prog(t,PT[0]-.6,.5):1));}
+  panels.forEach((p,i)=>{let v=t>=PT[i]?1:0;if(t>=27&&t<ALL)v*=.2;if(t<ALL&&t>=PT[0]&&i!==[...PT].reverse().findIndex(x=>t>=x)*-1+2)v*=.45;
+    p.scr.material.color.setScalar(v);p.sp.intensity=40*v;});
+  // カメラ：名前に正対して寄る → 12秒から数字の画面を順に横移動 → 28秒で引いて全体
+  const cur=PT.filter(x=>t>=x).length-1;
+  let cx=0,cy=1.5,cz=lerp(7.2,6.2,prog(t,0,12)),lx=0,ly2=1.55;
+  if(t>=PT[0]&&t<ALL){const tx=panels.length?panels[cur].x0:0, px=cur>0&&panels.length?panels[cur-1].x0:0, f=ease.inOutSine(prog(t,PT[cur],.8));cx=lerp(cur>0?px:0,tx,f)*.9;cy=lerp(1.5,.85,ease.inOutSine(prog(t,PT[0],1)));cz=lerp(6.2,3.6,ease.inOutSine(prog(t,PT[0],1)))-.15*prog(t,PT[cur],4);lx=cx/.9;ly2=lerp(1.55,.62,ease.inOutSine(prog(t,PT[0],1)));}
+  if(t>=ALL){const u=ease.inOutSine(prog(t,ALL,2.5));cx=lerp(panels.length?panels[2].x0*.9:0,0,u);cy=lerp(.85,1.45,u);cz=lerp(3.4,6.4,u)-.3*prog(t,31,9);lx=lerp(panels.length?panels[2].x0:0,0,u);ly2=lerp(.62,1.15,u);}
+  camera.position.set(cx+.04*Math.sin(t*.6),cy,cz);camera.lookAt(lx,ly2,-.4);
+  if(S.bokeh){S.bokeh.uniforms.focus.value=Math.hypot(cx-lx,cy-ly2,cz+.4);S.bokeh.uniforms.aperture.value=.0008;}
+  $('pre').style.opacity=(ease.outCubic(prog(t,.4,.6))*(1-prog(t,11.5,.4))).toFixed(3);
+  $('date').style.opacity=ease.outCubic(prog(t,31,.6)).toFixed(3);$('note').style.opacity=ease.outCubic(prog(t,12,.5)).toFixed(3);
+  S.render();
+};
+</script></body></html>
