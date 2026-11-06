@@ -1715,6 +1715,9 @@ function setup_availability() {
 //   ④ 新しいコードで ?api=migrate を呼んで、未実行の更新処理（MIGRATIONS）を実行する
 //   初回：appsscript.json に oauthScopes（script.projects・script.deployments ほか）を入れ、setup_selfDeploy() を1回実行
 // ============================================================
+// コードの目印（変更のたびに更新すると、?api=version で反映を確認できる）
+var CODE_REVISION = "2026-11-06-auto-deploy-fix";
+
 var SELF_DEPLOY = {
   repo:   "tenrouyorozuya23-source/yorozuya-tenro-apps",
   branch: "main",
@@ -1787,6 +1790,7 @@ function selfDeployFromGitHub(force) {
       manifestFileName: "appsscript", description: "GitHub自動反映 " + stamp
     }});
     props.setProperty("SELF_DEPLOY_HASH", hash);
+    props.setProperty("SELF_DEPLOY_INFO", JSON.stringify({ version: version.versionNumber, at: stamp }));
   } finally {
     lock.releaseLock();
   }
@@ -2798,6 +2802,13 @@ function doGet(e) {
   if (e && e.parameter && e.parameter.api === "migrate") {
     return ContentService.createTextOutput(JSON.stringify(runMigrations()))
       .setMimeType(ContentService.MimeType.JSON);
+  }
+
+  // 自動反映の確認用：今動いているコードの版と反映日時
+  if (e && e.parameter && e.parameter.api === "version") {
+    var info = JSON.parse(PropertiesService.getScriptProperties().getProperty("SELF_DEPLOY_INFO") || "{}");
+    info.code = CODE_REVISION;
+    return ContentService.createTextOutput(JSON.stringify(info)).setMimeType(ContentService.MimeType.JSON);
   }
 
   // 予約サイト用：公演×席種の残席（JSON）。個人情報は含めない
