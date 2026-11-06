@@ -1,0 +1,109 @@
+{
+ "bpm": 80,
+ "beat_sec": 0.75,
+ "bar_sec": 3.0,
+ "bars": 5,
+ "music_end_sec": 15.0,
+ "total_sec": 18.0,
+ "beats": [
+  0.0,
+  0.75,
+  1.5,
+  2.25,
+  3.0,
+  3.75,
+  4.5,
+  5.25,
+  6.0,
+  6.75,
+  7.5,
+  8.25,
+  9.0,
+  9.75,
+  10.5,
+  11.25,
+  12.0,
+  12.75,
+  13.5,
+  14.25,
+  15.0
+ ],
+ "downbeats": [
+  0.0,
+  3.0,
+  6.0,
+  9.0,
+  12.0,
+  15.0
+ ],
+ "cues": [
+  {
+   "t": 0.0,
+   "type": "chime"
+  },
+  {
+   "t": 6.0,
+   "type": "riser"
+  },
+  {
+   "t": 9.0,
+   "type": "impact"
+  },
+  {
+   "t": 9.0,
+   "type": "braam"
+  },
+  {
+   "t": 12.0,
+   "type": "chime"
+  }
+ ],
+ "sections": [
+  {
+   "from": 0,
+   "to": 1,
+   "layers": [
+    "swell",
+    "sub"
+   ]
+  },
+  {
+   "from": 1,
+   "to": 3,
+   "layers": [
+    "swell",
+    "sub",
+    "pad",
+    "ostinato",
+    "taiko"
+   ]
+  },
+  {
+   "from": 3,
+   "to": 4,
+   "layers": [
+    "swell",
+    "sub",
+    "taiko"
+   ]
+  },
+  {
+   "from": 4,
+   "to": 5,
+   "layers": [
+    "swell"
+   ]
+  }
+ ],
+ "silence": [
+  [
+   8.25,
+   9.0
+  ]
+ ],
+ "fps_beat_exact": [
+  24,
+  48,
+  60
+ ]
+}

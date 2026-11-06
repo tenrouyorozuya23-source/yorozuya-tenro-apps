@@ -1,0 +1,72 @@
+{
+ "bpm": 80,
+ "beat_sec": 0.75,
+ "bar_sec": 3.0,
+ "bars": 2,
+ "music_end_sec": 6.0,
+ "total_sec": 9.0,
+ "beats": [
+  0.0,
+  0.75,
+  1.5,
+  2.25,
+  3.0,
+  3.75,
+  4.5,
+  5.25,
+  6.0
+ ],
+ "downbeats": [
+  0.0,
+  3.0,
+  6.0
+ ],
+ "cues": [
+  {
+   "t": 0.0,
+   "type": "chime"
+  },
+  {
+   "t": 0.75,
+   "type": "riser"
+  },
+  {
+   "t": 3.0,
+   "type": "impact"
+  },
+  {
+   "t": 3.0,
+   "type": "braam"
+  }
+ ],
+ "sections": [
+  {
+   "from": 0,
+   "to": 1,
+   "layers": [
+    "swell",
+    "sub",
+    "ostinato"
+   ]
+  },
+  {
+   "from": 1,
+   "to": 2,
+   "layers": [
+    "swell",
+    "sub"
+   ]
+  }
+ ],
+ "silence": [
+  [
+   2.25,
+   3.0
+  ]
+ ],
+ "fps_beat_exact": [
+  24,
+  48,
+  60
+ ]
+}
