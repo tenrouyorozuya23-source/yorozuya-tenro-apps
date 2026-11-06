@@ -134,6 +134,9 @@ button,input,select,textarea{font:inherit;color:inherit}
 .specs span{font:500 11px var(--mono);background:var(--sunk);color:var(--mute);padding:2px 6px;border-radius:4px}
 .links{display:flex;flex-wrap:wrap;gap:6px 12px;font-size:13px}
 .links a{color:var(--indigo);font-weight:700}
+.pv{display:flex;flex-wrap:wrap;gap:6px}
+.pv a.btn{text-decoration:none;font-size:13px;padding:6px 12px;display:inline-block}
+.media a{display:block;width:100%;height:100%}
 audio{width:100%;height:36px}
 
 /* reports */
@@ -331,7 +334,13 @@ function renderWorks(){
   $('#works').innerHTML=list.map(w=>{
     const v=w.videoAsset?`/_blob/${esc(w.videoAsset)}`:w.videoUrl;const po=w.posterAsset?`/_blob/${esc(w.posterAsset)}`:w.posterUrl;
     const ar=w.aspect||'9/16';
-    const media=v?`<video controls playsinline preload="metadata" ${po?`poster="${esc(po)}"`:''} src="${esc(v)}"></video>`:po?`<img src="${esc(po)}" alt="${esc(w.title)} のサムネイル">`:'<div class="ph">プレビューなし</div>';
+    const img=po?`<img src="${esc(po)}" alt="${esc(w.title)} のサムネイル">`:'';
+    const media=v?`<video controls playsinline preload="metadata" ${po?`poster="${esc(po)}"`:''} src="${esc(v)}"></video>`:po?(w.previewUrl?`<a href="${esc(w.previewUrl)}" target="_blank" rel="noopener">${img}</a>`:img):'<div class="ph">プレビューなし</div>';
+    const pv=[];
+    if(w.previewUrl)pv.push(`<a class="btn" href="${esc(w.previewUrl)}" target="_blank" rel="noopener">${esc(w.previewLabel||'プレビューを開く')}</a>`);
+    if(v)pv.push(`<a class="btn ghost" href="${esc(v)}" target="_blank" rel="noopener">動画を全画面で見る</a>`);
+    (w.extraVideos||[]).forEach((id,i)=>pv.push(`<a class="btn ghost" href="/_blob/${esc(id)}" target="_blank" rel="noopener">${i+2}本目</a>`));
+    (w.extraImages||[]).forEach(x=>pv.push(`<a class="btn ghost" href="/_blob/${esc(x.id)}" target="_blank" rel="noopener">${esc(x.label)}</a>`));
     const sp=w.specs||{};
     const specs=[sp.duration&&`${sp.duration}s`,sp.width&&`${sp.width}×${sp.height}`,sp.fps&&`${sp.fps}fps`,sp.lufs!=null&&`${sp.lufs} LUFS`,w.music&&w.music.bpm&&`${w.music.bpm} BPM`,w.music&&w.music.key&&`Key ${w.music.key}`].filter(Boolean);
     const audio=w.audioAsset?`<audio controls preload="none" src="/_blob/${esc(w.audioAsset)}"></audio>`:'';
@@ -340,6 +349,7 @@ function renderWorks(){
       <h3>${esc(w.title)}</h3><p>${esc(w.summary||'')}</p>
       ${w.music&&w.music.title?`<p>BGM：${esc(w.music.title)}（自作）</p>`:''}${audio}
       ${specs.length?`<div class="specs">${specs.map(s=>`<span>${esc(s)}</span>`).join('')}</div>`:''}
+      ${pv.length?`<div class="pv">${pv.join('')}</div>`:''}
       ${(w.links||[]).length?`<div class="links">${w.links.map(l=>`<a href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.label)}</a>`).join('')}</div>`:''}
     </div></article>`}).join('')||'<div class="empty" style="grid-column:1/-1">このカテゴリの完成品はありません。</div>';
 }

@@ -76,6 +76,12 @@ pip install -q -r studio/tools/requirements.txt
 使える公開先にすべて出す。使えないもの（未連携）は飛ばしてログに書く。
 0. 書き出しは BT.709 タグ付き・-14 LUFS/TP -1.2（`render.mjs`・`master.py` の既定）。
 1. 管理アプリ: `Artifact` の `asset: true` で mp4/jpg/png をアップロード（各 20MB 以下。音声は AAC の .mp4 にする）→ `works/<Wxxx>` を作成（`videoAsset`/`posterAsset`/`audioAsset`/`specs`/`music`/`links`）。
+   - **プレビュー必須（ユーザー指示 2026-11-06）**: 完成品・合格未満を問わず、管理アプリの works には必ずその場で見られるプレビューを付ける。GitHub のフォルダへのリンクだけで終わらせない。
+     - 動画: `videoAsset`（本編 mp4）と `posterAsset`（中盤のフレームの jpg）。複数本は `extraVideos`（asset id の配列、2本目以降）。
+     - 静止画: `posterAsset`、追加の画像は `extraImages`（`[{id, label}]`）。
+     - Web サイト: スマホ画面のスクリーンショットを `posterAsset`、PC 画面を `extraImages`、そして `previewUrl` に `https://raw.githack.com/tenrouyorozuya23-source/yorozuya-tenro-apps/studio-autopilot/<サイトの index.html までのパス>`（push 後に 200 が返ることを curl で確認）、`previewLabel: "サイトを開く"`。
+     - 音楽: `audioAsset`（AAC の .mp4）か、試聴ページの URL を `previewUrl`。
+     - `aspect` に縦横比（例 "9/16"、"16/9"）を入れる。
 2. GitHub: `studio/works/<id>/` に完成品を置いてコミット・push（`studio-autopilot` ブランチ）。
 3. Google Drive（「Claude専用 開発部」、ID は `config.json` の `drive_folders`）: 報告書は `01_計画と報告書`、ナレッジ更新は `02_ナレッジ・スキル` に Google ドキュメント（`contentMimeType: text/markdown`）で保存。完成品は `03_完成品` に作品ページ（概要・仕様・管理アプリ/GitHub のリンク）を置く。コネクタのアップロードは本文を会話に通すため、大きな動画ファイルは載せない（リンクで代える）。定期実行のセッションに Drive コネクタが無いときは飛ばしてログに書く。
 4. Cloudflare Pages: 環境変数 `CLOUDFLARE_API_TOKEN` と `CLOUDFLARE_ACCOUNT_ID` があれば `npx wrangler pages deploy`（HP サンプル・ポートフォリオ）。
