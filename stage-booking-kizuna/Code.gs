@@ -1760,6 +1760,7 @@ function fetchSourcesFromGitHub() {
 function selfDeployFromGitHub(force) {
   var lock = LockService.getScriptLock();
   if (!lock.tryLock(10000)) return "別の更新が実行中です";
+  var version;
   try {
     var props = PropertiesService.getScriptProperties();
     var src = fetchSourcesFromGitHub();
@@ -1780,21 +1781,21 @@ function selfDeployFromGitHub(force) {
 
     // ②③ 版を作って Webアプリのデプロイを差し替え
     var stamp = Utilities.formatDate(new Date(), "Asia/Tokyo", "yyyy/MM/dd HH:mm");
-    var version = scriptApi("post", "/versions", { description: "GitHub自動反映 " + stamp });
+    version = scriptApi("post", "/versions", { description: "GitHub自動反映 " + stamp });
     scriptApi("put", "/deployments/" + webAppDeploymentId(), { deploymentConfig: {
       scriptId: ScriptApp.getScriptId(), versionNumber: version.versionNumber,
       manifestFileName: "appsscript", description: "GitHub自動反映 " + stamp
     }});
     props.setProperty("SELF_DEPLOY_HASH", hash);
-
-    // ④ 新しいコードで未実行の更新処理を実行
-    var mig = UrlFetchApp.fetch(CONFIG.webAppUrl + "?api=migrate", { muteHttpExceptions: true }).getContentText();
-    var msg = "版 " + version.versionNumber + " を反映・デプロイしました／更新処理: " + mig.slice(0, 300);
-    Logger.log("✅ " + msg);
-    return msg;
   } finally {
     lock.releaseLock();
   }
+
+  // ④ 新しいコードで未実行の更新処理を実行（更新処理も同じロックを使うので、ロックを外してから呼ぶ）
+  var mig = UrlFetchApp.fetch(CONFIG.webAppUrl + "?api=migrate", { muteHttpExceptions: true }).getContentText();
+  var msg = "版 " + version.versionNumber + " を反映・デプロイしました／更新処理: " + mig.slice(0, 300);
+  Logger.log("✅ " + msg);
+  return msg;
 }
 
 // 5分ごとのトリガーから呼ばれる（エラーはログだけ残す）
