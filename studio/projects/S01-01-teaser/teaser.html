@@ -1,0 +1,81 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><style>html,body{margin:0;background:#000;overflow:hidden}</style>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@600&family=Noto+Sans+JP:wght@300;400&display=block" rel="stylesheet">
+<script type="importmap">{"imports":{"three":"/node_modules/three/build/three.module.js","three/addons/":"/node_modules/three/examples/jsm/"}}</script><style>
+#ov{position:absolute;inset:0;color:#efe9df;pointer-events:none}
+.t{position:absolute;left:0;right:0;text-align:center;opacity:0}
+#troupe{top:300px;font:300 34px/1 "Noto Sans JP";letter-spacing:.4em;text-indent:.4em;color:#b9b0a3}
+#title{top:360px;font:600 150px/1 "Shippori Mincho";letter-spacing:.12em;text-indent:.12em}
+#date{top:600px;font:400 30px/1 "Noto Sans JP";letter-spacing:.3em;text-indent:.3em;color:#a69d90}
+#kaikin{top:650px;font:600 76px/1 "Shippori Mincho";letter-spacing:.14em;text-indent:.14em}
+</style></head><body><div id="ov">
+<div class="t" id="troupe">灯守座 第十二回公演</div><div class="t" id="title">硝子の庭</div>
+<div class="t" id="date">情報解禁</div><div class="t" id="kaikin">12.1</div></div>
+<script type="module">
+// S01-01 ティザー第1弾「一灯」：0秒の小さな光点が降りてきて、無音の暗転のあと 10.0 秒の鐘で空の椅子へのスポットに開く
+import * as C from '/tools/cine/cine.js';
+const {lerp,prog,ease}=C;
+const W=innerWidth,H=innerHeight;
+const S=C.createStage({width:W,height:H,exposure:1.0,fov:34,envIntensity:0,dof:true});
+const {THREE,scene,camera}=S;
+if(S.bloom){S.bloom.threshold=1.2;S.bloom.strength=.6;S.bloom.radius=.5;}
+scene.fog=new THREE.FogExp2(0,.05);scene.background=new THREE.Color(0);
+C.stageFloor(scene,{material:new THREE.MeshPhysicalMaterial({color:0x0c0b0a,roughness:.4,clearcoat:.35,clearcoatRoughness:.35})});
+// 奥の硝子の林（S01 共通の舞台）
+const r=C.rand(7);
+const gc=document.createElement('canvas');gc.width=8;gc.height=256;{const x=gc.getContext('2d');const g=x.createLinearGradient(0,0,0,256);g.addColorStop(0,'rgba(255,255,255,0)');g.addColorStop(.55,'rgba(255,255,255,.55)');g.addColorStop(1,'rgba(255,255,255,1)');x.fillStyle=g;x.fillRect(0,0,8,256);}
+const glassMat=new THREE.MeshStandardMaterial({color:0xb7c6d0,roughness:.15,transparent:true,opacity:.0,alphaMap:new THREE.CanvasTexture(gc),depthWrite:false,side:THREE.DoubleSide});
+for(let i=0;i<22;i++){const h=1.4+r()*2.4,w=.16+r()*.22;const x=(r()-.5)*5,z=-1.6-r()*3;if(Math.abs(x)<.6)continue;
+  const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,.015),glassMat);m.position.set(x,h/2,z);m.rotation.y=(r()-.5)*.9;scene.add(m);}
+// 空の椅子（木の背もたれ椅子）
+const wood=new THREE.MeshPhysicalMaterial({color:0x3a2a1e,roughness:.5,clearcoat:.5,clearcoatRoughness:.3});
+const chair=new THREE.Group();const B=(w,h,d,x,y,z)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),wood);m.position.set(x,y,z);m.castShadow=m.receiveShadow=true;chair.add(m);};
+B(.46,.04,.44,0,.46,0);
+for(const sx of[-1,1])for(const sz of[-1,1])B(.035,.46,.035,sx*.2,.23,sz*.19);
+for(const sx of[-1,1])B(.035,.5,.035,sx*.2,.71,-.19);
+B(.44,.06,.03,0,.92,-.19);B(.44,.04,.025,0,.74,-.19);
+for(const sx of[-1,1])B(.03,.03,.38,sx*.2,.12,0);
+chair.rotation.y=-.35;scene.add(chair);
+// 光点（0秒から見える）
+const dot=new THREE.Mesh(new THREE.SphereGeometry(.018,16,16),new THREE.MeshBasicMaterial({color:new THREE.Color(0xffe2bd).multiplyScalar(6)}));scene.add(dot);
+const dotLight=new THREE.PointLight(0xffd9a8,0,9,1.6);scene.add(dotLight);
+const hc=document.createElement('canvas');hc.width=hc.height=128;{const x=hc.getContext('2d');const g=x.createRadialGradient(64,64,0,64,64,64);g.addColorStop(0,'rgba(255,226,189,1)');g.addColorStop(.06,'rgba(255,220,180,.5)');g.addColorStop(.3,'rgba(255,205,160,.08)');g.addColorStop(1,'rgba(255,200,150,0)');x.fillStyle=g;x.fillRect(0,0,128,128);}
+const halo=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(hc),blending:THREE.AdditiveBlending,depthWrite:false,transparent:true}));scene.add(halo);
+// スポットと光の筋
+const spot=C.spot(scene,{pos:[0,6.2,.8],target:[0,0,0],color:0xffe2bd,intensity:0,angle:.13,penumbra:.55});
+const bm=C.beam(scene,{from:[0,6.2,.8],to:[0,0,0],radius:.8,color:0xffe2bd,density:.2});
+const thin=C.beam(scene,{from:[0,6.2,.8],to:[0,0,0],radius:.06,color:0xfff0dc,density:.5});
+const dust=C.dust?C.dust(scene,{center:[0,2.2,.4],radius:.7,height:4,count:260,seed:3}):null;
+const back=C.spot(scene,{pos:[0,4.5,-6],target:[0,0,-3],color:0x9fb6d8,intensity:0,angle:.5,penumbra:.9,shadow:false});
+await document.fonts.load('600 150px "Shippori Mincho"','硝子の庭12.1');await document.fonts.load('300 34px "Noto Sans JP"','灯守座第十二回公演情報解禁');
+window.__ready=Promise.resolve();
+const HIT=10.0, DARK=9.0;
+const $=id=>document.getElementById(id);
+window.renderAt=t=>{
+  const lit=t>=HIT, dark=t>=DARK&&t<HIT;
+  // 光点：高いところから椅子の真上へ降りる（0〜9秒）。6〜9秒のライザーで明るく、下へ細い糸を垂らす
+  const u=.35*prog(t,0,9)+.65*ease.inOutSine(prog(t,0,9));
+  dot.position.set(lerp(.35,0,u),lerp(4.6,2.4,u),lerp(.6,.25,u));
+  const glow=lerp(.6,1.6,prog(t,6,3));
+  dot.visible=t<DARK; dot.scale.setScalar(glow);
+  dotLight.position.copy(dot.position);dotLight.intensity=t<DARK?lerp(2.5,7,prog(t,4,5)):0;
+  halo.position.copy(dot.position);halo.visible=t<DARK;halo.scale.setScalar(lerp(.95,1.35,prog(t,6,3))*(1+.08*Math.sin(t*4.2)));halo.material.opacity=.7;
+  thin.set(t,t<DARK?ease.inOutSine(prog(t,6,3))*.7:0);
+  // 10.0 の鐘で1フレームで点灯
+  spot.intensity=lit?lerp(900,700,prog(t,HIT,1.5)):0;
+  bm.set(t,lit?1:0);
+  back.intensity=lit?ease.outCubic(prog(t,HIT+.5,2))*40:(dark?0:lerp(16,20,prog(t,0,9)));
+  glassMat.opacity=lit?.06+.2*ease.outCubic(prog(t,HIT+.5,2)):(dark?0:.08);
+  if(dust)dust.update(t,lit?.5*ease.outCubic(prog(t,HIT,.8)):0);
+  // カメラ：ずっと少しずつ寄る。光点を追って少し下を向く
+  const d=lerp(6.2,4.4,ease.inOutSine(prog(t,0,15)));
+  const ly=lit?lerp(1.25,1.05,ease.inOutSine(prog(t,HIT,5))):dot.position.y-.5;
+  camera.position.set(lerp(.5,.15,prog(t,0,15)),lerp(1.6,1.25,prog(t,0,15)),d);camera.lookAt(0,ly,0);
+  if(S.bokeh){S.bokeh.uniforms.focus.value=d;S.bokeh.uniforms.aperture.value=.0008;}
+  // 文字：題名は鐘と同時に、日付は 0.6 秒後
+  $('troupe').style.opacity=lit?ease.outCubic(prog(t,HIT+.3,.5)).toFixed(3):0;
+  $('title').style.opacity=lit?1:0;
+  $('date').style.opacity=lit?ease.outCubic(prog(t,HIT+.6,.4)).toFixed(3):0;
+  $('kaikin').style.opacity=lit?ease.outCubic(prog(t,HIT+.6,.4)).toFixed(3):0;
+  S.render();
+};
+</script></body></html>
