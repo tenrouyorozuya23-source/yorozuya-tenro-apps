@@ -6,7 +6,7 @@
 #place{left:120px;top:100px;font:300 40px/1 "Noto Sans JP";letter-spacing:.2em}
 #title{left:0;right:0;top:120px;text-align:center;font:600 72px/1 "Shippori Mincho";letter-spacing:.2em;text-indent:.2em}
 #co{left:0;right:0;top:220px;text-align:center;font:300 30px/1 "Noto Sans JP";letter-spacing:.34em;text-indent:.34em;color:#bdb5a8}
-#note{right:120px;bottom:60px;font:400 22px/1 "Noto Sans JP";color:#86868b}</style>
+#note{right:130px;bottom:70px;font:400 26px/1 "Noto Sans JP";color:#86868b}</style>
 <script type="importmap">{"imports":{"three":"/node_modules/three/build/three.module.js","three/addons/":"/node_modules/three/examples/jsm/"}}</script>
 </head><body><div id="ov"><div class="t" id="place"></div><div class="t" id="title">灯りでお迎えする</div><div class="t" id="co">ホテル宵灯</div><div class="t" id="note">架空のホテルのサンプルです</div></div>
 <script type="module">
@@ -45,7 +45,7 @@ const lamps=PATH.map(([x,z],i)=>{const last=i===PATH.length-1;
 const sky=new THREE.HemisphereLight(0x6f86b8,0x0a0807,.35);scene.add(sky);
 const TL=PATH.map((_,i)=>i===0?0:(i<PATH.length-1?3.0+(i-1)*1.65:18.0));
 const $=id=>document.getElementById(id);
-const PL=['入口','ロビー','ロビー','受付','廊下','廊下','廊下','エレベーター前','客室の前','客室'];
+const PL=['入口','ロビー','ロビー','ロビー','廊下','廊下','廊下','廊下','客室','客室'];
 window.__ready=document.fonts.ready;
 window.renderAt=t=>{
   const sil=t>=17.25&&t<18;
@@ -60,7 +60,7 @@ window.renderAt=t=>{
   const cx=lerp(fx-.8,0,u),cy=lerp(1.25,10.2,u),cz=lerp(fz+2.4,1.4,u),lx=lerp(fx+.3,-.2,u),lz=lerp(fz,-.05,u);
   const ap=1-ease.outCubic(prog(t,0,3.2));camera.position.set(cx+.05*Math.sin(t*.7)-.6*ap,cy+.35*ap,cz-.2*prog(t,25,5)+1.0*ap);camera.lookAt(lx,0,lz);
   if(S.bokeh){S.bokeh.uniforms.focus.value=Math.hypot(cx-lx,cy,cz-lz);S.bokeh.uniforms.aperture.value=lerp(.0012,.0004,u);}
-  if(n>=0&&t<20.5){$('place').textContent=PL[k];$('place').style.opacity=ease.outCubic(prog(t,TL[k],.3)).toFixed(3);}else $('place').style.opacity=0;
+  if(n>=0&&t<20.5){let g=k;while(g>0&&PL[g-1]===PL[k])g--;$('place').textContent=PL[k];$('place').style.opacity=(ease.outCubic(prog(t,TL[g],.3))*(1-prog(t,20.2,.3))).toFixed(3);}else $('place').style.opacity=0;
   $('title').style.opacity=ease.outCubic(prog(t,27,.5)).toFixed(3);$('co').style.opacity=ease.outCubic(prog(t,27.4,.5)).toFixed(3);
   $('note').style.opacity=ease.outCubic(prog(t,25,.5)).toFixed(3);
   S.render();
