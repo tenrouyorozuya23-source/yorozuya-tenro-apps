@@ -1,0 +1,28 @@
+{
+ "id": "S03-08-bgm",
+ "title": "一本の灯（生誕祭カード用）",
+ "versions": {
+  "8s": {
+   "sec": 8.0,
+   "bpm": 72,
+   "fps_beat_exact": [
+    24,
+    30,
+    48,
+    60
+   ],
+   "silence": [
+    [
+     5.0,
+     5.8333
+    ]
+   ],
+   "lufs": -14.0,
+   "tp": -3.3,
+   "low_minus_mid_db": -32.29,
+   "low_shelf_db": 0.0,
+   "limiter_db": 0.1,
+   "stereo_corr": 0.596
+  }
+ }
+}

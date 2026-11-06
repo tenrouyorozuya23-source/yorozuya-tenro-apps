@@ -1,0 +1,12 @@
+{"id":"S03-08-bgm","title":"一本の灯（生誕祭カード用）","genre":"music box",
+ "base":{"bpm":72,"key":"A","seed":8,"brightness":0.35,"reverb":0.38,"drive":0.0,"sidechain":0.0,"lofi":0.15,
+  "progression":["Amaj9","F#m9","Dmaj9","E6"],
+  "epiano_pattern":[[0,3.5]],
+  "mix":{"epiano":0.55,"bell":0.45,"vinyl":0.5,"chime":0.5,"bass":0.0},
+  "end_chord":"Amaj9","pre_end_chord":"E6","chime_intervals":[0,7,12,16]},
+ "versions":{"8s":{"length":8.0,"bars":3,"tail_sec":2.5,
+   "sections":[{"from":0,"to":2,"layers":["epiano","bell","vinyl"]}],
+   "melody":[[0,0,"E5",1],[0,1,"C#5",1],[0,2,"A5",2],[1,0,"G#5",1],[1,1,"E5",1.5]],
+   "cues":[{"bar":1,"beat":3,"type":"chime","note":81}],
+   "silence":[[1,2,1]]}},
+ "spec_version":"8s","max_low_mid_db":4.0}
