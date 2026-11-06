@@ -5,7 +5,7 @@ usage:
     python3 cards_batch.py cast.csv OUTDIR [--template projects/S03-01-cast-cards/card.html]
                            [--music audio.wav] [--dur 8] [--still 3.5] [--sizes 1080x1920,1080x1080] [--dry]
 
-cast.csv（1行目は見出し。name と role は必須、troupe は任意）:
+cast.csv（1行目は見出し。name と role は必須、troupe（上の行）と note（注記）は任意）:
     name,role,troupe
     水無瀬 透,硝子職人 伊織 役,灯守座 · 解禁
 

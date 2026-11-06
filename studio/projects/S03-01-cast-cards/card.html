@@ -50,7 +50,7 @@ const BB=C.beam(scene,{from:[0,4.8,-2.6],to:[0,-1.2,-1.6],radius:.75,color:0xffe
 const bk=C.spot(scene,{pos:[0,4.8,-2.6],target:[0,0,-1.2],color:0xffe2bd,intensity:0,angle:.24,penumbra:1,shadow:false});
 const V=(x,y,z)=>new THREE.Vector3(x,y,z);
 window.__ready=makeName();
-const $=id=>document.getElementById(id);$('role').textContent=D.role;if(D.troupe)$('troupe').innerHTML=D.troupe;
+const $=id=>document.getElementById(id);$('role').textContent=D.role;if(D.troupe)$('troupe').innerHTML=D.troupe;if(D.note)$('note').textContent=D.note;
 window.renderAt=t=>{
   // 0.0 暗転（板付きの輪郭だけ）→ 0.6 明転（拍）→ 2.4 役名 → 6.6 溶暗に向かう
   const k=(.1+.9*ease.outCubic(prog(t,.6,.6)))*(1-ease.inOutSine(prog(t,7.2,.8)));
