@@ -46,8 +46,10 @@ def measure(path):
 
 def bands(x):
     m = x.mean(1)
-    sp = np.abs(np.fft.rfft(m * np.hanning(len(m)))) ** 2
-    f = np.fft.rfftfreq(len(m), 1 / SR)
+    # 全体に Hann 窓をかけると両端（冒頭の一打など）がほぼ数えられず、短い尺で約2.5dB 低く出る（S08-02 審査）。
+    # Welch 法（短い窓を重ねて平均）で時間を均等に数える
+    from scipy.signal import welch
+    f, sp = welch(m, SR, nperseg=8192)
     lo = sp[(f >= 20) & (f < 200)].sum()
     mid = sp[(f >= 200) & (f < 2000)].sum()
     return round(10 * np.log10(lo / mid), 2)
