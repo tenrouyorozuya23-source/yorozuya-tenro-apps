@@ -196,13 +196,21 @@ def bass_note(m, dur, bright=0.5):
     f = midi_hz(m)
     x = saw(f, n) * 0.6 + np.sin(2 * np.pi * f * np.arange(n) / SR) * 0.7
     x = sweep_lp(x, 300 + 900 * bright, 180 + 300 * bright)
-    return np.tanh(x * 1.4) * env_adsr(n, 0.004, 0.08, 0.7, 0.04)[:n] * 0.55
+    return _tail(np.tanh(x * 1.4) * env_adsr(n, 0.004, 0.08, 0.7, 0.04)[:n] * 0.55)
+
+
+def _tail(x, sec=0.04):
+    """音の終わりを cos で 40ms 絞る。env_adsr を [:n] で切るとリリース前に途切れ、6kHz 以上のクリックが出る（S08-04 審査）"""
+    k = min(len(x), int(sec * SR))
+    if k > 1:
+        x = x.copy(); x[-k:] *= 0.5 * (1 + np.cos(np.linspace(0, np.pi, k)))
+    return x
 
 
 def sub_note(m, dur):
     n = int(dur * SR)
     t = np.arange(n) / SR
-    return np.sin(2 * np.pi * midi_hz(m) * t) * env_adsr(n, 0.01, 0.1, 0.9, 0.05)[:n] * 0.6
+    return _tail(np.sin(2 * np.pi * midi_hz(m) * t) * env_adsr(n, 0.01, 0.1, 0.9, 0.05)[:n] * 0.6)
 
 
 def pad_chord(ms, dur, bright=0.5):
