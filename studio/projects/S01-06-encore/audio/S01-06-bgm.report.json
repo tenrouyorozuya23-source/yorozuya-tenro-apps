@@ -1,0 +1,28 @@
+{
+ "id": "S01-06-bgm",
+ "title": "追加公演（告知用）",
+ "versions": {
+  "15s": {
+   "sec": 15.0,
+   "bpm": 120,
+   "fps_beat_exact": [
+    24,
+    30,
+    48,
+    60
+   ],
+   "silence": [
+    [
+     9.5,
+     10.0
+    ]
+   ],
+   "lufs": -14.0,
+   "tp": -2.4,
+   "low_minus_mid_db": 3.67,
+   "low_shelf_db": -8.5,
+   "limiter_db": 3.6,
+   "stereo_corr": 0.782
+  }
+ }
+}
