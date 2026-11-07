@@ -1,0 +1,111 @@
+@property --lx { syntax: '<percentage>'; inherits: true; initial-value: 50%; }
+@property --ly { syntax: '<percentage>'; inherits: true; initial-value: 20%; }
+@property --lr { syntax: '<length>'; inherits: true; initial-value: 520px; }
+@property --lc { syntax: '<color>'; inherits: true; initial-value: rgba(255, 196, 130, .22); }
+
+:root {
+  --ink: #ece5d9;
+  --sub: #bdb4a6;
+  --dim: #a39a8c;
+  --bg: #0a0908;
+  --line: #6f665a;
+  --accent: #ffcf96;
+  --mincho: "Shippori Mincho", "Hiragino Mincho ProN", "Yu Mincho", serif;
+  --sans: "Noto Sans JP", "Hiragino Sans", sans-serif;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font: 400 16px/2 var(--sans); letter-spacing: .04em;
+  line-break: strict; word-break: auto-phrase; overflow-wrap: anywhere;
+  -webkit-font-smoothing: antialiased;
+}
+/* 章ごとに切り替わる明かり（照明卓と同じく、上げ 1.2 秒・下げ 0.8 秒の感覚で動かす） */
+#light {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background: radial-gradient(var(--lr) calc(var(--lr) * 1.15) at var(--lx) var(--ly), var(--lc), transparent 70%);
+  transition: --lx 1.2s ease-in-out, --ly 1.2s ease-in-out, --lr 1.2s ease-in-out, --lc 1.2s ease-in-out;
+}
+body[data-light="cover"]    { --lx: 50%; --ly: 18%; --lr: 560px; --lc: rgba(255, 196, 130, .24); }
+body[data-light="greeting"] { --lx: 22%; --ly: 30%; --lr: 520px; --lc: rgba(255, 184, 120, .17); }
+body[data-light="story"]    { --lx: 78%; --ly: 26%; --lr: 600px; --lc: rgba(150, 178, 230, .16); }
+body[data-light="cast"]     { --lx: 50%; --ly: 8%;  --lr: 680px; --lc: rgba(255, 214, 160, .15); }
+body[data-light="set"]      { --lx: 50%; --ly: 40%; --lr: 520px; --lc: rgba(255, 170, 100, .14); }
+body[data-light="staff"]    { --lx: 30%; --ly: 60%; --lr: 480px; --lc: rgba(200, 196, 230, .12); }
+body[data-light="info"]     { --lx: 70%; --ly: 50%; --lr: 520px; --lc: rgba(255, 200, 140, .16); }
+body[data-light="end"]      { --lx: 50%; --ly: 92%; --lr: 360px; --lc: rgba(255, 196, 130, .12); }
+
+.skip { position: absolute; left: 12px; top: -60px; z-index: 10; background: #000; color: var(--ink); padding: 12px 16px; }
+.skip:focus { top: 12px; }
+a { color: var(--accent); text-underline-offset: .3em; }
+a:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+
+header, main, footer { position: relative; z-index: 1; }
+.cover, .ch, .colophon { max-width: 680px; margin: 0 auto; padding: 0 24px; }
+
+/* 表紙 */
+.cover { min-height: 100svh; display: flex; flex-direction: column; justify-content: center; text-align: center; padding-top: 72px; padding-bottom: 56px; }
+.troupe { font: 500 15px/1 var(--sans); letter-spacing: .5em; text-indent: .5em; color: var(--sub); margin: 0 0 28px; }
+.title { font: 600 clamp(72px, 22vw, 132px)/1.1 var(--mincho); letter-spacing: .14em; text-indent: .14em; margin: 0; }
+.byline { font: 500 17px/1.6 var(--mincho); letter-spacing: .3em; text-indent: .3em; margin: 28px 0 0; }
+.dates { font: 500 15px/1.8 var(--sans); letter-spacing: .1em; color: var(--sub); margin: 36px 0 0; }
+.dates .dash { margin: 0 .5em; }
+.venue { font: 500 15px/1.8 var(--sans); letter-spacing: .2em; color: var(--sub); margin: 4px 0 0; }
+.note { font-size: 13px; color: var(--dim); margin: 20px 0 0; letter-spacing: .06em; }
+.toc ol { list-style: none; padding: 0; margin: 48px auto 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 0 8px; max-width: 420px; }
+.toc a { display: flex; align-items: center; justify-content: center; min-height: 48px; color: var(--ink); text-decoration: none; font: 500 15px/1.4 var(--mincho); letter-spacing: .12em; border-bottom: 1px solid var(--line); }
+.toc a:hover { color: var(--accent); }
+
+/* 章 */
+.ch { padding-top: 120px; padding-bottom: 40px; }
+.no { font: 600 15px/1 var(--mincho); color: var(--accent); letter-spacing: .3em; margin: 0 0 18px; }
+h2 { font: 600 clamp(34px, 9vw, 48px)/1.3 var(--mincho); letter-spacing: .16em; margin: 0 0 40px; }
+.prose p { margin: 0 0 1.4em; font-size: 17px; line-height: 2.05; }
+.sign { text-align: right; font: 500 15px/1.8 var(--mincho); letter-spacing: .2em; color: var(--sub); margin: 32px 0 0; }
+
+.cast { list-style: none; padding: 0; margin: 0; }
+.cast li { display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 4px 16px; padding: 22px 0; border-bottom: 1px solid var(--line); }
+.cast .role { font: 600 22px/1.4 var(--mincho); letter-spacing: .1em; }
+.cast .desc { grid-column: 1; font-size: 14px; color: var(--sub); line-height: 1.6; }
+.cast .name { grid-column: 2; grid-row: 1 / span 2; font: 500 18px/1.4 var(--mincho); letter-spacing: .2em; text-align: right; white-space: nowrap; }
+
+.model { margin: 0 0 40px; }
+.model canvas { display: block; width: 100%; aspect-ratio: 4 / 3; background: #050404; border: 1px solid #2a2520; touch-action: pan-y; }
+.model figcaption { font-size: 13px; color: var(--dim); margin-top: 10px; line-height: 1.6; }
+
+.staff { margin: 0; display: grid; grid-template-columns: max-content 1fr; gap: 0 28px; }
+.staff dt, .staff dd { padding: 14px 0; border-bottom: 1px solid var(--line); margin: 0; }
+.staff dt { font-size: 14px; color: var(--sub); letter-spacing: .14em; }
+.staff dd { font: 500 18px/1.6 var(--mincho); letter-spacing: .16em; }
+
+.info { margin: 0; }
+.info div { display: grid; grid-template-columns: 6em 1fr; gap: 12px; padding: 16px 0; border-bottom: 1px solid var(--line); }
+.info dt { font-size: 14px; color: var(--sub); letter-spacing: .14em; }
+.info dd { margin: 0; font-size: 16px; line-height: 1.9; }
+.notice { font-size: 14px; color: var(--dim); margin: 24px 0 0; }
+.back { margin: 48px 0 0; text-align: center; }
+.back a { display: inline-flex; align-items: center; min-height: 48px; padding: 0 20px; letter-spacing: .2em; }
+
+.colophon { text-align: center; padding-top: 140px; padding-bottom: 120px; color: var(--sub); font-size: 14px; line-height: 2; }
+.end-title { font: 600 36px/1.2 var(--mincho); letter-spacing: .3em; text-indent: .3em; color: var(--ink); margin: 0 0 28px; }
+.studio { margin-top: 24px; letter-spacing: .3em; }
+
+/* 章が入るときの出方 */
+.js .ch > *, .js .colophon > * { opacity: 0; transform: translateY(16px); transition: opacity .8s ease, transform .8s ease; }
+.js .ch.on > *, .js .colophon.on > * { opacity: 1; transform: none; }
+.js .ch.on > :nth-child(2) { transition-delay: .12s; }
+.js .ch.on > :nth-child(3) { transition-delay: .24s; }
+.js .ch.on > :nth-child(n+4) { transition-delay: .36s; }
+
+@media (min-width: 900px) {
+  body { font-size: 17px; }
+  .ch { padding-top: 160px; }
+  .prose p { font-size: 18px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  #light { transition: none; }
+  .js .ch > *, .js .colophon > *, .js .ch.on > *, .js .colophon.on > * { opacity: 1; transform: none; transition: none; }
+}
+time, .nw { white-space: nowrap; }
