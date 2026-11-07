@@ -110,10 +110,10 @@ window.renderAt=t=>{
   if(S.bokeh){S.bokeh.uniforms.focus.value=lerp(lerp(26,24,w),21,e);S.bokeh.uniforms.aperture.value=.0003;}
   // 文字：1画面1事実
   const fin=(a,d=.3)=>ease.outCubic(prog(t,a,d)), fout=(a,d=.25)=>1-prog(t,a,d);
-  op('ti',fin(.2)*fout(2.15));op('ti2',fin(.6)*fout(2.15));
+  op('ti',fin(.2)*fout(2.15));op('ti2',fin(.3)*fout(2.15));
   const pi=t<5?0:t<7.5?1:2;$('ph').textContent=PH.map((x,k)=>['発売日','1週間後','前日'][k])[pi];
   $('cnt').innerHTML=PH[pi].to+'<small>席</small>';
-  const sv=t>=2.4&&t<REM?fin(2.4,.25)*fout(REM-.3):0;const k0=[2.4,4.95,7.45][pi];op('ph',sv*(pi?fin(k0,.2):1));const cv=sv*fin(PH[pi].t1-.25,.25)*fout(pi<2?PH[pi+1].t0-.2:REM-.3,.2);op('cnt',cv);op('cl',cv);
+  const sv=t>=2.4&&t<REM?fin(2.4,.25)*fout(REM-.3):0;const k0=[2.4,4.95,7.45][pi];op('ph',sv*(pi?fin(k0,.2):1));const cv=sv*fin(PH[pi].t0+.4,.25)*fout(pi<2?PH[pi+1].t0-.12:REM-.15,.12);op('cnt',cv);op('cl',cv);
   op('rem1',fin(REM+.1)*fout(END-.3));op('rem2',fin(REM+.25)*fout(END-.3));
   op('d1',fin(END+.1));op('d2',fin(END+.35));
   op('disc',fin(.2));
