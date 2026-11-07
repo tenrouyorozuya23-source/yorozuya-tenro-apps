@@ -57,7 +57,7 @@
    "type": "impact"
   },
   {
-   "t": 7.0,
+   "t": 8.0,
    "type": "riser"
   },
   {
@@ -82,11 +82,9 @@
    "from": 1,
    "to": 5,
    "layers": [
-    "kick",
-    "hat",
-    "bass",
     "pad",
-    "pluck"
+    "pluck",
+    "bass"
    ]
   },
   {

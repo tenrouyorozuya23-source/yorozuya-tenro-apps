@@ -18,11 +18,11 @@
     ]
    ],
    "lufs": -14.0,
-   "tp": -2.4,
-   "low_minus_mid_db": 3.67,
-   "low_shelf_db": -8.5,
-   "limiter_db": 3.6,
-   "stereo_corr": 0.782
+   "tp": -2.5,
+   "low_minus_mid_db": 3.64,
+   "low_shelf_db": -6.9,
+   "limiter_db": 4.2,
+   "stereo_corr": 0.776
   }
  }
 }

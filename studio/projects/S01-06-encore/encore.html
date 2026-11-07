@@ -41,30 +41,39 @@ const seatM=new THREE.MeshStandardMaterial({color:0x060404,roughness:.9});
 for(let row=0;row<2;row++)for(let i=-6;i<=6;i++){const s=new THREE.Mesh(new THREE.BoxGeometry(.5,.62,.12),seatM);s.position.set(i*.56+(row%2)*.28,.55,4.6+row*1.0);scene.add(s);
   const tp=new THREE.Mesh(new THREE.CylinderGeometry(.06,.06,.5,12),seatM);tp.rotation.z=Math.PI/2;tp.position.set(s.position.x,.86,s.position.z);scene.add(tp);}
 // 光：緞帳の裏から裾の下へ漏れる光、舞台の上からの光、奥のバック
-const leak=C.spot(scene,{pos:[0,.78,-.9],target:[0,.7,3],color:0xffd3a0,intensity:0,angle:1.2,penumbra:.8,shadow:false});
+const leak=C.spot(scene,{pos:[0,1.15,-1.6],target:[0,0,3.5],color:0xffd3a0,intensity:0,angle:.75,penumbra:.5});
+const leakBeam=C.beam(scene,{from:[0,1.1,-1.4],to:[0,0,3.2],radius:2.2,color:0xffd6a8,density:.15});
 const stripM=new THREE.MeshBasicMaterial({color:new THREE.Color(0xffd9a8),transparent:true,opacity:1});const strip=new THREE.Mesh(new THREE.PlaneGeometry(6.0,.028),stripM);strip.position.set(0,.74,-.32);scene.add(strip);
 const foh=C.spot(scene,{pos:[0,3.8,10],target:[0,1.6,-.3],color:0xffb48a,intensity:0,angle:.19,penumbra:1,shadow:false});
 const keyL=C.spot(scene,{pos:[-2.2,6,1.2],target:[0,.8,-2.6],color:0xffe0bd,intensity:0,angle:.5,penumbra:.6});
 const keyR=C.spot(scene,{pos:[2.2,6,1.2],target:[0,.8,-2.6],color:0xffe9d4,intensity:0,angle:.5,penumbra:.6});
 const back=C.spot(scene,{pos:[0,5,-7],target:[0,.7,-3],color:0xb9cbe6,intensity:0,angle:.6,penumbra:.8,shadow:false});
-const bmL=C.beam(scene,{from:[-2.2,6,1.2],to:[-.4,.7,-2.4],radius:1.1,color:0xffe0bd,density:.08});
-const bmR=C.beam(scene,{from:[2.2,6,1.2],to:[.4,.7,-2.4],radius:1.1,color:0xffe9d4,density:.08});
+const bmL=C.beam(scene,{from:[-2.2,6,1.2],to:[-.4,.7,-2.4],radius:1.1,color:0xffe0bd,density:.17});
+const bmR=C.beam(scene,{from:[2.2,6,1.2],to:[.4,.7,-2.4],radius:1.1,color:0xffe9d4,density:.17});
+// ゴーストライト：誰もいない舞台に一つだけ残す裸電球のスタンド（主役）
+const gl=new THREE.Group();const metal=new THREE.MeshStandardMaterial({color:0x2a2724,metalness:.8,roughness:.4});
+const pole=new THREE.Mesh(new THREE.CylinderGeometry(.018,.018,1.5,12),metal);pole.position.y=.75;gl.add(pole);
+const base=new THREE.Mesh(new THREE.CylinderGeometry(.22,.26,.05,32),metal);base.position.y=.025;gl.add(base);
+const cage=new THREE.Mesh(new THREE.SphereGeometry(.09,12,8),new THREE.MeshBasicMaterial({color:0x5a5450,wireframe:true}));cage.position.y=1.58;gl.add(cage);
+const bulbM=new THREE.MeshBasicMaterial({color:new THREE.Color(0xffd9a6).multiplyScalar(4)});const bulb=new THREE.Mesh(new THREE.SphereGeometry(.055,24,16),bulbM);bulb.position.y=1.58;gl.add(bulb);
+const glL=new THREE.PointLight(0xffcf98,0,5,1.6);glL.position.y=1.58;gl.add(glL);
+gl.position.set(.15,.7,-1.9);gl.traverse(o=>{if(o.isMesh)o.castShadow=true;});scene.add(gl);
 await document.fonts.load('600 120px "Shippori Mincho"','追加公演決定');await document.fonts.load('400 44px "Noto Sans JP"','灯守座『硝子の庭』2026.12.21（月）19:00港町ホール千秋楽のあとに');
 window.__ready=Promise.resolve();
 const $=id=>document.getElementById(id);const op=(id,v)=>$(id).style.opacity=(+v).toFixed(3);
 const UP0=8.0,UP1=9.5,HIT=10.0;
 window.renderAt=t=>{
   // 裾の光：0秒から見え、拍に合わせて少し息をする。2.0秒の一打で一段明るく
-  const breath=1+.12*Math.cos(t*Math.PI);
-  const lv=(t<2?.5:t<UP0?lerp(.75,1,prog(t,2,6)):lerp(1,0,prog(t,UP1,.4)))*breath;leak.intensity=0;stripM.color.setRGB(1*lv*1.5,.85*lv*1.5,.66*lv*1.5);strip.visible=t<UP1+.15;foh.intensity=t<UP1?lerp(420,520,prog(t,0,8)):lerp(520,0,prog(t,UP1,.3));
+  const breath=1+.25*Math.cos(t*Math.PI*2);// 1拍周期の息
+  const lv=(t<2?.6:t<UP0?lerp(.85,1,prog(t,2,6)):lerp(1,0,prog(t,UP0,.2)))*breath;leak.intensity=lv*32;leakBeam.set(t,lv*.8);strip.visible=false;stripM.color.setRGB(1*lv*1.5,.85*lv*1.5,.66*lv*1.5);foh.intensity=t<UP1?lerp(480,540,prog(t,0,8)):lerp(520,0,prog(t,UP1,.3));
   // 緞帳：8.0〜9.5秒で上がる
-  const u=ease.inOutCubic(prog(t,UP0,UP1-UP0));curtain.position.set(0,CY0+u*5.2,-.25);
+  const u=ease.inOutCubic(prog(t,UP0,UP1-UP0));const settle=t>UP1?.06*Math.sin((t-UP1)*14)*Math.exp(-(t-UP1)*4):0;curtain.position.set(0,CY0+u*5.2+settle,-.25);curtain.rotation.x=t>UP0&&t<UP1+1?.03*Math.sin(prog(t,UP0,1.5)*Math.PI):0;
   // 9.5〜10.0は上がりきった舞台がほぼ暗い。10.0の一打で灯る
   const lit=t>=HIT;const k=lit?ease.outCubic(prog(t,HIT,.15)):0;
-  keyL.intensity=k*150;keyR.intensity=k*135;back.intensity=lit?60:(t>=UP0?18*u:0);bmL.set(t,k*.9);bmR.set(t,k*.9);
+  keyL.intensity=k*150;keyR.intensity=k*135;glL.intensity=t>=UP0?(lit?3.2:2.2*u):0;bulbM.color.setRGB(1,.85,.65).multiplyScalar(t>=UP0?(lit?4:2.5*u+.01):.01);back.intensity=lit?60:(t>=UP0?18*u:0);bmL.set(t,k*.9);bmR.set(t,k*.9);
   // カメラ：客席の後方から舞台へゆっくり寄る（止まらない）。明転後は少しだけ上を見る
   const d=lerp(7.6,5.9,.4*prog(t,0,15)+.6*ease.inOutSine(prog(t,0,15)));
-  camera.position.set(lerp(-.25,.2,prog(t,0,15)),lerp(1.05,1.25,prog(t,0,15)),d);camera.lookAt(0,lerp(1.75,2.25,ease.inOutSine(prog(t,UP0,4))),-1.5);
+  camera.position.set(lerp(-.25,.2,prog(t,0,15)),lerp(1.0,1.15,prog(t,0,15)),d);camera.lookAt(0,lerp(1.95,2.1,ease.inOutSine(prog(t,UP0,4))),-1.5);
   if(S.bokeh){S.bokeh.uniforms.focus.value=d+.6;S.bokeh.uniforms.aperture.value=.0008;}
   op('tease',t<UP0?ease.outCubic(prog(t,.2,.4))*(1-prog(t,7.6,.4)):0);
   op('title',lit?ease.outCubic(prog(t,HIT,.15)):0);op('show',lit?ease.outCubic(prog(t,HIT+.4,.3)):0);

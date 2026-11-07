@@ -1,11 +1,180 @@
-{"id":"S01-06-bgm","title":"追加公演（告知用）","genre":"Bright Corporate",
- "base":{"bpm":120,"key":"G","seed":27,"brightness":0.68,"reverb":0.3,"drive":0.15,"sidechain":0.35,
-  "progression":["Gmaj7","Em7","Cmaj9","D6","Gmaj7","Bm7","Cmaj7","Dsus4"],
-  "mix":{"bass":0.4,"pluck":0.36,"pad":0.4,"kick":0.58,"hat":0.28,"clap":0.36,"bell":0.3,"lead":0.32,"impact":0.55,"riser":0.3,"stab":0.45},
-  "end_chord":"Gmaj9","pre_end_chord":"Cmaj7","max_low_mid_db":4.0,
-  "melody":[[5,0,"B5",1],[5,1,"D6",1],[5,2,"G6",2],[6,0,"F#6",1],[6,1,"D6",1],[6,2,"E6",2],[7,0,"D6",3]]},
- "versions":{"15s":{"length":15.0,"bars":8,"tail_sec":2.5,
-  "sections":[{"from":0,"to":1,"layers":["pad","pluck"]},{"from":1,"to":5,"layers":["kick","hat","bass","pad","pluck"]},{"from":5,"to":7,"layers":["kick","clap","hat","bass","pad","pluck","bell"]},{"from":7,"to":8,"layers":["pad","bell"]}],
-  "cues":[{"bar":1,"beat":0,"type":"impact"},{"bar":3,"beat":2,"type":"riser","len_beats":4},{"bar":5,"beat":0,"type":"impact"},{"bar":7,"beat":0,"type":"stab"}],
-  "silence":[[4,3,1]],"automation":[[0,-2],[9,0],[10,1.5],[15,0]]}},
- "spec_version":"15s"}
+{
+ "id": "S01-06-bgm",
+ "title": "追加公演（告知用）",
+ "genre": "Bright Corporate",
+ "base": {
+  "bpm": 120,
+  "key": "G",
+  "seed": 27,
+  "brightness": 0.68,
+  "reverb": 0.3,
+  "drive": 0.15,
+  "sidechain": 0.35,
+  "progression": [
+   "Gmaj7",
+   "Em7",
+   "Cmaj9",
+   "D6",
+   "Gmaj7",
+   "Bm7",
+   "Cmaj7",
+   "Dsus4"
+  ],
+  "mix": {
+   "bass": 0.4,
+   "pluck": 0.36,
+   "pad": 0.4,
+   "kick": 0.58,
+   "hat": 0.28,
+   "clap": 0.36,
+   "bell": 0.3,
+   "lead": 0.32,
+   "impact": 0.55,
+   "riser": 0.3,
+   "stab": 0.45
+  },
+  "end_chord": "Gmaj9",
+  "pre_end_chord": "Cmaj7",
+  "max_low_mid_db": 4.0,
+  "melody": [
+   [
+    5,
+    0,
+    "B5",
+    1
+   ],
+   [
+    5,
+    1,
+    "D6",
+    1
+   ],
+   [
+    5,
+    2,
+    "G6",
+    2
+   ],
+   [
+    6,
+    0,
+    "F#6",
+    1
+   ],
+   [
+    6,
+    1,
+    "D6",
+    1
+   ],
+   [
+    6,
+    2,
+    "E6",
+    2
+   ],
+   [
+    7,
+    0,
+    "D6",
+    3
+   ]
+  ]
+ },
+ "versions": {
+  "15s": {
+   "length": 15.0,
+   "bars": 8,
+   "tail_sec": 2.5,
+   "sections": [
+    {
+     "from": 0,
+     "to": 1,
+     "layers": [
+      "pad",
+      "pluck"
+     ]
+    },
+    {
+     "from": 1,
+     "to": 5,
+     "layers": [
+      "pad",
+      "pluck",
+      "bass"
+     ]
+    },
+    {
+     "from": 5,
+     "to": 7,
+     "layers": [
+      "kick",
+      "clap",
+      "hat",
+      "bass",
+      "pad",
+      "pluck",
+      "bell"
+     ]
+    },
+    {
+     "from": 7,
+     "to": 8,
+     "layers": [
+      "pad",
+      "bell"
+     ]
+    }
+   ],
+   "cues": [
+    {
+     "bar": 1,
+     "beat": 0,
+     "type": "impact"
+    },
+    {
+     "bar": 4,
+     "beat": 0,
+     "type": "riser",
+     "len_beats": 3
+    },
+    {
+     "bar": 5,
+     "beat": 0,
+     "type": "impact"
+    },
+    {
+     "bar": 7,
+     "beat": 0,
+     "type": "stab"
+    }
+   ],
+   "silence": [
+    [
+     4,
+     3,
+     1
+    ]
+   ],
+   "automation": [
+    [
+     0,
+     -2
+    ],
+    [
+     9,
+     0
+    ],
+    [
+     10,
+     1.5
+    ],
+    [
+     15,
+     0
+    ]
+   ]
+  }
+ },
+ "spec_version": "15s"
+}
