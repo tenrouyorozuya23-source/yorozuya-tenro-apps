@@ -1,0 +1,252 @@
+{
+ "id": "TNR-B08",
+ "title": "客電（客入れ用 3分ループ）",
+ "genre": "Ambient Lounge",
+ "base": {
+  "bpm": 80,
+  "key": "E",
+  "seed": 58,
+  "brightness": 0.42,
+  "reverb": 0.38,
+  "drive": 0.08,
+  "sidechain": 0.0,
+  "lofi": 0.15,
+  "progression": [
+   "Emaj9",
+   "C#m7",
+   "Amaj9",
+   "F#m7",
+   "Emaj7",
+   "G#m7",
+   "Amaj7",
+   "B6"
+  ],
+  "epiano_pattern": [
+   [
+    0,
+    2
+   ],
+   [
+    2,
+    1.5
+   ]
+  ],
+  "bass_style": "legato",
+  "mix": {
+   "pad": 0.42,
+   "epiano": 0.55,
+   "bass": 0.4,
+   "bell": 0.26,
+   "vinyl": 0.5
+  },
+  "end_chord": "Emaj9",
+  "pre_end_chord": "B6",
+  "melody": [
+   [
+    16,
+    0,
+    "G#5",
+    2
+   ],
+   [
+    16,
+    2,
+    "B5",
+    2
+   ],
+   [
+    17,
+    0,
+    "C#6",
+    3
+   ],
+   [
+    18,
+    1,
+    "B5",
+    1
+   ],
+   [
+    18,
+    2,
+    "G#5",
+    2
+   ],
+   [
+    19,
+    0,
+    "E5",
+    4
+   ],
+   [
+    40,
+    0,
+    "G#5",
+    2
+   ],
+   [
+    40,
+    2,
+    "B5",
+    2
+   ],
+   [
+    41,
+    0,
+    "C#6",
+    3
+   ],
+   [
+    42,
+    1,
+    "B5",
+    1
+   ],
+   [
+    42,
+    2,
+    "G#5",
+    2
+   ],
+   [
+    43,
+    0,
+    "E5",
+    4
+   ],
+   [
+    28,
+    0,
+    "E6",
+    3
+   ],
+   [
+    30,
+    0,
+    "C#6",
+    2
+   ],
+   [
+    30,
+    2,
+    "B5",
+    2
+   ],
+   [
+    31,
+    0,
+    "G#5",
+    4
+   ],
+   [
+    52,
+    0,
+    "E6",
+    3
+   ],
+   [
+    54,
+    0,
+    "C#6",
+    2
+   ],
+   [
+    54,
+    2,
+    "B5",
+    2
+   ],
+   [
+    55,
+    0,
+    "G#5",
+    4
+   ]
+  ]
+ },
+ "versions": {
+  "loop": {
+   "loop": true,
+   "bars": 60,
+   "tail_sec": 3.0,
+   "sections": [
+    {
+     "from": 0,
+     "to": 8,
+     "layers": [
+      "pad",
+      "epiano"
+     ]
+    },
+    {
+     "from": 8,
+     "to": 16,
+     "layers": [
+      "pad",
+      "epiano",
+      "bass"
+     ]
+    },
+    {
+     "from": 16,
+     "to": 24,
+     "layers": [
+      "pad",
+      "epiano",
+      "bass",
+      "bell"
+     ]
+    },
+    {
+     "from": 24,
+     "to": 32,
+     "layers": [
+      "pad",
+      "bass",
+      "bell",
+      "vinyl"
+     ]
+    },
+    {
+     "from": 32,
+     "to": 40,
+     "layers": [
+      "pad",
+      "epiano"
+     ]
+    },
+    {
+     "from": 40,
+     "to": 48,
+     "layers": [
+      "pad",
+      "epiano",
+      "bass",
+      "bell"
+     ]
+    },
+    {
+     "from": 48,
+     "to": 56,
+     "layers": [
+      "pad",
+      "epiano",
+      "bass",
+      "bell",
+      "vinyl"
+     ]
+    },
+    {
+     "from": 56,
+     "to": 60,
+     "layers": [
+      "pad",
+      "epiano"
+     ]
+    }
+   ]
+  }
+ },
+ "spec_version": "loop",
+ "max_low_mid_db": 4.0
+}
