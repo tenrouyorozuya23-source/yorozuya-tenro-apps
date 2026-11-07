@@ -1,0 +1,64 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><style>html,body{margin:0;background:#000;overflow:hidden}</style>
+<script type="importmap">{"imports":{"three":"/node_modules/three/build/three.module.js","three/addons/":"/node_modules/three/examples/jsm/"}}</script></head><body>
+<script type="module">
+// S10-05 配信背景「楽屋の鏡」：鏡を囲む電球と化粧台。右上の電球ひとつだけがかすかに揺らぐ。30秒で完全に一周する（すべての動きは周期30秒の整数分の1）
+import * as C from '/tools/cine/cine.js';
+import { Reflector } from 'three/addons/objects/Reflector.js';
+const W=innerWidth,H=innerHeight,T=30,TAU=Math.PI*2;
+const S=C.createStage({width:W,height:H,exposure:.95,fov:32,envIntensity:.05,dof:true});
+const {THREE,scene,camera}=S;
+if(S.bloom){S.bloom.threshold=1.1;S.bloom.strength=.32;S.bloom.radius=.5;}
+scene.background=new THREE.Color(0x0b0908);scene.fog=new THREE.FogExp2(0x0b0908,.035);
+// 壁（漆喰の暖かい灰）と床
+const wall=new THREE.Mesh(new THREE.PlaneGeometry(14,7),new THREE.MeshStandardMaterial({color:0x3a322c,roughness:.95}));wall.position.set(0,3,-.02);wall.receiveShadow=true;scene.add(wall);
+// 鏡（本物の反射）と枠
+const mir=new Reflector(new THREE.PlaneGeometry(2.6,1.6),{textureWidth:W,textureHeight:H,color:0x9a948c});mir.position.set(0,1.95,.03);scene.add(mir);
+const frameM=new THREE.MeshPhysicalMaterial({color:0x1a1715,roughness:.35,clearcoat:.6,clearcoatRoughness:.2});
+const fr=(w,h,x,y)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,.08),frameM);m.position.set(x,y,.03);m.castShadow=true;scene.add(m);};
+fr(3.3,.32,0,2.91);fr(3.3,.32,0,.99);fr(.35,2.24,-1.475,1.95);fr(.35,2.24,1.475,1.95);
+// 電球：枠に並ぶ乳白の球。光源は数を絞って面の明るさを作る
+const bulbs=[];const bM=()=>new THREE.MeshBasicMaterial({color:new THREE.Color(0xffd9a8)});
+const addB=(x,y)=>{const m=new THREE.Mesh(new THREE.SphereGeometry(.075,24,16),bM());m.position.set(x,y,.12);scene.add(m);
+  const s=new THREE.Mesh(new THREE.CylinderGeometry(.03,.03,.06,12),new THREE.MeshStandardMaterial({color:0x8a7a62,metalness:.8,roughness:.35}));s.rotation.x=Math.PI/2;s.position.set(x,y,.08);scene.add(s);bulbs.push(m);};
+for(let i=0;i<7;i++)addB(-1.2+i*.4,2.91);
+for(let i=0;i<4;i++){addB(-1.475,2.5-i*.38);addB(1.475,2.5-i*.38);}
+const FL=bulbs[6];// 右上の電球（これだけ揺らぐ）
+const pl=[];for(const [x,y] of [[-1.1,2.85],[1.1,2.85],[-1.45,1.6],[1.45,1.6]]){const p=new THREE.PointLight(0xffcf98,3.2,6,1.8);p.position.set(x,y,1.0);scene.add(p);pl.push(p);}
+const key=C.spot(scene,{pos:[0,4.2,2.4],target:[0,.9,.4],color:0xffd9b0,intensity:40,angle:.5,penumbra:.9});
+// 鏡に映る背後の楽屋：奥の壁、吊りランプ、衣装のラック
+const bw=new THREE.Mesh(new THREE.PlaneGeometry(14,7),new THREE.MeshStandardMaterial({color:0x4a3c32,roughness:.95,side:THREE.DoubleSide}));bw.position.set(0,3,9);bw.rotation.y=Math.PI;scene.add(bw);
+const pend=new THREE.Mesh(new THREE.SphereGeometry(.16,24,16),new THREE.MeshBasicMaterial({color:new THREE.Color(0xffc98e).multiplyScalar(2.2)}));pend.position.set(-1.3,2.6,7.4);scene.add(pend);
+const pendL=new THREE.PointLight(0xffc48a,6,8,1.6);pendL.position.copy(pend.position);scene.add(pendL);
+const rail=new THREE.Mesh(new THREE.CylinderGeometry(.02,.02,2.4,12),new THREE.MeshStandardMaterial({color:0x6d6052,metalness:.8,roughness:.3}));rail.rotation.z=Math.PI/2;rail.position.set(1.2,2.3,8.2);scene.add(rail);
+[[0x6b1f2a,.35],[0x1f2a44,.8],[0xc9b9a0,1.25],[0x2a2a2a,1.7],[0x7a5a2a,2.1]].forEach(([c,x])=>{const m=new THREE.Mesh(new THREE.BoxGeometry(.32,1.2,.25),new THREE.MeshStandardMaterial({color:c,roughness:.85}));m.position.set(x,1.65,8.2);scene.add(m);});
+// 化粧台と小物
+const desk=new THREE.Mesh(new THREE.BoxGeometry(3.8,.06,.9),new THREE.MeshPhysicalMaterial({color:0x2c221b,roughness:.4,clearcoat:.4}));desk.position.set(0,.8,.48);desk.castShadow=desk.receiveShadow=true;scene.add(desk);
+const dfront=new THREE.Mesh(new THREE.BoxGeometry(3.8,.8,.05),new THREE.MeshStandardMaterial({color:0x1f1914,roughness:.7}));dfront.position.set(0,.4,.92);scene.add(dfront);
+const prop=(g,m,x,y,z)=>{const o=new THREE.Mesh(g,m);o.position.set(x,y,z);o.castShadow=o.receiveShadow=true;scene.add(o);return o;};
+const glass=new THREE.MeshPhysicalMaterial({color:0xe8e1d6,roughness:.08,transmission:.6,thickness:.2,transparent:true,opacity:.9});
+prop(new THREE.CylinderGeometry(.07,.06,.2,24),new THREE.MeshStandardMaterial({color:0xb9a993,roughness:.4,metalness:.3}),-1.2,.93,.45);// 筆立て
+for(let i=0;i<4;i++)prop(new THREE.CylinderGeometry(.008,.008,.28,8),new THREE.MeshStandardMaterial({color:0x2a2420}),-1.2+(i-1.5)*.025,1.07,.45+(i%2)*.02).rotation.z=(i-1.5)*.08;
+prop(new THREE.CylinderGeometry(.05,.05,.14,24),glass,-.75,.9,.62);prop(new THREE.CylinderGeometry(.035,.04,.18,24),glass,-.62,.92,.5);
+prop(new THREE.BoxGeometry(.5,.08,.34),new THREE.MeshStandardMaterial({color:0xd9cdbd,roughness:.95}),.95,.87,.52);// たたんだタオル
+prop(new THREE.CylinderGeometry(.11,.11,.03,32),new THREE.MeshPhysicalMaterial({color:0x8b2f2f,roughness:.3,clearcoat:.8}),.4,.845,.68);// 小さな化粧箱
+// 漂う塵（周期30秒で同じ位置に戻る）
+const R=C.rand(11),N=180,base=[];const pos=new Float32Array(N*3);for(let i=0;i<N;i++)base.push([(R()-.5)*3.6,.9+R()*2.4,.3+R()*1.6,R()*TAU,1+Math.floor(R()*2),R()]);
+const dg=new THREE.BufferGeometry();dg.setAttribute('position',new THREE.BufferAttribute(pos,3));
+scene.add(new THREE.Points(dg,new THREE.PointsMaterial({color:0xffe8cc,size:.012,transparent:true,opacity:.45,depthWrite:false,blending:THREE.AdditiveBlending})));
+window.__ready=Promise.resolve();
+// 揺らぎ：周期30秒の整数倍の正弦の和（ループの頭と尻がそろう）
+const flick=t=>{const p=t/T*TAU;return .5*Math.sin(p*7+1)+.3*Math.sin(p*13+2)+.2*Math.sin(p*23);};
+window.renderAt=t=>{
+  const p=t/T*TAU;
+  const f=flick(t),dip=Math.max(0,f)*.5+.05*Math.sin(p*41);// 0〜約.55 の弱まり
+  FL.material.color.setRGB(1,.85,.66).multiplyScalar(1.6*(1-dip));
+  bulbs.forEach((b,i)=>{if(b!==FL)b.material.color.setRGB(1,.85,.66).multiplyScalar(1.6+.04*Math.sin(p*2+i));});
+  pl[1].intensity=3.2*(1-.6*dip);
+  for(let i=0;i<N;i++){const [x,y,z,ph,k,s]=base[i];pos[i*3]=x+.05*Math.sin(p*k+ph);pos[i*3+1]=y+.07*Math.sin(p*k+ph*2)+.02*Math.cos(p+ph);pos[i*3+2]=z+.05*Math.cos(p*k+ph);}
+  dg.attributes.position.needsUpdate=true;
+  // カメラ：ごくゆっくり8の字に漂う（周期30秒）
+  camera.position.set(.18*Math.sin(p),1.62+.04*Math.sin(p*2),5.6+.08*Math.cos(p));camera.lookAt(.06*Math.sin(p),1.78,0);
+  if(S.bokeh){S.bokeh.uniforms.focus.value=5.5;S.bokeh.uniforms.aperture.value=.0011;}
+  S.render();
+};
+</script></body></html>
