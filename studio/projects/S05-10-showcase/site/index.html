@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>天狼スタジオ 上演中の演目</title>
+<meta name="description" content="天狼スタジオ（合同会社萬屋天狼）の制作見本集。舞台・音楽の映像、Web、BGM、配信素材を「上演中の演目」として並べています。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600&family=Noto+Sans+JP:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="hero">
+  <p class="house">天狼スタジオ</p>
+  <h1>上演中の演目</h1>
+  <p class="lead">舞台と音楽の現場で培った照明の目で、映像・Web・音・配信の素材をつくっています。ここに並ぶのは、すべて完成した見本です。</p>
+  <p class="count"><span id="count"></span>演目</p>
+  <p class="fic">掲載作品に登場する劇団・企業・人物はすべて架空です。</p>
+</header>
+<main>
+  <nav class="filter" aria-label="演目の種類で絞り込む">
+    <button type="button" data-id="all" aria-pressed="true">すべて</button>
+    <button type="button" data-id="映像" aria-pressed="false">映像</button>
+    <button type="button" data-id="SNS" aria-pressed="false">SNS</button>
+    <button type="button" data-id="Web" aria-pressed="false">Web</button>
+    <button type="button" data-id="音" aria-pressed="false">音</button>
+    <button type="button" data-id="配信" aria-pressed="false">配信</button>
+  </nav>
+  <ol class="board" id="board"></ol>
+</main>
+<footer class="foot">
+  <p class="studio">天狼スタジオ　合同会社萬屋天狼</p>
+  <p>このページの作品は、見本として制作したものです。</p>
+</footer>
+<script type="module" src="app.js"></script>
+</body>
+</html>

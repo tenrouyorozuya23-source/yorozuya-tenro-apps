@@ -16,6 +16,9 @@ raw.githack はブラウザで開くと広告付きの「External Content Notice
 | S02-01 硝子の庭 チケット LP | https://claude.ai/artifact/VTB5YKN86DQboPnpoUZC1Y |
 | S02-05 朔夜舎 解禁カウントダウン | https://claude.ai/artifact/TffvTczBPV55jyv6EBchyV |
 | S02-06 冬の灯 公演パンフレット | https://claude.ai/artifact/1pAtGFPvtya2jFepRxf6qy |
+| S02-07 冬の灯 アーカイブ配信 | https://claude.ai/artifact/QX3FFP6e5ERVsVxyjRcJED |
+| S02-09 月の舞 日英 LP | https://claude.ai/artifact/9eRky8jFossD3jyqfwcgqB |
+| S10-03 宵待ルカ 配信オーバーレイ | https://claude.ai/artifact/VXE3GPj296phB6AgKYpLcb |
 | S05-01 柊木 透 ポートフォリオ | https://claude.ai/artifact/1QuxgXXxk34DzvSD4N1zuk |
 | S05-04 灯野 慧 照明デザイン | https://claude.ai/artifact/AjJaprY4UbWXitWzpNJUsm |
 | S05-06 音無 響 作曲・劇伴 | https://claude.ai/artifact/EKs2mU9cXM6MuyEai1jyLi |

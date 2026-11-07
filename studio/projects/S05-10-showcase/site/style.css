@@ -1,0 +1,45 @@
+/* 劇場の演目表：黒地に明朝の題、作品の画を舞台の額縁のように並べる。アクセントは琥珀1色 */
+:root {
+  color-scheme: dark;
+  --bg: #0b0a09;
+  --card: #141210;
+  --ink: #efe8dc;
+  --sub: #bdb3a4;
+  --amber: #f1c27d;
+  --line: #3e362e;
+  --mincho: "Shippori Mincho", "Hiragino Mincho ProN", "Yu Mincho", serif;
+  --sans: "Noto Sans JP", "Hiragino Sans", sans-serif;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 400 16px/1.9 var(--sans); letter-spacing: .04em; line-break: strict; word-break: auto-phrase; -webkit-font-smoothing: antialiased; }
+.hero, main, .foot { max-width: 1180px; margin: 0 auto; padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px)); }
+.hero { padding-top: 96px; padding-bottom: 40px; background: radial-gradient(60% 260px at 18% 0, rgba(241,194,125,.12), transparent); }
+.house { margin: 0 0 10px; font: 500 16px/1.4 var(--mincho); letter-spacing: .4em; color: var(--amber); }
+h1 { margin: 0; font: 600 clamp(44px, 9vw, 96px)/1.25 var(--mincho); letter-spacing: .12em; text-wrap: balance; }
+.lead { max-width: 34em; margin: 22px 0 0; font: 500 clamp(16px, 2vw, 18px)/2 var(--mincho); letter-spacing: .06em; }
+.count { margin: 26px 0 0; font: 500 15px/1.4 var(--sans); color: var(--sub); letter-spacing: .2em; }
+.count span { font: 600 40px/1 var(--mincho); color: var(--ink); margin-right: .2em; letter-spacing: .04em; font-variant-numeric: tabular-nums; }
+.fic { margin: 12px 0 0; font-size: 13px; color: var(--sub); }
+.filter { display: flex; flex-wrap: wrap; gap: 8px; margin: 24px 0 28px; }
+.filter button { min-height: 44px; padding: 0 18px; font: 500 15px/1 var(--sans); letter-spacing: .14em; color: var(--ink); background: transparent; border: 1px solid var(--line); cursor: pointer; }
+.filter button[aria-pressed="true"] { background: var(--amber); color: #1a130b; border-color: var(--amber); }
+.filter button:focus-visible, .board a:focus-visible { outline: 2px solid var(--amber); outline-offset: 3px; }
+.board { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px 22px; }
+.board li { min-width: 0; }
+.board a { display: block; color: inherit; text-decoration: none; }
+.frame { position: relative; aspect-ratio: 16 / 10; overflow: hidden; background: #000; border: 1px solid var(--line); }
+.frame img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .6s cubic-bezier(.22,1,.36,1), filter .6s; filter: brightness(.92); }
+.board a:hover .frame img, .board a:focus-visible .frame img { transform: scale(1.03); filter: brightness(1.05); }
+.frame::after { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 2px; background: linear-gradient(90deg, transparent, var(--amber), transparent); opacity: 0; transition: opacity .4s; }
+.board a:hover .frame::after, .board a:focus-visible .frame::after { opacity: .8; }
+.meta { display: flex; justify-content: space-between; gap: 10px; margin-top: 12px; font: 400 13px/1.4 var(--sans); color: var(--sub); letter-spacing: .1em; }
+.meta .no { font-variant-numeric: tabular-nums; }
+.ttl { margin: 6px 0 0; font: 600 19px/1.55 var(--mincho); letter-spacing: .06em; }
+.form { margin: 4px 0 0; font-size: 14px; color: var(--sub); line-height: 1.6; }
+.go { display: inline-block; margin-top: 6px; font-size: 13px; color: var(--amber); letter-spacing: .1em; }
+.empty { color: var(--sub); }
+.foot { margin-top: 96px; padding-top: 28px; padding-bottom: 64px; border-top: 1px solid var(--line); font-size: 14px; color: var(--sub); }
+.studio { font: 500 16px/1.6 var(--mincho); color: var(--ink); letter-spacing: .2em; }
+@media (max-width: 980px) { .board { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 560px) { .board { grid-template-columns: 1fr; } .hero { padding-top: 64px; } }
+@media (prefers-reduced-motion: reduce) { .frame img, .frame::after { transition: none; } .board a:hover .frame img { transform: none; } }
