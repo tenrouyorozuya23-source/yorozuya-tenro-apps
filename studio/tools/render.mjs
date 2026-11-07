@@ -56,7 +56,7 @@ for (let i = 0; i < args.length; i++) {
 const opt = (k, d) => { const i = args.indexOf('--' + k); return i >= 0 ? args[i + 1] : d; };
 const flag = k => args.includes('--' + k);
 const [page_, out] = pos;
-if (!page_ || (!out && !opt('still'))) { console.error('usage: node render.mjs page.html out.mp4 [--w --h --fps --dur --from --data --workers --png --blur --shutter]'); process.exit(1); }
+if (!page_ || (!out && !opt('still') && !opt('textcheck'))) { console.error('usage: node render.mjs page.html out.mp4 [--w --h --fps --dur --from --data --workers --png --blur --shutter]'); process.exit(1); }
 const W = +opt('w', 1080), H = +opt('h', 1920), FPS = +opt('fps', 30), DUR = +opt('dur', 15), FROM = +opt('from', 0);
 const WORKERS = Math.max(1, +opt('workers', Math.min(4, cpus().length)));
 const BLUR = Math.max(1, Math.round(+opt('blur', 1)));
@@ -106,6 +106,43 @@ async function seek(page, t) {
     for (const a of document.getAnimations()) { a.pause(); a.currentTime = t * 1000; }
     if (window.renderAt) await window.renderAt(t);
   }, t);
+}
+
+// ---- 文字の安全域・可読時間チェック（--textcheck 0.1）
+// 見えている文字（祖先を含めた不透明度 > 0.05）の実際の字形の範囲を Range で測り、安全域と表示時間を確かめる。
+// 安全域: 縦長 y260〜(H-420)・左右90px／横長と正方形は各辺5%。違反があれば終了コード 2。
+const tcStep = opt('textcheck');
+if (tcStep) {
+  const { browser, page } = await openPage();
+  const portrait = H > W;
+  const SA = portrait ? { x0: 90, x1: W - 90, y0: 260, y1: H - 420 } : { x0: Math.round(W * .05), x1: Math.round(W * .95), y0: Math.round(H * .05), y1: Math.round(H * .95) };
+  const step = +tcStep, seen = {}, bad = [];
+  for (let t = FROM; t < FROM + DUR - 1e-6; t += step) {
+    await seek(page, +t.toFixed(3));
+    const items = await page.evaluate(() => {
+      const out = [];
+      const op = el => { let o = 1; for (let e = el; e && e.nodeType === 1; e = e.parentElement) { const cs = getComputedStyle(e); if (cs.display === 'none' || cs.visibility === 'hidden') return 0; o *= +cs.opacity; } return o; };
+      const walk = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+      for (let n; (n = walk.nextNode());) {
+        const txt = n.textContent.trim(); if (!txt || n.parentElement.closest('script,style')) continue;
+        const o = op(n.parentElement); if (o <= .05) continue;
+        const r = document.createRange(); r.selectNodeContents(n); const b = r.getBoundingClientRect();
+        if (b.width < 1 || b.height < 1) continue;
+        out.push({ txt: txt.slice(0, 24), x0: Math.round(b.left), x1: Math.round(b.right), y0: Math.round(b.top), y1: Math.round(b.bottom), o: +o.toFixed(2) });
+      }
+      return out;
+    });
+    for (const it of items) {
+      const k = it.txt; (seen[k] ||= { first: t, last: t, box: it }).last = t;
+      if (it.x0 < SA.x0 || it.x1 > SA.x1 || it.y0 < SA.y0 || it.y1 > SA.y1) bad.push({ t: +t.toFixed(2), ...it });
+    }
+  }
+  await browser.close();
+  const read = Object.entries(seen).map(([k, v]) => ({ txt: k, from: +v.first.toFixed(2), to: +(v.last + step).toFixed(2), sec: +(v.last + step - v.first).toFixed(2), box: v.box }));
+  const short = read.filter(r => r.sec < 1.8);
+  const firstBad = Object.values(bad.reduce((m, b) => (m[b.txt] ||= b, m), {}));
+  console.log(JSON.stringify({ safe_area: SA, violations: firstBad, short_read: short, texts: read }, null, 1));
+  process.exit(firstBad.length || short.length ? 2 : 0);
 }
 
 // ---- 静止画モード
