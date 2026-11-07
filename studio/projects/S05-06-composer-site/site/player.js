@@ -44,3 +44,7 @@ function drawOn(cv, now, live) {
 function frame(now) { const live = an && !audio.paused; if (live) an.getByteFrequencyData(data); canvases.forEach(cv => drawOn(cv, now, live)); if (live || !reduce) requestAnimationFrame(frame); else running = false; }
 function start() { if (!running && canvases.length) { running = true; requestAnimationFrame(frame); } }
 start(); addEventListener('resize', start);
+// 上端の帯：ヘッダーの直下に置き、ヒーローの照明が見えている間は出さない（2段表示を避ける）
+const mini = document.getElementById('mini'), hd = document.querySelector('header'), hero = document.querySelector('.hero');
+if (mini) { const fit = () => mini.style.top = hd.offsetHeight + 'px'; fit(); addEventListener('resize', fit);
+  if (hero) new IntersectionObserver(([e]) => document.body.classList.toggle('hero-in', e.isIntersecting), { threshold: .25 }).observe(hero); }
