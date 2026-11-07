@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>宵待ルカ 配信オーバーレイ</title>
+<meta name="description" content="OBS のブラウザソースで読む配信オーバーレイの見本（架空のライバー・宵待ルカ）。制作：天狼スタジオ">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@600&family=Noto+Sans+JP:wght@400;500&family=Jost:wght@300;400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="frame" id="frame">
+  <div class="stage" id="stage" aria-label="配信画面に重ねるオーバーレイ（1920×1080）">
+    <div class="bg" aria-hidden="true"></div>
+    <section class="name">
+      <p class="who" id="who"></p>
+      <p class="ttl" id="ttl"></p>
+      <span class="rule" aria-hidden="true"></span>
+    </section>
+    <section class="clock" aria-label="現在時刻">
+      <p class="hm" id="hm">00:00</p>
+      <p class="date" id="date"></p>
+    </section>
+    <section class="chat" aria-label="コメント">
+      <span class="sweep" id="sweep" aria-hidden="true"></span>
+      <ol id="chat" aria-live="off"></ol>
+    </section>
+    <p class="topic" id="topic"></p>
+    <p class="sample">架空の配信者・見本のコメントです</p>
+  </div>
+</div>
+<main class="about">
+  <h1>配信オーバーレイ（OBS のブラウザソース）</h1>
+  <p>配信画面に重ねる HTML です。名前と枠の題、時計、コメント欄、今夜の話題を、舞台の灯りの言葉で組みました。新しいコメントが来ると、コメント欄の上辺を一筋の光が走ります。</p>
+  <ul>
+    <li>OBS では「ブラウザ」ソースを追加し、幅 1920・高さ 1080 にします。URL の末尾に <code>#obs</code> を付けると、背景が透明になります。</li>
+    <li>文字は 1080p の配信を縮小して見ても読める大きさ（本文 28px 以上）にしています。</li>
+    <li>このページの配信者・コメントはすべて架空の見本です。</li>
+  </ul>
+  <p><button type="button" id="toggle" aria-pressed="false">背景を消して確かめる</button></p>
+  <p class="credit">制作　天狼スタジオ</p>
+</main>
+<script type="module" src="app.js"></script>
+</body>
+</html>
