@@ -1,7 +1,29 @@
-{"_note":"架空の劇団・架空のデータ。画面に出す数字はすべてここに書いてから使う",
- "troupe":"灯守座（架空の劇団）","title":"冬の灯","performance":"千秋楽",
- "date":"2026-12-20","weekday":"日","open_time":"18:00",
- "seats_total":120,"rows":15,"cols":8,
- "sold_by_phase":[{"label":"発売日","sold":54},{"label":"1週間後","sold":88},{"label":"前日","sold":102}],
- "remaining":18,
- "disclosure":"架空の劇団・架空のデータです"}
+{
+ "_note": "架空の劇団・架空のデータ。画面に出す数字はすべてここに書いてから使う",
+ "troupe": "灯守座（架空の劇団）",
+ "title": "冬の灯",
+ "performance": "千秋楽",
+ "date": "2026-12-20",
+ "weekday": "日",
+ "open_time": "18:00",
+ "seats_total": 120,
+ "rows": 20,
+ "cols": 6,
+ "sold_by_phase": [
+  {
+   "label": "発売日",
+   "sold": 54
+  },
+  {
+   "label": "1週間後",
+   "sold": 88
+  },
+  {
+   "label": "前日",
+   "sold": 102
+  }
+ ],
+ "remaining": 18,
+ "disclosure": "架空の劇団・架空のデータです",
+ "credit": "映像制作　天狼スタジオ"
+}

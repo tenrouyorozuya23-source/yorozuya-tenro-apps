@@ -9,13 +9,18 @@
     24,
     48
    ],
-   "silence": [],
+   "silence": [
+    [
+     9.6875,
+     10.0
+    ]
+   ],
    "lufs": -14.1,
    "tp": -2.3,
-   "low_minus_mid_db": 3.28,
-   "low_shelf_db": -5.0,
-   "limiter_db": 4.4,
-   "stereo_corr": 0.65
+   "low_minus_mid_db": 3.12,
+   "low_shelf_db": -4.0,
+   "limiter_db": 3.9,
+   "stereo_corr": 0.64
   }
  }
 }

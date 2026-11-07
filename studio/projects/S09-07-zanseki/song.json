@@ -1,11 +1,142 @@
-{"id":"S09-07-bgm","title":"残席（記事ショート用）","genre":"Ambient Pluck",
- "base":{"bpm":96,"key":"D","seed":77,"brightness":0.46,"reverb":0.45,"drive":0.08,"sidechain":0.12,
-  "progression":["Dmaj9","Bm7","Gmaj7","A6","Gmaj9","Dmaj9"],
-  "mix":{"pad":0.42,"pluck":0.32,"sub":0.2,"impact":0.45,"chime":0.42,"stab":0.36,"riser":0.22},
-  "end_chord":"Dmaj9","pre_end_chord":"A6","melody":[]},
- "versions":{"15s":{"length":15.0,"bars":6,"tail_sec":1.6,
-  "sections":[{"from":0,"to":1,"layers":["pad"]},{"from":1,"to":4,"layers":["pad","pluck","sub"]},{"from":4,"to":6,"layers":["pad","sub"]}],
-  "cues":[{"bar":0,"beat":0,"type":"chime","note":74},{"bar":1,"beat":0,"type":"stab"},{"bar":2,"beat":0,"type":"stab"},{"bar":3,"beat":0,"type":"stab"},{"bar":3,"beat":2,"type":"riser","len_beats":2},{"bar":4,"beat":0,"type":"impact"},{"bar":4,"beat":0,"type":"chime","note":81},{"bar":5,"beat":0,"type":"chime","note":78}],
-  "silence":[],
-  "automation":[[0,-2],[2.5,-1],[9.8,0],[10,1],[14,0],[15,0]]}},
- "spec_version":"15s","max_low_mid_db":4.0}
+{
+ "id": "S09-07-bgm",
+ "title": "残席（記事ショート用）",
+ "genre": "Ambient Pluck",
+ "base": {
+  "bpm": 96,
+  "key": "D",
+  "seed": 77,
+  "brightness": 0.5,
+  "reverb": 0.45,
+  "drive": 0.08,
+  "sidechain": 0.12,
+  "progression": [
+   "Dmaj9",
+   "Bm7",
+   "Gmaj7",
+   "A6",
+   "Gmaj9",
+   "Dmaj9"
+  ],
+  "mix": {
+   "pad": 0.42,
+   "pluck": 0.32,
+   "sub": 0.15,
+   "impact": 0.45,
+   "chime": 0.42,
+   "stab": 0.36,
+   "riser": 0.22
+  },
+  "end_chord": "Dmaj9",
+  "pre_end_chord": "A6",
+  "melody": []
+ },
+ "versions": {
+  "15s": {
+   "length": 15.0,
+   "bars": 6,
+   "tail_sec": 1.6,
+   "sections": [
+    {
+     "from": 0,
+     "to": 1,
+     "layers": [
+      "pad"
+     ]
+    },
+    {
+     "from": 1,
+     "to": 4,
+     "layers": [
+      "pad",
+      "pluck",
+      "sub"
+     ]
+    },
+    {
+     "from": 4,
+     "to": 6,
+     "layers": [
+      "pad",
+      "sub"
+     ]
+    }
+   ],
+   "cues": [
+    {
+     "bar": 0,
+     "beat": 0,
+     "type": "chime",
+     "note": 74
+    },
+    {
+     "bar": 1,
+     "beat": 0,
+     "type": "stab"
+    },
+    {
+     "bar": 2,
+     "beat": 0,
+     "type": "stab"
+    },
+    {
+     "bar": 3,
+     "beat": 0,
+     "type": "stab"
+    },
+    {
+     "bar": 4,
+     "beat": 0,
+     "type": "impact"
+    },
+    {
+     "bar": 4,
+     "beat": 0,
+     "type": "chime",
+     "note": 81
+    },
+    {
+     "bar": 5,
+     "beat": 0,
+     "type": "chime",
+     "note": 78
+    }
+   ],
+   "silence": [
+    [
+     3,
+     3.5,
+     0.5
+    ]
+   ],
+   "automation": [
+    [
+     0,
+     -2
+    ],
+    [
+     2.5,
+     -1
+    ],
+    [
+     9.4,
+     -1
+    ],
+    [
+     10,
+     1
+    ],
+    [
+     14,
+     0
+    ],
+    [
+     15,
+     0
+    ]
+   ]
+  }
+ },
+ "spec_version": "15s",
+ "max_low_mid_db": 4.0
+}

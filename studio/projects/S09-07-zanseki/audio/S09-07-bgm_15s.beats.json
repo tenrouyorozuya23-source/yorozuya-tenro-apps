@@ -59,10 +59,6 @@
    "type": "stab"
   },
   {
-   "t": 8.75,
-   "type": "riser"
-  },
-  {
    "t": 10.0,
    "type": "impact"
   },
@@ -101,7 +97,12 @@
    ]
   }
  ],
- "silence": [],
+ "silence": [
+  [
+   9.6875,
+   10.0
+  ]
+ ],
  "fps_beat_exact": [
   24,
   48
