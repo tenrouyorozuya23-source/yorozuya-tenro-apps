@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>篠宮 遥 戯曲集</title>
+<meta name="description" content="架空の劇作家・演出家、篠宮 遥のサイト。戯曲の書き出しを台本の体裁で読めます（天狼スタジオの制作見本）。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600&family=Noto+Sans+JP:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="hero">
+  <div class="first" aria-hidden="true"><p id="first-line"></p></div>
+  <div class="who">
+    <h1 id="name"></h1>
+    <p class="kana" id="kana"></p>
+    <p class="role" id="role"></p>
+    <nav class="toc" aria-label="目次">
+      <a href="#plays" data-id="plays">戯曲</a>
+      <a href="#history" data-id="history">上演の記録</a>
+      <a href="#about" data-id="about">略歴</a>
+    </nav>
+  </div>
+</header>
+<main>
+  <section id="plays" aria-labelledby="h-plays">
+    <h2 id="h-plays">戯曲<span>書き出しの一頁</span></h2>
+    <div id="play-list"></div>
+  </section>
+  <section id="history" aria-labelledby="h-history">
+    <h2 id="h-history">上演の記録</h2>
+    <div class="tbl" role="region" aria-label="上演の記録" tabindex="0"><table>
+      <thead><tr><th scope="col">年</th><th scope="col">作品</th><th scope="col">劇団</th><th scope="col">劇場</th><th scope="col">上演時間</th></tr></thead>
+      <tbody id="hist"></tbody>
+    </table></div>
+  </section>
+  <section id="about" aria-labelledby="h-about">
+    <h2 id="h-about">略歴</h2>
+    <div id="bio"></div>
+  </section>
+</main>
+<footer class="foot"><p id="disc"></p></footer>
+<script type="module" src="app.js"></script>
+</body>
+</html>
