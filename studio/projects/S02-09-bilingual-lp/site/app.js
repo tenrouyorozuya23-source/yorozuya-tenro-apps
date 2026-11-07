@@ -68,8 +68,8 @@ const cv = document.getElementById('stage');
   const frame = now => {
     requestAnimationFrame(frame); if (!visible) return;
     const t = (now - t0) / 1000;
-    moon.intensity = 620 * Math.min(1, t / 1.6);                                     // 読み込み後 1.6 秒で月が上がる
-    const sy = Math.min(1, scrollY / innerHeight);
+    moon.intensity = 620 * (reduce ? 1 : Math.min(1, t / 1.6));                                     // 読み込み後 1.6 秒で月が上がる
+    const sy = reduce ? 0 : Math.min(1, scrollY / innerHeight);
     const a = .5 + (reduce ? 0 : Math.sin(t * .08) * .06) - sy * .25;
     const d = cam.aspect < 1 ? 22 : 17;
     cam.position.set(Math.sin(a) * d, 3.2 + sy * 1.5, Math.cos(a) * d); cam.lookAt(-1, cam.aspect < 1 ? -1.6 : 2.0, -1);
