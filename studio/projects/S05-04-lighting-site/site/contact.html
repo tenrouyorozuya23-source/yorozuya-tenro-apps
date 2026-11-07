@@ -1,0 +1,9 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>依頼｜灯野 慧 照明デザイン</title><link rel="icon" href="data:,"><meta name="description" content="照明家・灯野 慧（架空）のポートフォリオ。舞台模型を回し、照明のキューを切り替えて見られます。">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@600&family=Noto+Sans+JP:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css"></head><body>
+<header><a class="logo" href="index.html">灯野 慧</a><nav aria-label="メイン"><a href="index.html">模型</a><a href="works.html">作品</a><a href="about.html">経歴</a><a href="contact.html" aria-current="page">依頼</a></nav></header><main><section style="padding-top:140px"><h2 class="mincho">依頼・相談</h2><p class="lead">公演の時期、劇場、規模を教えてください。模型の段階からの参加も歓迎します。</p>
+<form class="contact" style="margin-top:40px" id="f"><label>お名前<input name="name" autocomplete="name" required></label><label>メール<input name="email" type="email" autocomplete="email" required></label>
+<label>種類<select name="kind"><option>照明デザインの依頼</option><option>照明プランの相談</option><option>その他</option></select></label><label>内容<textarea name="msg" rows="6" required></textarea></label>
+<button type="submit">送る</button><p class="note" id="msg" role="status">※ 制作見本のため、このフォームは送信されません。</p></form></section></main>
+<script>document.getElementById('f').addEventListener('submit',e=>{e.preventDefault();document.getElementById('msg').textContent='（見本のため送信していません）入力内容は確認できました。';});</script><footer><span>© 灯野 慧 照明デザイン（架空）</span><span>このサイトは天狼スタジオの制作見本です。人物・作品・団体はすべて架空です。</span></footer></body></html>
