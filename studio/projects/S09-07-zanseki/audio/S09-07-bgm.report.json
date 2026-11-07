@@ -1,0 +1,21 @@
+{
+ "id": "S09-07-bgm",
+ "title": "残席（記事ショート用）",
+ "versions": {
+  "15s": {
+   "sec": 15.0,
+   "bpm": 96,
+   "fps_beat_exact": [
+    24,
+    48
+   ],
+   "silence": [],
+   "lufs": -14.1,
+   "tp": -2.3,
+   "low_minus_mid_db": 3.28,
+   "low_shelf_db": -5.0,
+   "limiter_db": 4.4,
+   "stereo_corr": 0.65
+  }
+ }
+}
