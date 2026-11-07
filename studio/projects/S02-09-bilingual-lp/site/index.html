@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>月の舞 Dances of the Moon</title>
+<meta name="description" content="架空の伝統芸能カンパニー・藍月会の公演 LP（日英2言語）。天狼スタジオの制作見本です。 A fictional bilingual performance page by Tenro Studio.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600&family=Jost:wght@300;400&family=Noto+Sans+JP:wght@400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
+</head>
+<body>
+<a class="skip" href="#about">本文へ <span lang="en">Skip to content</span></a>
+
+<header class="hero">
+  <canvas id="stage" aria-hidden="true"></canvas>
+  <div class="hero-in">
+    <p class="co"><span>藍月会</span><span lang="en">Aizuki-kai</span></p>
+    <h1><span class="ja">月の舞</span><span class="en" lang="en">Dances of the Moon</span></h1>
+    <p class="when">
+      <span><time datetime="2027-03-20">2027年3月20日（土）</time>・<time datetime="2027-03-21">21日（日）</time></span>
+      <span lang="en"><time datetime="2027-03-20">Sat 20</time> &amp; <time datetime="2027-03-21">Sun 21 March 2027</time></span>
+    </p>
+    <p class="where"><span>藍月会館 能舞台</span><span lang="en">Aizuki Hall Noh Stage</span></p>
+    <p class="fic"><span>※架空の公演の見本です。チケットの販売はありません</span><span lang="en">A fictional sample page. No tickets are on sale.</span></p>
+    <nav class="jump" aria-label="ページ内の移動 / On this page">
+      <a href="#program" data-id="program">演目<span lang="en">Program</span></a>
+      <a href="#guide" data-id="guide">はじめての方へ<span lang="en">First Visit</span></a>
+      <a href="#tickets" data-id="tickets">日時と料金<span lang="en">Dates &amp; Tickets</span></a>
+    </nav>
+  </div>
+</header>
+
+<main>
+<section id="about" class="sec" aria-labelledby="h-about">
+  <h2 id="h-about"><span>この舞台について</span><span lang="en">About</span></h2>
+  <div class="pair">
+    <div class="ja">
+      <p>月の光だけで舞う夜を、能舞台でつくります。</p>
+      <p>照明はほとんど動きません。松の描かれた鏡板の前に、月の高さの光がひとつ。その光の中を、舞手がゆっくりと横切ります。</p>
+      <p>はじめに日本語と英語で、舞台の見かたを短くご案内します。言葉が分からなくても大丈夫です。</p>
+    </div>
+    <div class="en" lang="en">
+      <p>A night of dance lit only by the moon, on a traditional Noh stage.</p>
+      <p>The lighting barely moves. A single light, set at the height of the moon, falls in front of the painted pine. The dancer crosses it slowly.</p>
+      <p>The evening opens with a short guide in Japanese and English. No prior knowledge is needed.</p>
+    </div>
+  </div>
+</section>
+
+<section id="program" class="sec" aria-labelledby="h-program">
+  <h2 id="h-program"><span>演目</span><span lang="en">Program</span></h2>
+  <ol class="prog" id="prog"></ol>
+  <p class="total"><span>上演時間　約1時間30分（休憩なし）</span><span lang="en">Running time: about 90 minutes, no intermission</span></p>
+</section>
+
+<section id="guide" class="sec" aria-labelledby="h-guide">
+  <h2 id="h-guide"><span>はじめての方へ</span><span lang="en">For First-Time Visitors</span></h2>
+  <ul class="guide">
+    <li><p class="ja">開演後の入場は、演目の切れ目までお待ちいただきます。</p><p class="en" lang="en">Latecomers are seated between pieces.</p></li>
+    <li><p class="ja">上演中の撮影と録音はご遠慮ください。</p><p class="en" lang="en">Please do not take photos or record during the performance.</p></li>
+    <li><p class="ja">拍手は、舞手が橋掛かりを下がりきってからが目安です。</p><p class="en" lang="en">Applause usually follows once the performer has fully left along the bridgeway.</p></li>
+  </ul>
+</section>
+
+<section id="tickets" class="sec" aria-labelledby="h-tickets">
+  <h2 id="h-tickets"><span>日時と料金</span><span lang="en">Dates &amp; Tickets</span></h2>
+  <div class="tbl" role="region" aria-label="公演日時 / Performance dates" tabindex="0">
+    <table>
+      <thead><tr><th scope="col">日付<span lang="en">Date</span></th><th scope="col">開場<span lang="en">Doors</span></th><th scope="col">開演<span lang="en">Start</span></th></tr></thead>
+      <tbody id="dates"></tbody>
+    </table>
+  </div>
+  <ul class="price" id="price"></ul>
+  <p class="note"><span>※架空の公演です。チケットの販売・予約はありません。</span><span lang="en">This performance is fictional. No tickets are sold or reserved.</span></p>
+</section>
+</main>
+
+<footer class="foot">
+  <p><span>このページは天狼スタジオが制作した見本です。藍月会・公演・会場はすべて架空です。</span><span lang="en">A sample page made by Tenro Studio. The company, performance and venue are fictional.</span></p>
+</footer>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,56 @@
+{
+ "_note": "すべて架空。画面の数字・日付・価格はここに書いてから使う。チケットの販売はない",
+ "company_ja": "藍月会",
+ "company_en": "Aizuki-kai",
+ "title_ja": "月の舞",
+ "title_en": "Dances of the Moon",
+ "venue_ja": "藍月会館 能舞台",
+ "venue_en": "Aizuki Hall Noh Stage",
+ "performances": [
+  {
+   "date": "2027-03-20",
+   "wd_ja": "土",
+   "wd_en": "Sat",
+   "open": "17:45",
+   "start": "18:30"
+  },
+  {
+   "date": "2027-03-21",
+   "wd_ja": "日",
+   "wd_en": "Sun",
+   "open": "13:15",
+   "start": "14:00"
+  }
+ ],
+ "running_ja": "約1時間30分（休憩なし）",
+ "running_en": "About 90 minutes, no intermission",
+ "prices": [
+  {
+   "seat_ja": "正面席",
+   "seat_en": "Front seats",
+   "yen": 8000
+  },
+  {
+   "seat_ja": "脇正面席",
+   "seat_en": "Side seats",
+   "yen": 5000
+  }
+ ],
+ "program": [
+  {
+   "ja": "はじめに　舞台の見かた（日英の解説）",
+   "en": "Introduction: How to Watch (in Japanese and English)",
+   "min": 15
+  },
+  {
+   "ja": "序の舞「月影」",
+   "en": "Jo-no-mai: Moonshadow",
+   "min": 35
+  },
+  {
+   "ja": "小舞と囃子「藍の夜」",
+   "en": "Shimai & Hayashi: Indigo Night",
+   "min": 40
+  }
+ ]
+}
