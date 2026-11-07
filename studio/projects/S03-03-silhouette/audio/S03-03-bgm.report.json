@@ -15,12 +15,12 @@
      6.25
     ]
    ],
-   "lufs": -14.2,
+   "lufs": -14.0,
    "tp": -2.5,
-   "low_minus_mid_db": 2.38,
-   "low_shelf_db": -4.3,
-   "limiter_db": 5.0,
-   "stereo_corr": 0.617
+   "low_minus_mid_db": 2.5,
+   "low_shelf_db": -4.0,
+   "limiter_db": 4.5,
+   "stereo_corr": 0.628
   }
  }
 }

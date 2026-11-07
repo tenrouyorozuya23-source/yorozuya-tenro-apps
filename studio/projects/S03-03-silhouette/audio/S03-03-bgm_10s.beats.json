@@ -51,6 +51,14 @@
   {
    "t": 7.5,
    "type": "stab"
+  },
+  {
+   "t": 7.5,
+   "type": "chime"
+  },
+  {
+   "t": 2.5,
+   "type": "riser"
   }
  ],
  "sections": [

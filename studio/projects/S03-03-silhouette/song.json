@@ -1,11 +1,142 @@
-{"id":"S03-03-bgm","title":"天文台守（役名リビール用）","genre":"Ambient",
- "base":{"bpm":96,"key":"E","seed":33,"brightness":0.42,"reverb":0.5,"drive":0.06,"sidechain":0.0,
-  "progression":["Emaj9","C#m9","Amaj7","B6"],
-  "mix":{"pad":0.45,"pluck":0.28,"sub":0.16,"impact":0.5,"chime":0.45,"stab":0.36,"riser":0.25},
-  "end_chord":"Emaj9","pre_end_chord":"B6","melody":[]},
- "versions":{"10s":{"length":10.0,"bars":4,"tail_sec":1.2,
-  "sections":[{"from":0,"to":1,"layers":["pad"]},{"from":1,"to":2,"layers":["pad","pluck"]},{"from":2,"to":4,"layers":["pad","pluck","sub"]}],
-  "cues":[{"bar":1,"beat":0,"type":"chime","note":83},{"bar":2,"beat":0,"type":"riser","len_beats":2},{"bar":2,"beat":2,"type":"impact"},{"bar":2,"beat":2,"type":"chime","note":88},{"bar":3,"beat":0,"type":"stab"}],
-  "silence":[[2,1.5,0.5]],
-  "automation":[[0,-3],[2.5,-1.5],[5.6,-1],[6.25,1.5],[9,0],[10,0]]}},
- "spec_version":"10s","max_low_mid_db":4.0}
+{
+ "id": "S03-03-bgm",
+ "title": "天文台守（役名リビール用）",
+ "genre": "Ambient",
+ "base": {
+  "bpm": 96,
+  "key": "E",
+  "seed": 33,
+  "brightness": 0.42,
+  "reverb": 0.5,
+  "drive": 0.06,
+  "sidechain": 0.0,
+  "progression": [
+   "Emaj9",
+   "C#m9",
+   "Amaj7",
+   "B6"
+  ],
+  "mix": {
+   "pad": 0.45,
+   "pluck": 0.28,
+   "sub": 0.16,
+   "impact": 0.5,
+   "chime": 0.45,
+   "stab": 0.36,
+   "riser": 0.25
+  },
+  "end_chord": "Emaj9",
+  "pre_end_chord": "B6",
+  "melody": []
+ },
+ "versions": {
+  "10s": {
+   "length": 10.0,
+   "bars": 4,
+   "tail_sec": 1.2,
+   "sections": [
+    {
+     "from": 0,
+     "to": 1,
+     "layers": [
+      "pad"
+     ]
+    },
+    {
+     "from": 1,
+     "to": 2,
+     "layers": [
+      "pad",
+      "pluck"
+     ]
+    },
+    {
+     "from": 2,
+     "to": 4,
+     "layers": [
+      "pad",
+      "pluck",
+      "sub"
+     ]
+    }
+   ],
+   "cues": [
+    {
+     "bar": 1,
+     "beat": 0,
+     "type": "chime",
+     "note": 83
+    },
+    {
+     "bar": 2,
+     "beat": 0,
+     "type": "riser",
+     "len_beats": 2
+    },
+    {
+     "bar": 2,
+     "beat": 2,
+     "type": "impact"
+    },
+    {
+     "bar": 2,
+     "beat": 2,
+     "type": "chime",
+     "note": 88
+    },
+    {
+     "bar": 3,
+     "beat": 0,
+     "type": "stab"
+    },
+    {
+     "bar": 3,
+     "beat": 0,
+     "type": "chime",
+     "note": 95
+    },
+    {
+     "bar": 1,
+     "beat": 0,
+     "type": "riser",
+     "len_beats": 0.5
+    }
+   ],
+   "silence": [
+    [
+     2,
+     1.5,
+     0.5
+    ]
+   ],
+   "automation": [
+    [
+     0,
+     -3
+    ],
+    [
+     2.5,
+     -1.5
+    ],
+    [
+     5.6,
+     -1
+    ],
+    [
+     6.25,
+     1.5
+    ],
+    [
+     9,
+     0
+    ],
+    [
+     10,
+     0
+    ]
+   ]
+  }
+ },
+ "spec_version": "10s",
+ "max_low_mid_db": 4.0
+}

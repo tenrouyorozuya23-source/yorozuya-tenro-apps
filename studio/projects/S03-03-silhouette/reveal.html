@@ -5,14 +5,16 @@
 .t{position:absolute;left:0;right:0;text-align:center;opacity:0;z-index:2}
 #sh{top:300px;font:500 36px/1.5 "Noto Sans JP";letter-spacing:.3em;text-indent:.3em;color:#cfc6b8}
 #sh2{top:360px;font:600 52px/1.4 "Shippori Mincho";letter-spacing:.16em;text-indent:.16em}
-#kana{top:1150px;font:500 32px/1 "Noto Sans JP";letter-spacing:.5em;text-indent:.5em;color:#d9cfbf}
-#role{top:1200px;font:600 120px/1.15 "Shippori Mincho";letter-spacing:.14em;text-indent:.14em}
-#actor{top:1360px;font:500 46px/1.3 "Shippori Mincho";letter-spacing:.3em;text-indent:.3em;color:#efe6d8}
-#disc{top:1450px;font:400 26px/1.3 "Noto Sans JP";letter-spacing:.12em;text-indent:.12em;color:#a9a093}
-#scrim{position:absolute;left:0;right:0;top:1080px;bottom:0;z-index:1;background:linear-gradient(rgba(0,0,0,0),rgba(0,0,0,.55) 25%,rgba(0,0,0,.6))}
+#kana{top:290px;font:500 32px/1 "Noto Sans JP";letter-spacing:.5em;text-indent:.5em;color:#d9cfbf}
+#role{top:335px;font:600 128px/1.15 "Shippori Mincho";letter-spacing:.12em;text-indent:.12em}
+#actor{top:1370px;font:500 52px/1.3 "Shippori Mincho";letter-spacing:.3em;text-indent:.3em;color:#efe6d8}
+#disc{top:1452px;font:400 30px/1.3 "Noto Sans JP";letter-spacing:.12em;text-indent:.12em;color:#a9a093}
+#end{top:520px;font:500 36px/1.4 "Shippori Mincho";letter-spacing:.16em;text-indent:.16em;color:#d9cfbf}
+#scrim{position:absolute;left:0;right:0;top:1240px;bottom:0;z-index:1;background:linear-gradient(rgba(0,0,0,0),rgba(0,0,0,.55) 25%,rgba(0,0,0,.6))}
 </style></head><body><div id="ov"><div id="scrim"></div>
 <div class="t" id="sh">朔夜舎 新作</div><div class="t" id="sh2">『星を待つ部屋』</div>
 <div class="t" id="kana">てんもんだいもり</div><div class="t" id="role">天文台守</div><div class="t" id="actor">朝比奈 千尋</div>
+<div class="t" id="end">朔夜舎『星を待つ部屋』</div>
 <div class="t" id="disc">※架空の演劇ユニット・架空の配役です</div>
 </div>
 <script type="module">
@@ -33,20 +35,21 @@ const cyc=new THREE.Mesh(new THREE.PlaneGeometry(16,9),cycMat);cyc.position.set(
 // 人型（顔のないマネキン）
 const skin=new THREE.MeshPhysicalMaterial({color:0xd8d2c8,roughness:.55,sheen:.3,clearcoat:.15});
 const man=new THREE.Group();const P=(geo,x,y,z,rx=0,rz=0)=>{const m=new THREE.Mesh(geo,skin);m.position.set(x,y,z);m.rotation.set(rx,0,rz);m.castShadow=m.receiveShadow=true;man.add(m);return m;};
-P(new THREE.SphereGeometry(.1,32,24),0,1.7,0).scale.set(.92,1.15,1);
-P(new THREE.CylinderGeometry(.042,.05,.16,16),0,1.55,0);
-P(new THREE.CapsuleGeometry(.17,.2,8,24),0,1.3,0).scale.set(1.25,1,.75);
+P(new THREE.SphereGeometry(.105,32,24),0,1.76,0).scale.set(.95,1.12,1);
+P(new THREE.CylinderGeometry(.05,.06,.14,16),0,1.6,0);
+P(new THREE.CapsuleGeometry(.16,.12,8,24),0,1.38,0).scale.set(1.35,1,.78);
 // 肩から床まで落ちる外套（天文台守）
-const cloakMat=new THREE.MeshPhysicalMaterial({color:0x4a4038,roughness:.78,side:THREE.DoubleSide,sheen:.8,sheenRoughness:.45,sheenColor:new THREE.Color(0xc9a27a)});
-const cl=new THREE.Mesh(new THREE.CylinderGeometry(.25,.46,1.46,64,8,true),cloakMat);
-{const pos=cl.geometry.attributes.position;for(let i=0;i<pos.count;i++){const x=pos.getX(i),z=pos.getZ(i),y=pos.getY(i);const ang=Math.atan2(z,x);const f=(.5-y/1.46);pos.setX(i,x*(1+.05*Math.sin(ang*7)*f));pos.setZ(i,z*(1+.05*Math.sin(ang*7)*f));}cl.geometry.computeVertexNormals();}
-cl.position.set(0,.74,0);cl.castShadow=cl.receiveShadow=true;man.add(cl);
-const collar=new THREE.Mesh(new THREE.TorusGeometry(.2,.045,12,48),cloakMat);collar.rotation.x=Math.PI/2;collar.position.y=1.47;man.add(collar);
+const cloakMat=new THREE.MeshPhysicalMaterial({color:0x2a2420,roughness:.85,side:THREE.DoubleSide,sheen:.4,sheenRoughness:.5,sheenColor:new THREE.Color(0xe0a868)});
+const cl=new THREE.Mesh(new THREE.CylinderGeometry(.2,.6,1.5,96,12,true),cloakMat);
+{const pos=cl.geometry.attributes.position;for(let i=0;i<pos.count;i++){const x=pos.getX(i),z=pos.getZ(i),y=pos.getY(i);const ang=Math.atan2(z,x);const f=(.5-y/1.5);const k=1+(.03+.07*f)*Math.sin(ang*7);pos.setX(i,x*k);pos.setZ(i,z*k);}cl.geometry.computeVertexNormals();}
+cl.position.set(0,.75,0);cl.castShadow=cl.receiveShadow=true;man.add(cl);
+const collar=new THREE.Mesh(new THREE.TorusGeometry(.13,.035,12,48),cloakMat);collar.rotation.x=Math.PI/2;collar.position.y=1.52;man.add(collar);
 man.rotation.y=-.25;scene.add(man);
 // 光：背面のリム2灯、正面のキー、足元の小さな星（天文台の灯）
-const rimL=C.spot(scene,{pos:[-2.2,3.2,-2.6],target:[0,1.2,0],color:0x9fb8ff,intensity:0,angle:.35,penumbra:.6});
-const rimR=C.spot(scene,{pos:[2.2,3.2,-2.6],target:[0,1.2,0],color:0x9fb8ff,intensity:0,angle:.35,penumbra:.6});
-const key=C.spot(scene,{pos:[1.6,4.2,4.2],target:[0,1.1,0],color:0xffcf9a,intensity:0,angle:.26,penumbra:.55});
+const rimL=C.spot(scene,{pos:[-2.2,3.2,-2.6],target:[0,1.2,0],color:0xf5efe6,intensity:0,angle:.35,penumbra:.6});
+const rimR=C.spot(scene,{pos:[2.2,3.2,-2.6],target:[0,1.2,0],color:0xf5efe6,intensity:0,angle:.35,penumbra:.6});
+const key=C.spot(scene,{pos:[1.6,4.2,4.2],target:[0,1.1,0],color:0xe9a64b,intensity:0,angle:.3,penumbra:.5});
+const foot=C.spot(scene,{pos:[0,.15,3.2],target:[0,.2,0],color:0xe9a64b,intensity:0,angle:.45,penumbra:.7,shadow:true});
 const kb=C.beam(scene,{from:[1.6,4.2,4.2],to:[0,0,0],radius:.9,color:0xffcf9a,density:.12});
 const fill=C.spot(scene,{pos:[-3,1.6,3.5],target:[0,1.2,0],color:0x8aa0d0,intensity:0,angle:.4,penumbra:.9,shadow:false});
 await document.fonts.load('600 120px "Shippori Mincho"','天文台守朝比奈千尋『星を待つ部屋』');await document.fonts.load('500 36px "Noto Sans JP"','朔夜舎新作てんもんだいもり※架空の演劇ユニット・配役です');
@@ -56,27 +59,30 @@ const BEAT=60/96, HIT=6.25;
 const land=(id,t,a,d=3/30,dy=24)=>{const u=ease.outCubic(prog(t,a,d));$(id).style.opacity=u.toFixed(3);$(id).style.transform=`translateY(${((1-u)*dy).toFixed(1)}px)`;return u;};
 window.renderAt=t=>{
   const hit=t>=HIT;
-  // ホリゾント：青→藍へ（2.5 秒の鐘で色が深まる）、5.6〜6.25 は落とす（無音）、一打のあとは低く残す
-  const deep=ease.inOutSine(prog(t,2.5,2.5));
-  const cycI=t<5.6?lerp(.6,.75,deep)*(1+.04*Math.sin(t*Math.PI*2/(2*BEAT))):!hit?lerp(1.05,.22,ease.outCubic(prog(t,5.6,.3))):lerp(.22,.32,prog(t,HIT,3));
-  cycMat.color.setRGB(lerp(.16,.22,deep)*cycI,lerp(.36,.2,deep)*cycI,1*cycI);
-  // リム：2.5 秒の鐘で輪郭が出る
-  const rim=t<2.5?0:t<5.6?ease.outCubic(prog(t,2.5,.12))*(1+.05*Math.sin(t*5)):!hit?.25:.55;
-  rimL.intensity=rimR.intensity=140*rim;
-  // 正面のキー：一打で4フレームで入る
-  const k=hit?1-Math.pow(1-prog(t,HIT,4/30),4):0;
-  key.intensity=60*k*(1+.12*Math.exp(-(t-HIT)*5)*(hit?1:0));kb.set(t,.55*k);
-  fill.intensity=hit?12*ease.outCubic(prog(t,HIT,1)):0;
-  // カメラ：ずっとゆっくり寄る。一打のあとは少し下から見上げる
-  const u=ease.inOutSine(prog(t,0,10));
-  const d=lerp(8.4,6.6,u), y=lerp(1.5,1.25,ease.inOutSine(prog(t,HIT-.4,3.4)));
-  const a=lerp(.08,-.06,prog(t,0,10));
-  camera.position.set(Math.sin(a)*d,y,Math.cos(a)*d);camera.lookAt(0,lerp(1.15,1.2,u),0);
-  if(S.bokeh){S.bokeh.uniforms.focus.value=d;S.bokeh.uniforms.aperture.value=.0005;}
-  // 文字：題名は冒頭、役名は一打に着地、俳優名は次の拍
-  const top=ease.outCubic(prog(t,.2,.4))*(1-prog(t,5.45,.15));$('sh').style.opacity=top.toFixed(3);$('sh2').style.opacity=top.toFixed(3);
-  if(hit){land('kana',t,HIT+2/30);land('role',t,HIT,3/30,30);land('actor',t,HIT+BEAT*2);}else{for(const id of['kana','role','actor'])$(id).style.opacity=0;}
-  $('disc').style.opacity=ease.outCubic(prog(t,.2,.4)).toFixed(3);
+  // ホリゾント：暗い紺。冒頭からゆっくり深まり、5.625〜5.9375 で落とし、一打のあとは低く残す（値は連続させる）
+  const base=lerp(1,.8,ease.inOutSine(prog(t,0,5.6)))*(1+.04*Math.sin(t*Math.PI*2/(2*BEAT)));
+  const cycI=hit?lerp(.18,.24,prog(t,HIT,3.75)):base*lerp(1,.32,ease.inOutSine(prog(t,5.625,.3125)));
+  cycMat.color.setRGB(.075*cycI,.085*cycI,.16*cycI);
+  // リム（温白）：フレーム0から細く、2.5〜3.75 で 2拍かけて上げる
+  const rim=hit?.6:lerp(.25,1,ease.outCubic(prog(t,2.5,2*BEAT)))*lerp(1,.65,prog(t,5.625,.3125));
+  rimL.intensity=rimR.intensity=110*rim;
+  // 一打：足元から上へ光が走り（0.4秒）、正面上方のアンバーが入る
+  const k=hit?1-Math.pow(1-prog(t,HIT,.4),5):0;
+  foot.intensity=hit?90*Math.exp(-Math.max(0,t-HIT-.15)*1.2)*clamp((t-HIT)/.12):0;
+  key.target.position.set(0,lerp(.1,1.15,k),0);key.target.updateMatrixWorld();
+  key.intensity=150*k*(1+.12*Math.exp(-(t-HIT)*5)*(hit?1:0));kb.set(t,.5*k);
+  fill.intensity=hit?16*ease.outCubic(prog(t,HIT,1)):4;
+  // カメラ：0〜5.94 ドリーイン、一打のあとは役名へラックフォーカスしつつ寄り、8.75〜 クレーンアップ（止めない）
+  const d=lerp(8.6,7.0,ease.inOutSine(prog(t,0,5.94)))-.5*ease.inOutSine(prog(t,HIT,3.75));
+  const cy=lerp(1.35,1.3,prog(t,0,8.75))+.35*ease.inOutSine(prog(t,8.75,1.25))+.02*Math.sin(t*1.3);
+  const a=lerp(.06,-.04,prog(t,0,10));
+  camera.position.set(Math.sin(a)*d,cy,Math.cos(a)*d);camera.lookAt(0,1.15+.1*ease.inOutSine(prog(t,8.75,1.25)),0);
+  if(S.bokeh){S.bokeh.uniforms.focus.value=hit?lerp(d,d*.82,ease.inOutSine(prog(t,HIT,.8))):d;S.bokeh.uniforms.aperture.value=hit?.0009:.0004;}
+  // 文字：題名はフレーム0から。5.0〜5.625 で消え、一打で同じ位置に役名が立つ
+  const top=1-ease.inOutSine(prog(t,5.0,.625));
+  for(const id of['sh','sh2']){$(id).style.opacity=top.toFixed(3);$(id).style.transform=`translateY(${(-6*prog(t,0,.625)).toFixed(1)}px)`;}
+  if(hit){land('kana',t,HIT+2/30);land('role',t,HIT,3/30,30);land('actor',t,HIT+BEAT*2,8/30,12);land('end',t,8.75,10/30,10);}else{for(const id of['kana','role','actor','end'])$(id).style.opacity=0;}
+  $('disc').style.opacity='1';
   S.render();
 };
 </script></body></html>
