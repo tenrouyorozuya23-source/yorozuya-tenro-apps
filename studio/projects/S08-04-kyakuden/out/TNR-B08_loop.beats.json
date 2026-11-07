@@ -315,14 +315,14 @@
  "sections": [
   {
    "from": 0,
-   "to": 8,
+   "to": 4,
    "layers": [
     "pad",
     "epiano"
    ]
   },
   {
-   "from": 8,
+   "from": 4,
    "to": 16,
    "layers": [
     "pad",
@@ -332,22 +332,12 @@
   },
   {
    "from": 16,
-   "to": 24,
+   "to": 32,
    "layers": [
     "pad",
     "epiano",
     "bass",
     "bell"
-   ]
-  },
-  {
-   "from": 24,
-   "to": 32,
-   "layers": [
-    "pad",
-    "bass",
-    "bell",
-    "vinyl"
    ]
   },
   {
@@ -355,28 +345,18 @@
    "to": 40,
    "layers": [
     "pad",
-    "epiano"
+    "epiano",
+    "bass"
    ]
   },
   {
    "from": 40,
-   "to": 48,
-   "layers": [
-    "pad",
-    "epiano",
-    "bass",
-    "bell"
-   ]
-  },
-  {
-   "from": 48,
    "to": 56,
    "layers": [
     "pad",
     "epiano",
     "bass",
-    "bell",
-    "vinyl"
+    "bell"
    ]
   },
   {

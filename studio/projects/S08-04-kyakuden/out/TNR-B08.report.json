@@ -11,13 +11,13 @@
     60
    ],
    "silence": [],
-   "lufs": -14.0,
+   "lufs": -14.1,
    "tp": -2.8,
-   "low_minus_mid_db": 4.0,
-   "low_shelf_db": -0.9,
-   "limiter_db": 0.8,
-   "stereo_corr": 0.739,
-   "seam_ratio": 0.027
+   "low_minus_mid_db": 2.11,
+   "low_shelf_db": 0.0,
+   "limiter_db": 2.0,
+   "stereo_corr": 0.689,
+   "seam_ratio": 0.052
   }
  }
 }
