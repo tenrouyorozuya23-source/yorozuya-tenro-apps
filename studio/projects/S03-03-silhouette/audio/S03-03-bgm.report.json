@@ -1,0 +1,26 @@
+{
+ "id": "S03-03-bgm",
+ "title": "天文台守（役名リビール用）",
+ "versions": {
+  "10s": {
+   "sec": 10.0,
+   "bpm": 96,
+   "fps_beat_exact": [
+    24,
+    48
+   ],
+   "silence": [
+    [
+     5.9375,
+     6.25
+    ]
+   ],
+   "lufs": -14.2,
+   "tp": -2.5,
+   "low_minus_mid_db": 2.38,
+   "low_shelf_db": -4.3,
+   "limiter_db": 5.0,
+   "stereo_corr": 0.617
+  }
+ }
+}
