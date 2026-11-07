@@ -1,0 +1,68 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><style>html,body{margin:0;background:#000;overflow:hidden}</style>
+<script type="importmap">{"imports":{"three":"/node_modules/three/build/three.module.js","three/addons/":"/node_modules/three/examples/jsm/"}}</script></head><body>
+<script type="module">
+// S10-01 配信背景「深夜の劇場」：誰もいない客席と、舞台に残る一灯（ゴーストライト）。30 秒で継ぎ目なくループする
+// すべての動きは周期 T=30 秒の整数倍の正弦（または円周上のガウス）で作る
+import * as C from '/tools/cine/cine.js';
+import {RoundedBoxGeometry} from 'three/addons/geometries/RoundedBoxGeometry.js';
+const {lerp}=C;
+const T=30, TAU=Math.PI*2, w=t=>TAU*t/T;
+const bump=(t,c,s)=>{let d=((t-c)%T+T)%T;if(d>T/2)d-=T;return Math.exp(-d*d/(2*s*s));}; // 円周上のガウス
+const S=C.createStage({width:innerWidth,height:innerHeight,exposure:1.0,fov:34,envIntensity:0,dof:true});
+const {THREE,scene,camera}=S;
+if(S.bloom){S.bloom.threshold=.85;S.bloom.strength=.45;S.bloom.radius=.6;}
+scene.background=new THREE.Color(0x070605);scene.fog=new THREE.FogExp2(0x070605,.028);
+const mat=(c,r=.8)=>new THREE.MeshStandardMaterial({color:c,roughness:r});
+const add=(g,m,x,y,z)=>{const o=new THREE.Mesh(g,m);o.position.set(x,y,z);o.castShadow=o.receiveShadow=true;scene.add(o);return o;};
+// 舞台（床は少し照り返す）・奥の壁・プロセニアム・緞帳の袖
+add(new THREE.BoxGeometry(14,.9,7),new THREE.MeshPhysicalMaterial({color:0x2c231c,roughness:.55,clearcoat:.08}),0,.45,-6.5);
+add(new THREE.BoxGeometry(18,10,.3),mat(0x120e0b),0,5,-10);
+const red=new THREE.MeshStandardMaterial({color:0x4a1416,roughness:.9});
+for(const s of[-1,1]){add(new THREE.BoxGeometry(1.4,8.5,.6),mat(0x1c1512),s*7.6,4.25,-3);
+  const cur=new THREE.Mesh(new THREE.CylinderGeometry(.5,.55,8,48,1,true,0,Math.PI),red);
+  const pos=cur.geometry.attributes.position;for(let i=0;i<pos.count;i++){const a=Math.atan2(pos.getZ(i),pos.getX(i));const k=1+.12*Math.sin(a*18);pos.setX(i,pos.getX(i)*k);pos.setZ(i,pos.getZ(i)*k);}
+  cur.geometry.computeVertexNormals();cur.position.set(s*6.5,4.4,-3.4);cur.rotation.y=Math.PI/2;cur.scale.set(1,1,.5);cur.castShadow=cur.receiveShadow=true;scene.add(cur);}
+add(new THREE.BoxGeometry(16.6,1.5,.6),mat(0x1c1512),0,8.2,-3);
+// 客席：座面＋背もたれ（面取り）、9列×12席、段ごとに上がる
+const seatM=new THREE.MeshPhysicalMaterial({color:0x5a1c1e,roughness:.92,sheen:.6,sheenColor:new THREE.Color(0x9a4a40)});
+const N=9*12,cush=new THREE.InstancedMesh(new RoundedBoxGeometry(.56,.13,.48,3,.04),seatM,N),back=new THREE.InstancedMesh(new RoundedBoxGeometry(.56,.6,.1,3,.04),seatM,N);
+{let k=0;const o=new THREE.Object3D();for(let r=0;r<9;r++)for(let c=0;c<12;c++){const x=(c-5.5)*.72+(c<6?-.45:.45),y=r*.34,z=r*1.0;
+  o.rotation.set(0,0,0);o.position.set(x,y+.44,z);o.updateMatrix();cush.setMatrixAt(k,o.matrix);o.position.set(x,y+.78,z+.27);o.rotation.set(-.18,0,0);o.updateMatrix();back.setMatrixAt(k,o.matrix);k++;}}
+for(const m of[cush,back]){m.castShadow=m.receiveShadow=true;scene.add(m);}
+for(let r=0;r<9;r++)add(new THREE.BoxGeometry(15,.34,1.0),mat(0x1a1410),0,r*.34-.17,r*1.0);
+// 通路の足元灯
+const foot=new THREE.MeshBasicMaterial({color:0x6a4a2a});
+for(let r=0;r<9;r++)for(const s of[-1,1]){const f=new THREE.Mesh(new THREE.BoxGeometry(.18,.02,.02),foot);f.position.set(s*.45,r*.34+.03,r*1.0+.48);scene.add(f);}
+// ゴーストライト：スタンドに裸電球一つ
+add(new THREE.CylinderGeometry(.03,.03,1.7,12),mat(0x1a1a1a,.5),.6,1.75,-6.2);
+add(new THREE.CylinderGeometry(.22,.26,.06,24),mat(0x1a1a1a,.5),.6,.93,-6.2);
+const bulbM=new THREE.MeshBasicMaterial({color:0xfff2dc,toneMapped:false});
+const bulb=new THREE.Mesh(new THREE.SphereGeometry(.1,24,16),bulbM);bulb.position.set(.6,2.66,-6.2);scene.add(bulb);
+const ghost=new THREE.PointLight(0xffe6c4,0,16,1.5);ghost.position.copy(bulb.position);ghost.castShadow=true;ghost.shadow.mapSize.set(1024,1024);scene.add(ghost);
+const hc=document.createElement('canvas');hc.width=hc.height=128;{const g=hc.getContext('2d');const gr=g.createRadialGradient(64,64,0,64,64,64);gr.addColorStop(0,'rgba(255,240,215,.9)');gr.addColorStop(.25,'rgba(255,225,190,.3)');gr.addColorStop(1,'rgba(255,225,190,0)');g.fillStyle=gr;g.fillRect(0,0,128,128);}
+const halo=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(hc),blending:THREE.AdditiveBlending,depthWrite:false,transparent:true,toneMapped:false}));halo.scale.set(1.3,1.3,1);halo.position.copy(bulb.position);scene.add(halo);
+// 客電（35%で残っている）と、ホリゾントのごく弱い青
+const house=[];for(let i=0;i<4;i++){const s=C.spot(scene,{pos:[(i%2?3.5:-3.5),8,i<2?0:5],target:[(i%2?2.1:-2.1),0,i<2?0:5],color:0xffc98a,intensity:0,angle:.9,penumbra:.9,shadow:false});house.push(s);}
+const cyc=C.spot(scene,{pos:[0,7,-3],target:[0,4,-10],color:0x5a6ea8,intensity:0,angle:.8,penumbra:1,shadow:false});
+scene.add(new THREE.HemisphereLight(0x3a2e24,0x070605,.25));
+// ハゼ：電球のまわりを漂う粒。位置は周期 T の正弦の和
+const R=C.rand(11),P=360,pp=new Float32Array(P*3),base=[];
+for(let i=0;i<P;i++){const r=Math.sqrt(R())*3.2,th=R()*TAU;base.push([.6+Math.cos(th)*r,.9+R()*3.4,-6.2+Math.sin(th)*r*.8,R()*TAU,R()*TAU,1+Math.floor(R()*2),.15+R()*.25]);}
+const pg=new THREE.BufferGeometry();pg.setAttribute('position',new THREE.BufferAttribute(pp,3));
+const pts=new THREE.Points(pg,new THREE.PointsMaterial({color:0xffe9cc,size:.014,transparent:true,opacity:.38,depthWrite:false,blending:THREE.AdditiveBlending}));scene.add(pts);
+window.__ready=Promise.resolve();
+window.renderAt=t=>{
+  // 一灯：30 秒に2回だけ、かすかに弱まる（20%以下）
+  const g=1-.14*bump(t,9.4,.35)-.09*bump(t,21.7,.25)+.015*Math.sin(w(t)*7);
+  ghost.intensity=46*g; bulbM.color.setRGB(1*g,.95*g,.86*g); halo.material.opacity=.85*g;
+  house.forEach((s,i)=>s.intensity=170*(1+.03*Math.sin(w(t)+i)));
+  cyc.intensity=40*(1+.08*Math.sin(w(t)*2));
+  for(let i=0;i<P;i++){const [x,y,z,a,b,k,amp]=base[i];pp[i*3]=x+amp*Math.sin(w(t)*k+a);pp[i*3+1]=y+amp*1.4*Math.sin(w(t)*k+b);pp[i*3+2]=z+amp*Math.cos(w(t)*k+a*.7);}
+  pg.attributes.position.needsUpdate=true;
+  // カメラ：客席の後方から、ゆっくり左右に揺れる（1周期）
+  camera.position.set(1.2*Math.sin(w(t)),7.6+.15*Math.sin(w(t)*2+.6),14.5+.4*Math.cos(w(t)));
+  camera.lookAt(.2*Math.sin(w(t)),1.3,-4.5);
+  if(S.bokeh){S.bokeh.uniforms.focus.value=21;S.bokeh.uniforms.aperture.value=.0002;}
+  S.render();
+};
+</script></body></html>
