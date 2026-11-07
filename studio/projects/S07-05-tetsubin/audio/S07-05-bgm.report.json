@@ -1,0 +1,28 @@
+{
+ "id": "S07-05-bgm",
+ "title": "霰（鉄瓶リビール用）",
+ "versions": {
+  "15s": {
+   "sec": 15.0,
+   "bpm": 120,
+   "fps_beat_exact": [
+    24,
+    30,
+    48,
+    60
+   ],
+   "silence": [
+    [
+     9.0,
+     10.0
+    ]
+   ],
+   "lufs": -14.0,
+   "tp": -2.9,
+   "low_minus_mid_db": 3.67,
+   "low_shelf_db": -3.2,
+   "limiter_db": 2.6,
+   "stereo_corr": 0.661
+  }
+ }
+}

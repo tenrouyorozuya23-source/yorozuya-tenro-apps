@@ -1,0 +1,79 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><style>html,body{margin:0;background:#000;overflow:hidden}</style>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@600&family=Noto+Sans+JP:wght@300;400&display=block" rel="stylesheet">
+<script type="importmap">{"imports":{"three":"/node_modules/three/build/three.module.js","three/addons/":"/node_modules/three/examples/jsm/"}}</script><style>
+#ov{position:absolute;inset:0;color:#efe8dc;pointer-events:none}
+.t{position:absolute;left:0;right:0;text-align:center;opacity:0}
+#brand{top:300px;font:300 32px/1 "Noto Sans JP";letter-spacing:.6em;text-indent:.6em;color:#b9ae9c}
+#name{top:360px;font:600 120px/1 "Shippori Mincho";letter-spacing:.2em;text-indent:.2em}
+#sub{top:520px;font:400 32px/1.6 "Noto Sans JP";letter-spacing:.24em;text-indent:.24em;color:#c4b9a8}
+#cap{top:1380px;font:300 30px/1 "Noto Sans JP";letter-spacing:.4em;text-indent:.4em;color:#9d9384}
+</style></head><body><div id="ov">
+<div class="t" id="cap">鋳鉄の肌</div>
+<div class="t" id="brand">雲龍堂</div><div class="t" id="name">霰</div><div class="t" id="sub">鋳鉄の鉄瓶　一・二リットル</div></div>
+<script type="module">
+// S07-05 鉄瓶「霰」：斜めの光が鋳鉄の粒（霰）を撫で、湯気が光の筋に浮かぶ。9〜10秒の無音の暗転のあと 10.0 秒に全体を見せる
+import * as C from '/tools/cine/cine.js';
+const {lerp,prog,ease}=C;
+const W=innerWidth,H=innerHeight;
+const S=C.createStage({width:W,height:H,exposure:1.0,fov:30,envIntensity:.04,dof:true});
+const {THREE,scene,camera}=S;
+if(S.bloom){S.bloom.threshold=1.3;S.bloom.strength=.35;}
+scene.fog=new THREE.FogExp2(0x030303,.05);scene.background=new THREE.Color(0x030303);
+C.stageFloor(scene,{material:new THREE.MeshPhysicalMaterial({color:0x080707,roughness:.7,clearcoat:.2,clearcoatRoughness:.5})});
+// 霰の粒：格子状に並んだ半球の凹凸（バンプ）と、鋳肌のざらつき
+const bc=document.createElement('canvas');bc.width=2048;bc.height=1024;{const x=bc.getContext('2d');x.fillStyle='#5a5a5a';x.fillRect(0,0,2048,1024);
+  const R=C.rand(5);for(let i=0;i<60000;i++){const v=70+R()*50;x.fillStyle=`rgb(${v},${v},${v})`;x.fillRect(R()*2048,R()*1024,2,2);}
+  for(let row=0;row<26;row++)for(let col=0;col<72;col++){const cx=(col+(row%2)*.5)*2048/72,cy=90+row*30;const g=x.createRadialGradient(cx,cy,0,cx,cy,11);g.addColorStop(0,'#ffffff');g.addColorStop(.7,'#9a9a9a');g.addColorStop(1,'rgba(90,90,90,0)');x.fillStyle=g;x.beginPath();x.arc(cx,cy,11,0,6.283);x.fill();}}
+const bump=new THREE.CanvasTexture(bc);bump.wrapS=THREE.RepeatWrapping;
+const iron=new THREE.MeshPhysicalMaterial({color:0x2a2622,metalness:.55,roughness:.62,bumpMap:bump,bumpScale:3.2,clearcoat:.15,clearcoatRoughness:.6});
+const ironSm=new THREE.MeshPhysicalMaterial({color:0x221f1c,metalness:.6,roughness:.5});
+const prof=[[0,0],[.42,0],[.5,.04],[.6,.18],[.66,.36],[.64,.52],[.56,.66],[.42,.74],[.3,.77],[.29,.8]].map(p=>new THREE.Vector2(p[0],p[1]));
+const K=new THREE.Group();
+const body=new THREE.Mesh(new THREE.LatheGeometry(prof,128),iron);body.castShadow=body.receiveShadow=true;K.add(body);
+const lid=new THREE.Mesh(new THREE.LatheGeometry([[0,.86],[.12,.85],[.26,.82],[.31,.79],[.31,.77]].map(p=>new THREE.Vector2(p[0],p[1])),96),ironSm);lid.castShadow=true;K.add(lid);
+const knob=new THREE.Mesh(new THREE.SphereGeometry(.05,24,16),ironSm);knob.position.y=.89;K.add(knob);
+// 注ぎ口：根元から斜め上へ細くなる曲線のチューブ
+const sp=new THREE.CatmullRomCurve3([new THREE.Vector3(.58,.34,0),new THREE.Vector3(.78,.46,0),new THREE.Vector3(.9,.62,0),new THREE.Vector3(.95,.7,0)]);
+const spout=new THREE.Mesh(new THREE.TubeGeometry(sp,40,.055,20,false),ironSm);spout.castShadow=true;K.add(spout);
+// 弦（持ち手）：上に弧を描く
+const hc=new THREE.CatmullRomCurve3([new THREE.Vector3(0,.74,-.36),new THREE.Vector3(0,1.25,-.32),new THREE.Vector3(0,1.42,0),new THREE.Vector3(0,1.25,.32),new THREE.Vector3(0,.74,.36)]);
+const handle=new THREE.Mesh(new THREE.TubeGeometry(hc,64,.022,12,false),ironSm);handle.castShadow=true;K.add(handle);
+K.rotation.y=.5;scene.add(K);
+// 湯気：注ぎ口の先から上る半透明の板（ノイズの帯）
+const sc=document.createElement('canvas');sc.width=128;sc.height=512;{const x=sc.getContext('2d');const R=C.rand(9);for(let i=0;i<900;i++){const y=R()*512,w=10+R()*40,xx=64+Math.sin(y*.03+R())*30*(y/512);const g=x.createRadialGradient(xx,y,0,xx,y,w);g.addColorStop(0,'rgba(255,255,255,.05)');g.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=g;x.fillRect(xx-w,y-w,w*2,w*2);}
+  x.globalCompositeOperation='destination-in';const gx=x.createLinearGradient(0,0,128,0);gx.addColorStop(0,'rgba(0,0,0,0)');gx.addColorStop(.35,'rgba(0,0,0,1)');gx.addColorStop(.65,'rgba(0,0,0,1)');gx.addColorStop(1,'rgba(0,0,0,0)');x.fillStyle=gx;x.fillRect(0,0,128,512);
+  const gy=x.createLinearGradient(0,0,0,512);gy.addColorStop(0,'rgba(0,0,0,0)');gy.addColorStop(.3,'rgba(0,0,0,1)');gy.addColorStop(.85,'rgba(0,0,0,1)');gy.addColorStop(1,'rgba(0,0,0,0)');x.fillStyle=gy;x.fillRect(0,0,128,512);}
+const st=new THREE.CanvasTexture(sc);
+const steamM=new THREE.MeshBasicMaterial({map:st,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,opacity:0,color:0xfff1e0,side:THREE.DoubleSide});
+const steams=[];for(let i=0;i<3;i++){const m=new THREE.Mesh(new THREE.PlaneGeometry(.32,1.1),steamM);scene.add(m);steams.push(m);}
+K.updateMatrixWorld(true);const tipW=K.localToWorld(new THREE.Vector3(.96,.72,0));
+// 光：横からの斜光（霰を撫でる）、上からのキー、奥のリム、湯気を照らす光の筋
+const rake=C.spot(scene,{pos:[-3.2,1.0,1.2],target:[0,.45,0],color:0xffd7ac,intensity:0,angle:.28,penumbra:.5});
+const key=C.spot(scene,{pos:[1.5,4.5,2.5],target:[0,.55,0],color:0xfff0de,intensity:0,angle:.17,penumbra:.7});
+const rim=C.spot(scene,{pos:[0,2.2,-3.5],target:[0,.6,0],color:0xbcd0ea,intensity:0,angle:.35,penumbra:.6,shadow:false});
+const bm=C.beam(scene,{from:[2.6,3.4,-1.2],to:[tipW.x,tipW.y+.6,tipW.z],radius:.5,color:0xffe6c8,density:.12});
+await document.fonts.load('600 120px "Shippori Mincho"','霰');await document.fonts.load('300 32px "Noto Sans JP"','雲龍堂鋳鉄の鉄瓶一・二リットル肌');
+window.__ready=Promise.resolve();
+const $=id=>document.getElementById(id);const op=(id,v)=>$(id).style.opacity=(+v).toFixed(3);
+const DK=9.0,HIT=10.0;
+window.renderAt=t=>{
+  const dark=t>=DK&&t<HIT, lit=t>=HIT;
+  // 0〜9秒：斜光の位置がゆっくり回り、粒の影が流れる
+  const ra=lerp(-.35,.25,prog(t,0,9));rake.position.set(-3.2*Math.cos(ra),1.0+.4*prog(t,0,9),3.2*Math.sin(ra)+1.2);
+  rake.intensity=dark?0:lit?180:lerp(240,300,prog(t,0,9));
+  key.intensity=lit?ease.outCubic(prog(t,HIT,.25))*110:0;
+  rim.intensity=dark||lit?0:lerp(10,40,prog(t,0,6));
+  // 湯気：6秒から上り始める（明転後も続く）
+  const so=dark?0:Math.min(.3,prog(t,5.5,2)*.3);steamM.opacity=so;
+  steams.forEach((m,i)=>{m.position.set(tipW.x+.03*i-.03,tipW.y+.55+i*.04,tipW.z+.02*i);m.rotation.y=i*1.05+t*.05;m.scale.set(1+.15*i,1+.08*Math.sin(t*1.3+i),1);m.position.x+=.04*Math.sin(t*.9+i*2);m.position.y+=((t*.06+i*.33)%1)*.12;});
+  bm.set(t,dark?0:prog(t,5.5,2)*.7);
+  // カメラ：0〜9秒は胴の霰に寄ったマクロで横へ流れる。明転後は全体を 3/4 で見せ、ゆっくり寄る
+  if(!lit){const a=lerp(.15,-.2,prog(t,0,9));camera.position.set(Math.sin(a)*1.6,lerp(.5,.75,prog(t,0,9)),Math.cos(a)*1.6);camera.lookAt(0,lerp(.42,.6,prog(t,0,9)),0);
+    if(S.bokeh){S.bokeh.uniforms.focus.value=1.0;S.bokeh.uniforms.aperture.value=.0022;}}
+  else{const u=ease.inOutSine(prog(t,HIT,5));camera.position.set(lerp(1.2,.9,u),lerp(1.1,1.0,u),lerp(6.4,5.8,u));camera.lookAt(.2,1.05,0);
+    if(S.bokeh){S.bokeh.uniforms.focus.value=lerp(6.4,5.8,u);S.bokeh.uniforms.aperture.value=.0007;}}
+  op('cap',!lit&&!dark?ease.outCubic(prog(t,.3,.4))*(1-prog(t,5.0,.4)):0);
+  op('brand',lit?ease.outCubic(prog(t,HIT+.4,.4)):0);op('name',lit?1:0);op('sub',lit?ease.outCubic(prog(t,HIT+.9,.4)):0);
+  S.render();
+};
+</script></body></html>
