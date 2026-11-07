@@ -1,0 +1,38 @@
+:root{--bg:#08080b;--ink:#ede7dd;--sub:#a79e91;--line:#2b2825;--acc:#e9b97c;--acc2:#9fb7dc}
+*{box-sizing:border-box;margin:0;padding:0}
+html{line-break:strict;word-break:auto-phrase;background:var(--bg);color:var(--ink);font:400 16px/1.9 "Noto Sans JP",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+.mincho{font-family:"Shippori Mincho",serif;font-weight:600}
+header{position:sticky;top:0;z-index:10;display:flex;justify-content:space-between;align-items:center;padding:14px clamp(16px,5vw,56px);background:#08080be6;backdrop-filter:blur(8px);border-bottom:1px solid #ffffff0a}
+header .logo{font-family:"Shippori Mincho",serif;font-weight:600;letter-spacing:.2em;font-size:18px}
+header nav{display:flex;gap:clamp(2px,2vw,24px);font-size:13px;letter-spacing:.16em;color:var(--sub)}
+header nav a{padding:12px 8px;display:inline-block}
+header nav a[aria-current]{color:var(--ink)}
+.hero{position:relative;min-height:min(86svh,820px);display:grid;place-items:center;text-align:center;padding:0 clamp(16px,5vw,56px);overflow:hidden}
+.hero canvas{position:absolute;inset:0;width:100%;height:100%}
+.hero .in{position:relative;max-width:760px}
+.kicker{font-size:12px;letter-spacing:.34em;color:var(--sub)}
+.hero h1{font-size:clamp(36px,6.4vw,72px);line-height:1.3;letter-spacing:.08em;margin:.35em 0 .5em}
+.hero p{color:var(--sub)}
+.play{display:inline-flex;align-items:center;gap:12px;margin-top:28px;font:500 14px/1 "Noto Sans JP",sans-serif;letter-spacing:.16em;color:#130e08;background:var(--acc);border:0;border-radius:999px;padding:16px 26px;cursor:pointer;min-height:48px}
+.play:focus-visible,.track button:focus-visible{outline:2px solid var(--acc2);outline-offset:3px}
+section{padding:clamp(72px,11vw,128px) clamp(16px,5vw,56px);max-width:1080px;margin:0 auto}
+section h2{font-size:clamp(26px,3.4vw,36px);letter-spacing:.12em;margin-bottom:1em}
+.lead{color:var(--sub);max-width:640px}
+.tracks{list-style:none;border-top:1px solid var(--line);margin-top:32px}
+.track{display:grid;grid-template-columns:48px 1fr auto;gap:16px;align-items:center;padding:18px 0;border-bottom:1px solid var(--line)}
+.track button{width:48px;height:48px;border-radius:50%;border:1px solid #5f5850;background:transparent;color:var(--ink);cursor:pointer;font-size:14px}
+.track[data-on] button{background:var(--acc);color:#130e08;border-color:var(--acc)}
+.track .t{font-family:"Shippori Mincho",serif;font-weight:600;font-size:19px;letter-spacing:.08em}
+.track .m{font-size:13px;color:var(--sub)}
+.track .d{font-size:13px;color:var(--sub);font-variant-numeric:tabular-nums}
+.bar{grid-column:2/4;height:2px;background:var(--line);position:relative}.bar i{position:absolute;inset:0 auto 0 0;width:0;background:var(--acc)}
+dl.career{display:grid;grid-template-columns:7em 1fr;gap:10px 24px;max-width:760px}
+dl.career dt{color:var(--sub);font-variant-numeric:tabular-nums}
+.contact{display:grid;gap:18px;max-width:560px;margin-top:36px}
+.contact label{font-size:13px;color:var(--sub);letter-spacing:.12em;display:grid;gap:8px}
+.contact input,.contact textarea,.contact select{font:inherit;color:var(--ink);background:#ffffff06;border:1px solid #6e665c;border-radius:4px;padding:12px 14px}
+.contact button{justify-self:start;font:500 14px/1 "Noto Sans JP",sans-serif;letter-spacing:.2em;padding:16px 28px;border-radius:999px;border:0;background:var(--acc);color:#130e08;cursor:pointer}
+.note{font-size:12px;color:#9a9285;margin-top:2em}
+footer{border-top:1px solid var(--line);padding:32px clamp(16px,5vw,56px);font-size:12px;color:var(--sub);letter-spacing:.08em;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}

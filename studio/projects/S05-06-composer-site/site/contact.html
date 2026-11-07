@@ -1,0 +1,10 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>依頼｜汐見 響 作曲・劇伴</title><link rel="icon" href="data:,"><meta name="description" content="作曲家・劇伴作家の汐見 響（架空）のサイト。舞台と映像のための音楽を試聴できます。">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@600&family=Noto+Sans+JP:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css"></head><body>
+<header><a class="logo" href="index.html">汐見 響</a><nav aria-label="メイン"><a href="index.html">音</a><a href="works.html">作品</a><a href="about.html">経歴</a><a href="contact.html" aria-current="page">依頼</a></nav></header><main><section><h2 class="mincho">依頼・相談</h2><p class="lead">公演や映像の時期、尺、雰囲気の参考を教えてください。キュー表や台本があれば、それに合わせて書きます。</p>
+<form class="contact" id="f"><label>お名前<input name="name" autocomplete="name" required></label><label>メール<input name="email" type="email" autocomplete="email" required></label>
+<label>種類<select name="kind"><option>劇伴・舞台音楽</option><option>映像・CM の音楽</option><option>配信のテーマ曲</option><option>その他</option></select></label><label>内容<textarea name="msg" rows="6" required></textarea></label>
+<button type="submit">送る</button><p class="note" id="msg" role="status">※ 制作見本のため、このフォームは送信されません。</p></form></section></main>
+<script>document.getElementById('f').addEventListener('submit',e=>{e.preventDefault();document.getElementById('msg').textContent='（見本のため送信していません）入力内容は確認できました。';});</script><footer><span>© 汐見 響（架空）</span><span>天狼スタジオの制作見本です。人物と作品名は架空、音源は天狼スタジオの自作 BGM ライブラリです。</span></footer>
+</body></html>
