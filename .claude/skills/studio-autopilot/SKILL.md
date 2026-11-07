@@ -80,7 +80,7 @@ pip install -q -r studio/tools/requirements.txt
    - **プレビュー必須（ユーザー指示 2026-11-06）**: 完成品・合格未満を問わず、管理アプリの works には必ずその場で見られるプレビューを付ける。GitHub のフォルダへのリンクだけで終わらせない。
      - 動画: `videoAsset`（本編 mp4）と `posterAsset`（中盤のフレームの jpg）。複数本は `extraVideos`（asset id の配列、2本目以降）。
      - 静止画: `posterAsset`、追加の画像は `extraImages`（`[{id, label}]`）。
-     - Web サイト: スマホ画面のスクリーンショットを `posterAsset`、PC 画面を `extraImages`、そして `previewUrl` に `https://raw.githack.com/tenrouyorozuya23-source/yorozuya-tenro-apps/studio-autopilot/<サイトの index.html までのパス>`（push 後に 200 が返ることを curl で確認）、`previewLabel: "サイトを開く"`。
+     - Web サイト: スマホ画面のスクリーンショットを `posterAsset`、PC 画面を `extraImages`、そして `previewUrl` に **Artifact の URL**（`python3 studio/tools/to_artifact.py <site> --out <スクラッチ>/<ID>` で公開用のコピーを作り、`Artifact` の publish に file_path=<build>/artifact.html・root=<build>・files=files.json の中身を渡す。raw.githack はブラウザで広告付きの中間ページになるので使わない。2026-11-08）、`previewLabel: "サイトを開く"`。
      - 音楽: `audioAsset`（AAC の .mp4）か、試聴ページの URL を `previewUrl`。
      - `aspect` に縦横比（例 "9/16"、"16/9"）を入れる。
 2. GitHub: `studio/works/<id>/` に完成品を置いてコミット・push（`studio-autopilot` ブランチ）。

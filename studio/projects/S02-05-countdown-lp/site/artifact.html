@@ -1,0 +1,93 @@
+<title>朔夜舎 新作解禁</title><link rel="icon" href="data:,">
+<meta name="description" content="演劇ユニット・朔夜舎（架空）の新作情報解禁ページ。解禁の日時が近づくほど緞帳が上がります。">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@600&family=Noto+Sans+JP:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#070607;--ink:#efe8de;--sub:#aaa095;--warm:#f0c08a;--line:#2c2826}
+*{box-sizing:border-box;margin:0;padding:0}
+html{line-break:strict;word-break:auto-phrase;background:var(--bg);color:var(--ink);font:400 16px/1.9 "Noto Sans JP",system-ui,sans-serif}
+.mincho{font-family:"Shippori Mincho",serif;font-weight:600}
+/* 舞台：奥の明かり → 緞帳 → 額縁 */
+.stage{position:relative;height:100svh;min-height:600px;overflow:hidden;isolation:isolate}
+.glow{position:absolute;inset:0;background:radial-gradient(60% 45% at 50% 70%,#f6c38a38,#0000 70%),radial-gradient(30% 20% at 50% 92%,#ffd9a855,#0000 70%),#0b0908}
+.reveal{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:0 24px;opacity:var(--rv,0);transform:translateY(calc((1 - var(--rv,0)) * 12px));transition:opacity .9s ease-out .4s,transform .9s cubic-bezier(.16,1,.3,1) .4s}
+.glow{transition:opacity .6s}
+body.dark .glow{opacity:.15}
+body.released .curtain{transition:transform 2.4s cubic-bezier(.16,1,.3,1)}
+body.released .glow{transition:opacity 1.5s}
+.reveal .mini{font-size:13px;letter-spacing:.4em;color:var(--sub)}
+.reveal h2{font-size:clamp(34px,6vw,64px);letter-spacing:.14em;margin:.25em 0}
+.curtain{position:absolute;left:0;right:0;top:0;height:100%;transform:translateY(calc(var(--up,0) * -100%));transition:transform .25s linear;
+ background:linear-gradient(#0000 92%,#0006),#5a0d13;box-shadow:0 18px 40px #000c}
+.curtain::after{content:"";position:absolute;left:0;right:0;bottom:0;height:46px;background:linear-gradient(#0000,#1a0306cc)}
+.grain{position:absolute;inset:0;pointer-events:none;opacity:.07;mix-blend-mode:overlay}
+.nw{white-space:nowrap}
+.cta{cursor:default}
+@media (max-width:600px){dl{grid-template-columns:4.5em 1fr}}
+.frame{position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 70px 60px -30px #000,inset 70px 0 60px -40px #000,inset -70px 0 60px -40px #000}
+.hem{position:absolute;left:0;right:0;height:3px;top:calc((1 - var(--up,0)) * 100%);background:linear-gradient(90deg,#0000,#ffd9a8cc,#0000);filter:blur(1px);opacity:calc(1 - var(--rv,0))}
+.ui{position:absolute;inset:0;display:grid;grid-template-rows:auto 1fr auto;padding:24px clamp(16px,5vw,56px);z-index:2}
+.top{display:flex;justify-content:space-between;align-items:center;font-size:13px;letter-spacing:.24em;color:var(--sub)}
+.top .logo{font-family:"Shippori Mincho",serif;font-weight:600;font-size:18px;color:var(--ink);letter-spacing:.3em}
+.count{align-self:center;justify-self:center;text-align:center}
+.count .k{font-size:13px;letter-spacing:.42em;color:#d8cdbf}
+.digits{display:flex;gap:clamp(12px,3vw,32px);margin-top:14px;justify-content:center}
+.digits div{min-width:3ch}
+.digits b{display:block;font:600 clamp(44px,9vw,96px)/1 "Shippori Mincho",serif;font-variant-numeric:tabular-nums;letter-spacing:.02em;text-shadow:0 2px 24px #000}
+.digits span{font-size:12px;letter-spacing:.3em;color:#d8cdbf}
+.when{margin-top:18px;font-size:14px;letter-spacing:.2em;color:#e2d8ca}
+.bottom{display:flex;justify-content:space-between;align-items:end;gap:16px;flex-wrap:wrap;font-size:12px;color:#d2c8bb;text-shadow:0 1px 8px #000}
+.demo{font:500 13px/1 "Noto Sans JP",sans-serif;letter-spacing:.16em;color:#130e08;background:var(--warm);border:0;border-radius:999px;padding:14px 20px;min-height:44px;cursor:pointer}
+.demo:focus-visible{outline:2px solid #a9c2e6;outline-offset:3px}
+/* 解禁後の本ページ */
+main.after{display:none}
+body.released main.after{display:block}
+body.released .count,body.released .demo{display:none}
+section{max-width:960px;margin:0 auto;padding:clamp(64px,10vw,120px) clamp(16px,5vw,56px)}
+section h3{font-size:clamp(24px,3.2vw,32px);letter-spacing:.14em;margin-bottom:.8em}
+dl{display:grid;grid-template-columns:6em 1fr;gap:12px 24px}
+dt{color:var(--sub)}
+.cta{display:inline-block;margin-top:28px;padding:16px 28px;border-radius:999px;background:var(--warm);color:#130e08;font-weight:500;letter-spacing:.2em;text-decoration:none;min-height:48px}
+footer{border-top:1px solid var(--line);padding:28px clamp(16px,5vw,56px);font-size:12px;color:#a59b8f;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+@media (prefers-reduced-motion:reduce){.curtain{transition:none}}
+</style>
+<div class="stage" id="stage">
+ <div class="glow" aria-hidden="true"></div>
+ <div class="reveal" aria-hidden="true"><div><div class="mini">朔夜舎 新作公演</div><h2 class="mincho">星を待つ部屋</h2><div class="mini">2027.02.18 — 02.28　青葉座</div></div></div>
+ <div class="curtain" id="curtain" aria-hidden="true"></div><canvas class="grain" id="grain" aria-hidden="true"></canvas><div class="hem" aria-hidden="true"></div><div class="frame" aria-hidden="true"></div>
+ <div class="ui">
+  <div class="top"><span class="logo">朔夜舎</span><span>NEW WORK</span></div>
+  <div class="count" role="timer" aria-live="off"><div class="k">新作 情報解禁まで</div>
+   <div class="digits" aria-label="解禁までの残り時間"><div><b id="d">--</b><span>日</span></div><div><b id="h">--</b><span>時間</span></div><div><b id="m">--</b><span>分</span></div><div><b id="s">--</b><span>秒</span></div></div>
+   <div class="when">2026.12.01（火）12:00（日本時間）解禁</div></div>
+  <div class="bottom"><span id="state" role="status">緞帳は解禁が近づくほど少しずつ上がる</span><button class="demo" id="demo" type="button">解禁の瞬間を見る（デモ）</button></div>
+ </div>
+</div>
+<main class="after" id="after" tabindex="-1">
+ <section><h1 class="mincho" style="font-size:clamp(28px,4vw,40px);letter-spacing:.14em;margin-bottom:.8em">星を待つ部屋</h1><p style="color:var(--sub);max-width:620px">夜明け前の三時間、閉じた部屋に残された二人が、来ない星を待つ朔夜舎の新作公演</p>
+  <dl style="margin-top:36px"><dt>会期</dt><dd><span class="nw">2027年2月18日（木）</span>〜<span class="nw">2月28日（日）</span></dd><dt>会場</dt><dd>青葉座</dd><dt>チケット</dt><dd><span class="nw">2026年12月10日（木）</span><span class="nw">10:00 発売</span></dd></dl>
+  <p class="cta" role="note">チケット情報は 12.10 に公開</p></section>
+</main>
+<footer><span>© 朔夜舎（架空）</span><span>天狼スタジオの制作見本です。団体・作品・劇場はすべて架空です。</span></footer>
+<script>
+// 公開日から解禁日までの経過に合わせて緞帳を上げる（0〜85%。最後の15%は解禁の瞬間に、暗転→上げ→明転で上がる）
+const START=Date.parse('2026-11-01T00:00:00+09:00'),REL=Date.parse('2026-12-01T12:00:00+09:00');
+const root=document.documentElement,$=id=>document.getElementById(id);let offset=0,released=false,demoUp=null;
+const p2=n=>String(n).padStart(2,'0');
+// ひだ：幅 40〜90px の不規則な明暗で布の重なりを描く
+(()=>{let r=7,x=0,st=[];const R=()=>(r=(r*16807)%2147483647)/2147483647;const c=(l)=>`hsl(355 ${62+R()*8}% ${l}%)`;
+ while(x<2400){const w=40+R()*50;st.push(`${c(9+R()*3)} ${x}px`,`${c(19+R()*7)} ${x+w*.45}px`,`${c(13+R()*3)} ${x+w*.7}px`,`${c(8+R()*2)} ${x+w}px`);x+=w;}
+ $('curtain').style.background=`linear-gradient(#0000 90%,#0008),linear-gradient(90deg,#0006,#0000 18%,#0000 82%,#0006),linear-gradient(90deg,${st.join(',')})`;})();
+// 粒子（グレイン）
+(()=>{const g=$('grain'),w=g.width=256,h=g.height=256,x=g.getContext('2d'),d=x.createImageData(w,h);for(let i=0;i<d.data.length;i+=4){const v=Math.random()*255;d.data[i]=d.data[i+1]=d.data[i+2]=v;d.data[i+3]=255;}x.putImageData(d,0,0);g.style.width='100%';g.style.height='100%';g.style.imageRendering='pixelated';})();
+function release(){released=true;const b=document.body;b.classList.add('dark');$('state').textContent='情報を解禁しました';
+ setTimeout(()=>{b.classList.add('released');root.style.setProperty('--up',1);setTimeout(()=>{b.classList.remove('dark');root.style.setProperty('--rv',1);},2100);
+   setTimeout(()=>$('after').focus({preventScroll:true}),2600);},1100);}
+function tick(){const now=Date.now()+offset,left=Math.max(0,REL-now);
+ const k=Math.min(1,Math.max(0,(now-START)/(REL-START)));if(!released)root.style.setProperty('--up',(demoUp!=null?demoUp:k*.85).toFixed(4));
+ const s=Math.floor(left/1000);$('d').textContent=p2(Math.floor(s/86400));$('h').textContent=p2(Math.floor(s%86400/3600));$('m').textContent=p2(Math.floor(s%3600/60));$('s').textContent=p2(s%60);
+ if(left===0&&!released)release();}
+$('demo').addEventListener('click',()=>{const from=+getComputedStyle(root).getPropertyValue('--up')||0,t0=performance.now();$('state').textContent='デモ：残りの日数ぶん緞帳を上げる';
+ const step=now=>{const u=Math.min(1,(now-t0)/3000);demoUp=from+(.85-from)*(1-Math.pow(1-u,3));tick();if(u<1)requestAnimationFrame(step);else{demoUp=null;offset=REL-Date.now()-4000;$('state').textContent='デモ：解禁の4秒前';tick();}};requestAnimationFrame(step);});
+tick();setInterval(tick,250);
+if(new URLSearchParams(location.search).has('released')){offset=REL-Date.now()+1;released=true;document.body.classList.add('released');root.style.setProperty('--up',1);root.style.setProperty('--rv',1);tick();}
+</script>

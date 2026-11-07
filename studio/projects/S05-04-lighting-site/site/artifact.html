@@ -1,0 +1,20 @@
+<title>灯野 慧 照明デザイン</title><link rel="icon" href="data:,"><meta name="description" content="照明家・灯野 慧（架空）のポートフォリオ。舞台模型を回し、照明のキューを切り替えて見られます。">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@600&family=Noto+Sans+JP:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+<header><a class="logo" href="index.html">灯野 慧</a><nav aria-label="メイン"><a href="index.html" aria-current="page">模型</a><a href="works.html">作品</a><a href="about.html">経歴</a><a href="contact.html">依頼</a></nav></header><main><div class="stage" id="stage" aria-label="舞台模型の3Dビュー（横ドラッグまたは矢印キーで回転）">
+<div class="cap"><div class="kicker">LIGHTING DESIGN — 灯野 慧</div><h1 class="mincho" id="ttl">光は、<br>時間を描く</h1><p id="desc">『硝子の庭』（灯守座／2026）の舞台模型。下のキューを押すと、本番と同じ順番で明かりが変わります。</p></div>
+<div class="cues" role="group" aria-label="照明キュー" id="cues"></div></div>
+<section><h2 class="mincho">照明の考え方</h2><p class="lead">明かりは、役者の顔を照らすためだけのものではありません。時刻、温度、記憶。舞台の上の時間を、光の角度と色で描きます。模型の段階から光を当て、稽古場に入る前にキューの半分を決めておくのが、私の進め方です。</p>
+<p class="lead" style="margin-top:1.2em"><a href="works.html" style="border-bottom:1px solid var(--line)">作品を見る →</a></p></section></main>
+<script type="module">
+import {mountViewer,CUES} from './viewer.js';
+const SETS={glass:['『硝子の庭』（灯守座・2026）の舞台模型。下のキューを押すと、本番と同じ順番で明かりが変わります。','光は、<br>時間を描く'],stairs:['『夜鳴きの館』（2025）の階段の装置。キューで夕景から月光へ移ります。','夜鳴きの館'],gate:['『鬼門の夜』（2024）の門と散る紙片。最後のピンで一人を立たせます。','鬼門の夜']};
+const set=new URLSearchParams(location.search).get('set')||'glass';const s=SETS[set]?set:'glass';
+document.getElementById('desc').textContent=SETS[s][0];document.getElementById('ttl').innerHTML=SETS[s][1];
+const clean=new URLSearchParams(location.search).has('clean');if(clean)document.body.classList.add('clean');
+const q0=Math.min(3,Math.max(0,+(new URLSearchParams(location.search).get('cue')||0)));
+const v=mountViewer(document.getElementById('stage'),{set:s,cues:CUES,still:clean,start:q0});
+const box=document.getElementById('cues');
+CUES.forEach((c,i)=>{const b=document.createElement('button');b.type='button';b.textContent=c.name;b.setAttribute('aria-pressed',i===q0);b.onclick=()=>{v.setCue(i);box.querySelectorAll('button').forEach((x,j)=>x.setAttribute('aria-pressed',j===i));};box.appendChild(b);});
+</script><footer><span>© 灯野 慧 照明デザイン（架空）</span><span>このサイトは天狼スタジオの制作見本です。人物・作品・団体はすべて架空です。</span></footer>

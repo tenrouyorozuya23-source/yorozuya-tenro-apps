@@ -1,0 +1,112 @@
+<title>柊木 透 ポートフォリオ</title><meta name="description" content="舞台俳優 柊木 透（架空の人物によるサイトの見本）。出演歴・宣材・リール・お問い合わせ。">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" media="print" onload="this.media='all'" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600&family=Noto+Sans+JP:wght@300;400;500&display=swap">
+<style>
+:root{--bg:#000;--ink:#f5f5f7;--sub:#a1a1a6;--mute:#6e6e73;--line:#1d1d1f;--warm:#ffd9ad}
+*{box-sizing:border-box}html{background:var(--bg)}body{margin:0;background:var(--bg);color:var(--ink);font:400 17px/1.7 "Noto Sans JP",system-ui,sans-serif;-webkit-font-smoothing:antialiased;word-break:auto-phrase}
+.nb{display:inline-block}a{color:inherit}
+nav{position:fixed;inset:0 0 auto;z-index:10;display:flex;justify-content:space-between;align-items:center;height:52px;padding:0 max(22px,calc(50% - 490px));font-size:12px;letter-spacing:.08em;color:var(--sub);background:rgba(0,0,0,.72);backdrop-filter:saturate(180%) blur(20px)}
+nav b{font:600 15px/1 "Shippori Mincho",serif;letter-spacing:.12em;color:var(--ink)}nav ul{display:flex;gap:28px;margin:0;padding:0;list-style:none}nav a{text-decoration:none}
+/* ヒーロー：暗転（蓄光のバミリだけ）→ スクロールでスポットが立ち位置に落ちる */
+.hero{height:220vh;position:relative}
+.hero .pin{position:sticky;top:0;height:100vh;overflow:hidden}
+.hero picture,.hero img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.hero .lit{opacity:var(--lit,0)}
+.hero h1{position:absolute;left:0;right:0;top:19vh;margin:0;text-align:center;font:600 clamp(56px,9vw,120px)/1 "Shippori Mincho",serif;letter-spacing:.16em;text-indent:.16em;color:var(--ink);opacity:calc(.15 + .85*var(--lit,0))}
+.hero .shaft{position:absolute;left:50%;top:0;width:min(34vw,420px);height:86vh;transform:translateX(-50%) scaleY(var(--lit,0));transform-origin:top;background:radial-gradient(ellipse 50% 100% at 50% 0,rgba(255,226,189,.13),rgba(255,226,189,0) 70%);mix-blend-mode:screen;pointer-events:none}
+.hero h1{transform:translateY(calc((1 - var(--lit,0))*12px))}
+.hero .en{transition:opacity .4s .12s;position:absolute;left:0;right:0;top:calc(19vh + clamp(56px,9vw,120px) + 22px);text-align:center;font-size:13px;letter-spacing:.42em;text-indent:.42em;color:var(--sub);opacity:var(--lit,0)}
+.wrap{max-width:980px;margin:0 auto;padding:0 22px}
+section{padding:160px 0}
+.eyebrow{font-size:14px;letter-spacing:.24em;color:var(--warm);margin:0 0 18px}
+h2{font:600 clamp(40px,6vw,72px)/1.16 "Shippori Mincho",serif;letter-spacing:.04em;margin:0 0 40px}
+.lead{font-size:clamp(19px,2.1vw,24px);line-height:1.8;color:var(--sub);max-width:34em;margin:0}
+.lead strong{color:var(--ink);font-weight:500}
+.facts{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin-top:96px;border-top:1px solid var(--line)}
+.facts div{padding:28px 0 0}.facts dt{font-size:12px;letter-spacing:.16em;color:var(--mute)}.facts dd{margin:10px 0 0;font:500 clamp(28px,3.4vw,40px)/1.1 "Shippori Mincho",serif}
+.facts dd small{font:400 14px/1 "Noto Sans JP";color:var(--sub);margin-left:4px}
+/* 出演歴：台本の頁のように、年ごとに1枚 */
+.credits{display:grid;gap:2px;margin-top:24px}
+.credit{display:grid;grid-template-columns:120px 1fr auto;gap:32px;align-items:baseline;padding:30px 0;border-top:1px solid var(--line)}
+.credit time{font:500 15px/1 "Noto Sans JP";color:var(--mute);letter-spacing:.08em}
+.credit h3{margin:0;font:600 clamp(24px,2.8vw,32px)/1.3 "Shippori Mincho",serif;letter-spacing:.04em}
+.credit p{margin:6px 0 0;font-size:15px;color:var(--sub)}
+.credit .role{font:500 17px/1.3 "Shippori Mincho",serif;color:var(--ink);text-align:right;white-space:nowrap}
+.credit .role span{display:block;font:400 12px/1.6 "Noto Sans JP";color:var(--mute);letter-spacing:.12em}
+.note{margin-top:120px;font-size:12px;color:var(--mute);text-align:center}
+.rv{opacity:0;transform:translateY(14px);transition:opacity .9s cubic-bezier(.2,.7,.2,1),transform .9s cubic-bezier(.2,.7,.2,1)}
+.rv.in{opacity:1;transform:none}.rv.s{transform:translateY(8px)}.rv.l{transform:translateY(24px)}.rv.s.in,.rv.l.in{transform:none}.rv.d1{transition-delay:.1s}.rv.d2{transition-delay:.2s}
+@media(prefers-reduced-motion:reduce){.rv{opacity:1;transform:none;transition:none}.hero .lit,.hero h1,.hero .en{opacity:1}}
+.press{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:24px}
+.press article{border-top:1px solid var(--line);padding-top:24px}.press h3{margin:0 0 12px;font:500 13px/1 "Noto Sans JP";letter-spacing:.16em;color:var(--mute)}
+.press p{margin:0;font-size:15px;line-height:1.9;color:var(--sub)}
+.press button{margin-top:16px;background:none;border:1px solid #424245;color:var(--ink);font:400 13px/1 "Noto Sans JP";padding:10px 16px;border-radius:980px;cursor:pointer}
+.reel{position:relative;aspect-ratio:16/9;border-radius:18px;overflow:hidden;background:#0a0a0a;margin-top:24px}
+.reel video{width:100%;height:100%;object-fit:cover;display:block}
+.reel figcaption{position:absolute;left:24px;bottom:20px;font-size:13px;color:var(--sub);letter-spacing:.08em}
+.contact{text-align:center;padding:120px 0 0;position:relative}
+.contact h2{margin-bottom:24px}.contact p{color:var(--sub);margin:0 0 40px}
+.contact a.btn{display:inline-block;background:var(--ink);color:#000;text-decoration:none;font:500 17px/1 "Noto Sans JP";padding:16px 30px;border-radius:980px}
+.contact .mark{display:block;margin:160px auto 0;width:min(560px,90%);height:auto}
+footer{padding:40px 22px 60px;text-align:center;font-size:12px;color:var(--mute)}
+@media(max-width:734px){.press{grid-template-columns:1fr}}
+@media(max-width:734px){nav ul li:not(:first-child):not(:last-child){display:none}nav ul{gap:18px}.facts{grid-template-columns:1fr 1fr;row-gap:36px}section{padding:112px 0}
+ .credit{grid-template-columns:1fr auto;gap:8px 16px}.credit time{grid-column:1/-1}.hero h1{top:16vh}}
+</style>
+<nav><b>柊木 透</b><ul><li><a href="#works">出演歴</a></li><li><a href="#press">宣材</a></li><li><a href="#reel">リール</a></li><li><a href="#contact">お問い合わせ</a></li></ul></nav>
+<header class="hero" id="hero"><div class="pin">
+ <picture><source media="(max-width:734px)" srcset="img/stage-m0.webp"><img src="img/stage-d0.webp" alt="" width="1600" height="1000" fetchpriority="high"></picture>
+ <picture class="lit"><source media="(max-width:734px)" srcset="img/stage-m1.webp"><img src="img/stage-d1.webp" alt="暗い舞台の床に、蓄光テープで貼られたT字の立ち位置の印。真上から一灯のスポットが落ちている" width="1600" height="1000"></picture>
+ <div class="shaft"></div>
+ <h1>柊木 透</h1><p class="en">HIIRAGI TORU — STAGE ACTOR</p>
+</div></header>
+<main>
+<section><div class="wrap">
+ <p class="eyebrow rv">PROFILE</p>
+ <h2 class="rv l d1"><span class="nb">光が来る場所に、</span><span class="nb">先に立っている</span></h2>
+ <p class="lead rv d2"><strong>小劇場から始めて12年。</strong><span class="nb">台詞の少ない役ほど、</span><span class="nb">立ち方と間で</span><span class="nb">語ってきました。</span><span class="nb">2024年からは</span><span class="nb">映像とオーディオドラマにも。</span></p>
+ <dl class="facts rv"><div><dt>舞台出演</dt><dd>38<small>本</small></dd></div><div><dt>主演</dt><dd>7<small>本</small></dd></div><div><dt>身長</dt><dd>178<small>cm</small></dd></div><div><dt>特技</dt><dd style="font-size:clamp(20px,2.2vw,26px)">殺陣・<span class="nb">津軽三味線</span></dd></div></dl>
+</div></section>
+<section id="works"><div class="wrap">
+ <p class="eyebrow rv">WORKS</p>
+ <h2 class="rv d1">出演歴</h2>
+ <div class="credits">
+  <article class="credit rv s" style="transition-delay:0ms"><time>2026.10</time><div><h3>硝子の庭</h3><p>灯守座 第24回公演・作・演出 朝霧 遼</p></div><p class="role">伊織<span>主演</span></p></article>
+  <article class="credit rv s" style="transition-delay:60ms"><time>2026.03</time><div><h3>星屑通りの夜明け</h3><p>星屑通り製作委員会・ミュージカル</p></div><p class="role">古書店の店主<span>出演</span></p></article>
+  <article class="credit rv s" style="transition-delay:120ms"><time>2025.11</time><div><h3>無風地帯</h3><p>劇団 北緯三十五度・二人芝居</p></div><p class="role">兄<span>主演</span></p></article>
+  <article class="credit rv s" style="transition-delay:180ms"><time>2025.06</time><div><h3>月を売る男</h3><p>オーディオドラマ・全6話</p></div><p class="role">月売り<span>声の出演</span></p></article>
+ </div>
+ </div></section>
+<section id="press"><div class="wrap">
+ <p class="eyebrow rv">PRESS</p>
+ <h2 class="rv d1">宣材</h2>
+ <p class="lead rv d2">掲載にお使いください。<span class="nb">文字数ごとに3種類あります。</span></p>
+ <div class="press">
+  <article class="rv"><h3>50字</h3><p id="p50">舞台俳優。小劇場を中心に12年、38作品に出演。台詞の少ない役で、立ち方と間の芝居に定評がある。</p><button data-copy="p50">コピー</button></article>
+  <article class="rv d1"><h3>100字</h3><p id="p100">舞台俳優。小劇場を中心に12年、38作品に出演し、主演は7作。台詞の少ない役で、立ち方と間の芝居に定評がある。2024年からは映像とオーディオドラマにも活動を広げている。特技は殺陣と津軽三味線。</p><button data-copy="p100">コピー</button></article>
+  <article class="rv d2"><h3>出演情報の書き方</h3><p>柊木 透（ひいらぎ とおる）<br>所属なし・本人に直接ご連絡ください<br>写真の使用は、ご連絡のうえ高解像度版をお送りします</p></article>
+ </div>
+</div></section>
+<section id="reel"><div class="wrap">
+ <p class="eyebrow rv">REEL</p>
+ <h2 class="rv d1">リール</h2>
+ <figure class="reel rv d2" style="aspect-ratio:9/16;max-width:360px;margin-left:0"><video src="img/reel.mp4" poster="img/reel.jpg" muted playsinline loop autoplay preload="none" width="1080" height="1920"></video><figcaption>『無風地帯』出演解禁（8秒）</figcaption></figure>
+</div></section>
+<section id="contact" class="contact"><div class="wrap">
+ <p class="eyebrow rv">CONTACT</p>
+ <h2 class="rv l d1">次の舞台で<span class="nb">お会いしましょう</span></h2>
+ <p class="rv d2">出演のご依頼・取材は、メールでお受けしています</p>
+ <a class="btn rv d2" href="mailto:contact@example.com?subject=%E5%87%BA%E6%BC%94%E3%81%AE%E3%81%94%E4%BE%9D%E9%A0%BC">メールで問い合わせる</a>
+ <img class="mark" src="img/stage-d0.webp" alt="" width="1600" height="1000" loading="lazy">
+</div></section>
+<footer>これは架空の俳優・劇団・作品によるサイトの見本です（天狼スタジオ）</footer>
+</main>
+<script>
+// スクロール量で明転（0→1）。明るさの切り替えは不透明度の重ね合わせ（下の暗転画像は常に表示＝LCP を遅らせない）
+const h=document.getElementById('hero');
+const f=()=>{const r=h.getBoundingClientRect();const p=Math.min(1,Math.max(0,(-r.top)/(innerHeight*.6)));h.style.setProperty('--lit',(p*p*(3-2*p)).toFixed(3))};
+addEventListener('scroll',f,{passive:true});f();
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{rootMargin:'0px 0px -10% 0px'});
+document.querySelectorAll('.rv').forEach(el=>io.observe(el));
+document.querySelectorAll('[data-copy]').forEach(b=>b.onclick=()=>{navigator.clipboard&&navigator.clipboard.writeText(document.getElementById(b.dataset.copy).textContent);b.textContent='コピーしました'});
+</script>
