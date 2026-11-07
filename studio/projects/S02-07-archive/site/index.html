@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>冬の灯 アーカイブ</title>
+<meta name="description" content="灯守座『冬の灯』千秋楽のアーカイブ配信と Blu-ray の案内（架空の見本。販売・予約はありません）。制作：天狼スタジオ">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600&family=Noto+Sans+JP:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
+</head>
+<body>
+<header class="hero">
+  <canvas id="house" role="img" aria-label="終演後の劇場。誰もいない舞台の中央に一灯だけが残り、客席の明かり（客電）が点いている"></canvas>
+  <div class="hero-in">
+    <p class="kicker">灯守座『冬の灯』</p>
+    <h1>終演後も、<br>客電はまだ点いています。</h1>
+    <p class="lead">千秋楽の舞台を、配信と Blu-ray で。</p>
+    <p class="fic">※架空の公演の見本です。配信の販売・Blu-ray の予約はありません。</p>
+  </div>
+</header>
+<main class="offers">
+  <section class="offer" id="stream" aria-labelledby="h-stream">
+    <p class="tag">アーカイブ配信</p>
+    <h2 id="h-stream">千秋楽を、もう一度</h2>
+    <dl>
+      <div><dt>配信期間</dt><dd id="s-period"></dd></div>
+      <div><dt>収録</dt><dd id="s-rec"></dd></div>
+      <div><dt>視聴券</dt><dd id="s-price" class="yen"></dd></div>
+    </dl>
+    <button type="button" class="cta" data-id="stream" aria-describedby="note-stream">視聴券を買う</button>
+    <p class="cta-note" id="note-stream" role="status" hidden>これは見本のため、購入はできません。</p>
+  </section>
+  <section class="offer" id="bluray" aria-labelledby="h-bluray">
+    <p class="tag">Blu-ray</p>
+    <h2 id="h-bluray">手元に残す</h2>
+    <dl>
+      <div><dt>発売日</dt><dd id="b-date"></dd></div>
+      <div><dt>収録内容</dt><dd><ul id="b-list"></ul></dd></div>
+      <div><dt>価格</dt><dd id="b-price" class="yen"></dd></div>
+    </dl>
+    <button type="button" class="cta" data-id="bluray" aria-describedby="note-bluray">予約する</button>
+    <p class="cta-note" id="note-bluray" role="status" hidden>これは見本のため、予約はできません。</p>
+  </section>
+</main>
+<footer class="foot">
+  <p>このページは天狼スタジオが制作した見本です。劇団・人物・劇場・公演はすべて架空です。</p>
+</footer>
+<script type="module" src="app.js"></script>
+</body>
+</html>
