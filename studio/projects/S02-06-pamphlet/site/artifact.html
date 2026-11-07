@@ -1,0 +1,98 @@
+<title>冬の灯 公演パンフレット</title>
+<meta name="description" content="灯守座『冬の灯』のデジタル公演パンフレット。劇団・人物・公演はすべて架空の見本です（制作：天狼スタジオ）。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600&family=Noto+Sans+JP:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
+<div id="light" aria-hidden="true"></div>
+<a class="skip" href="#greeting">本文へ移動</a>
+
+<header class="cover" data-light="cover" id="top">
+  <p class="troupe">灯守座 公演</p>
+  <h1 class="title">冬の灯</h1>
+  <p class="byline">作・演出　篠宮 遥</p>
+  <p class="dates"><time datetime="2026-12-10">2026年12月10日（木）</time><span class="dash">—</span><time datetime="2026-12-20">12月20日（日）</time></p>
+  <p class="venue">灯守座アトリエ</p>
+  <p class="note">※劇団・人物・劇場・公演はすべて架空の見本です</p>
+  <nav class="toc" aria-label="目次">
+    <ol>
+      <li><a href="#greeting" data-id="greeting">ごあいさつ</a></li>
+      <li><a href="#story" data-id="story">あらすじ</a></li>
+      <li><a href="#cast" data-id="cast">登場人物</a></li>
+      <li><a href="#set" data-id="set">舞台美術</a></li>
+      <li><a href="#staff" data-id="staff">スタッフ</a></li>
+      <li><a href="#info" data-id="info">公演情報</a></li>
+    </ol>
+  </nav>
+</header>
+
+<main>
+<section class="ch" id="greeting" data-light="greeting" aria-labelledby="h-greeting">
+  <p class="no">一</p>
+  <h2 id="h-greeting">ごあいさつ</h2>
+  <div class="prose">
+    <p>岬の灯台は、もう船のためには灯っていません。<br>それでも毎晩、誰かが火を入れに上がっていく。</p>
+    <p>この芝居は、その「誰か」の話です。役に立たなくなったものを、それでも手放さない人たちの、冬のあいだの数日を書きました。</p>
+    <p>稽古場では、照明の灯野さんと何度も同じ相談をしました。灯りを「点ける」場面より、「点けたままにしておく」場面のほうがずっと難しい、と。</p>
+    <p>終演のあと、帰り道の街灯をひとつだけ、いつもより長く見ていただけたら嬉しいです。</p>
+  </div>
+  <p class="sign">作・演出　篠宮 遥</p>
+</section>
+
+<section class="ch" id="story" data-light="story" aria-labelledby="h-story">
+  <p class="no">二</p>
+  <h2 id="h-story">あらすじ</h2>
+  <div class="prose">
+    <p>港町のはずれ、岬の灯台。灯台守の娘・灯は、父に代わって毎晩、役目を終えた灯に火を入れている。</p>
+    <p>ある冬の夜、町を出ていった測量士の冬至が、灯台を取り壊す計画書を持って帰ってくる。</p>
+    <p>食堂のミツ、手紙を運ぶ郵便夫、灯を見張る見習いの少年。それぞれが、灯の消える日を数えはじめる。</p>
+  </div>
+</section>
+
+<section class="ch" id="cast" data-light="cast" aria-labelledby="h-cast">
+  <p class="no">三</p>
+  <h2 id="h-cast">登場人物</h2>
+  <ul class="cast" id="cast-list"></ul>
+</section>
+
+<section class="ch" id="set" data-light="set" aria-labelledby="h-set">
+  <p class="no">四</p>
+  <h2 id="h-set">舞台美術</h2>
+  <figure class="model">
+    <canvas id="model" role="img" aria-label="舞台美術の模型。傾いた床の奥に街灯が一本立ち、手前にベンチがある。雪が降っている"></canvas>
+    <figcaption>模型　スクロールに合わせて、客席から見た角度がゆっくり回ります</figcaption>
+  </figure>
+  <div class="prose">
+    <p>床は客席に向かってわずかに傾けています。灯台そのものは舞台に出さず、街灯を一本だけ立てました。</p>
+    <p>雪は最後まで止みません。照明が変わるたびに、雪の色だけが少しずつ変わっていきます。</p>
+  </div>
+  <p class="sign">舞台美術　野辺 朔</p>
+</section>
+
+<section class="ch" id="staff" data-light="staff" aria-labelledby="h-staff">
+  <p class="no">五</p>
+  <h2 id="h-staff">スタッフ</h2>
+  <dl class="staff" id="staff-list"></dl>
+</section>
+
+<section class="ch" id="info" data-light="info" aria-labelledby="h-info">
+  <p class="no">六</p>
+  <h2 id="h-info">公演情報</h2>
+  <dl class="info">
+    <div><dt>期間</dt><dd><time datetime="2026-12-10">2026年12月10日（木）</time>〜<time datetime="2026-12-20">12月20日（日）</time></dd></div>
+    <div><dt>開演</dt><dd><span class="nw">平日 19:00</span>／<span class="nw">土・日 14:00</span><br><span class="nw">千秋楽 12月20日（日）は</span><span class="nw">18:00</span></dd></div>
+    <div><dt>上演時間</dt><dd>約1時間50分（休憩なし）</dd></div>
+    <div><dt>劇場</dt><dd>灯守座アトリエ（客席120席）</dd></div>
+  </dl>
+  <p class="notice">※この公演は架空です。チケットの販売はありません。</p>
+  <p class="back"><a href="#top" data-id="back">表紙へ戻る</a></p>
+</section>
+</main>
+
+<footer class="colophon" data-light="end">
+  <p class="end-title">冬の灯</p>
+  <p>このパンフレットは天狼スタジオが制作した見本です。<br>劇団・人物・劇場・公演はすべて架空です。</p>
+  <p class="studio">制作　天狼スタジオ</p>
+</footer>
+
+<script type="module" src="app.js"></script>
