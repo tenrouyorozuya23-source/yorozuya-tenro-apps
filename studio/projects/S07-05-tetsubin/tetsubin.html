@@ -5,7 +5,7 @@
 .t{position:absolute;left:0;right:0;text-align:center;opacity:0}
 #brand{top:1290px;font:300 32px/1 "Noto Sans JP";letter-spacing:.6em;text-indent:.6em;color:#b9ae9c}
 #name{top:1340px;font:600 120px/1 "Shippori Mincho";letter-spacing:.2em;text-indent:.2em}
-#sub{top:1470px;font:400 32px/1.6 "Noto Sans JP";letter-spacing:.24em;text-indent:.24em;color:#c4b9a8}
+#sub{top:1440px;font:400 32px/1.6 "Noto Sans JP";letter-spacing:.24em;text-indent:.24em;color:#c4b9a8}
 #cap{top:300px;font:400 44px/1 "Noto Sans JP";letter-spacing:.4em;text-indent:.4em;color:#d6cbb9;text-shadow:0 0 24px #000}
 </style></head><body><div id="ov">
 <div class="t" id="cap">鋳鉄の肌</div>
@@ -72,7 +72,7 @@ window.renderAt=t=>{
     const p0=new THREE.Vector3(Math.sin(a)*1.6,lerp(.5,.65,prog(t,0,5.5)),Math.cos(a)*1.6),p1=new THREE.Vector3(tipW.x+1.5,tipW.y+.25,tipW.z+3.6);
     camera.position.lerpVectors(p0,p1,v);const l0=new THREE.Vector3(0,lerp(.42,.55,prog(t,0,5.5)),0),l1=new THREE.Vector3(tipW.x-.15,tipW.y+.45,tipW.z);camera.lookAt(l0.lerp(l1,v));
     if(S.bokeh){S.bokeh.uniforms.focus.value=lerp(1.0,2.3,v);S.bokeh.uniforms.aperture.value=lerp(.0022,.0012,v);}}
-  else{const u=ease.inOutSine(prog(t,HIT,5));camera.position.set(lerp(1.2,.9,u),lerp(1.1,1.0,u),lerp(6.4,5.8,u));camera.lookAt(.2,.6,0);
+  else{const u=ease.inOutSine(prog(t,HIT,5));camera.position.set(lerp(1.2,.9,u),lerp(1.1,1.0,u),lerp(6.4,5.8,u));camera.lookAt(.2,.52,0);
     if(S.bokeh){S.bokeh.uniforms.focus.value=lerp(6.4,5.8,u);S.bokeh.uniforms.aperture.value=.0007;}}
   op('cap',!lit&&!dark?(1-prog(t,5.0,.4)):0);
   op('name',lit?ease.outCubic(prog(t,HIT,.2)):0);op('brand',lit?ease.outCubic(prog(t,HIT+.4,.3)):0);op('sub',lit?ease.outCubic(prog(t,HIT+.8,.3)):0);
