@@ -4,9 +4,9 @@ html{line-break:strict;word-break:auto-phrase;background:var(--bg);color:var(--i
 a{color:inherit;text-decoration:none}
 .mincho{font-family:"Shippori Mincho",serif;font-weight:600}
 header{position:sticky;top:0;z-index:10;display:flex;justify-content:space-between;align-items:center;padding:14px clamp(16px,5vw,56px);background:#08080be6;backdrop-filter:blur(8px);border-bottom:1px solid #ffffff0a}
-header .logo{font-family:"Shippori Mincho",serif;font-weight:600;letter-spacing:.2em;font-size:18px}
+header .logo{display:inline-block;padding:10px 0;min-height:44px;font-family:"Shippori Mincho",serif;font-weight:600;letter-spacing:.2em;font-size:18px}
 header nav{display:flex;gap:clamp(2px,2vw,24px);font-size:13px;letter-spacing:.16em;color:var(--sub)}
-header nav a{padding:12px 8px;display:inline-block}
+header nav a{padding:12px 8px;display:inline-block;min-width:44px;text-align:center}
 header nav a[aria-current]{color:var(--ink)}
 .hero{position:relative;min-height:min(86svh,820px);display:grid;place-items:center;text-align:center;padding:0 clamp(16px,5vw,56px);overflow:hidden}
 .hero canvas{position:absolute;inset:0;width:100%;height:100%}
@@ -21,7 +21,7 @@ section h2{font-size:clamp(26px,3.4vw,36px);letter-spacing:.12em;margin-bottom:1
 .lead{color:var(--sub);max-width:640px}
 .tracks{list-style:none;border-top:1px solid var(--line);margin-top:32px}
 .track{display:grid;grid-template-columns:48px 1fr auto;gap:16px;align-items:center;padding:18px 0;border-bottom:1px solid var(--line)}
-.track button{width:48px;height:48px;border-radius:50%;border:1px solid #5f5850;background:transparent;color:var(--ink);cursor:pointer;font-size:14px}
+.track button{width:48px;height:48px;border-radius:50%;border:1px solid #7a7166;background:transparent;color:var(--ink);cursor:pointer;font-size:14px}
 .track[data-on] button{background:var(--acc);color:#130e08;border-color:var(--acc)}
 .track .t{font-family:"Shippori Mincho",serif;font-weight:600;font-size:19px;letter-spacing:.08em}
 .track .m{font-size:13px;color:var(--sub)}
@@ -36,3 +36,7 @@ dl.career dt{color:var(--sub);font-variant-numeric:tabular-nums}
 .note{font-size:12px;color:#9a9285;margin-top:2em}
 footer{border-top:1px solid var(--line);padding:32px clamp(16px,5vw,56px);font-size:12px;color:var(--sub);letter-spacing:.08em;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+#mini{position:sticky;top:73px;z-index:9;display:block;width:100%;height:56px;opacity:0;transition:opacity .4s;pointer-events:none;background:linear-gradient(#08080bf2,#08080b00)}
+body.playing #mini{opacity:1}
+.tl{display:inline-block;padding:10px 0;border-bottom:1px solid var(--line)}
+.track .t{transition:color .3s}.track[data-on] .t{color:rgb(var(--tc,233,185,124))}
