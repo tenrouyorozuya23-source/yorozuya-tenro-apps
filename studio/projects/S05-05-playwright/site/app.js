@@ -2,21 +2,26 @@
 import { F } from './data.js';
 const $ = id => document.getElementById(id);
 const el = (t, c, txt) => { const e = document.createElement(t); if (c) e.className = c; if (txt != null) e.textContent = txt; return e; };
-const plays = [...F.plays].sort((a, b) => b.year - a.year);
+const done = F.plays.filter(p => p.status !== 'planned').sort((a, b) => b.year - a.year);
+const planned = F.plays.filter(p => p.status === 'planned');
+const plays = [...done, ...planned];
 const latestDone = plays.find(p => p.id === 'fuyu');
 for (const [i, t] of latestDone.hero_lines.entries()) { if (i) $('first-line').append(document.createElement('br')); $('first-line').append(t); }
 $('name').textContent = F.name; $('kana').textContent = F.kana; $('role').textContent = F.role;
 for (const p of plays) {
   const s = el('article', 'page'); s.id = 'play-' + p.id; s.dataset.id = p.id;
-  const h = el('h3', null, `『${p.title}』`); h.append(el('small', null, `${p.year}年　${p.company}　${p.venue}　上演時間 約${p.minutes}分　登場人物 ${p.cast}人`)); s.append(h);
+  const h = el('h3', null, `『${p.title}』`); if (p.status === 'planned') h.append(el('span', 'tag', '初演予定'));
+  const sm = el('small'); for (const t of [p.status === 'planned' ? `${p.premiere} 初演予定` : `${p.year}年 初演`, p.company, p.venue, `上演時間 約${p.minutes}分`, `登場人物 ${p.cast}人`]) sm.append(el('span', 'nw', t)); h.append(sm); s.append(h);
   const sc = el('div', 'script'); sc.append(el('p', 'pillar', p.pillar), el('p', 'dir', p.direction));
   for (const [who, say] of p.lines) { const l = el('p', 'line'); l.append(el('span', 'who2', who), el('span', 'say', say)); sc.append(l); }
   s.append(sc, el('p', 'note', p.note)); $('play-list').append(s);
 }
-for (const p of plays) {
+for (const p of done) {
   const tr = el('tr'); tr.dataset.id = p.id;
   for (const v of [`${p.year}`, `『${p.title}』`, p.company, p.venue, `約${p.minutes}分`]) tr.append(el('td', null, v));
   $('hist').append(tr);
 }
 for (const b of F.bio) $('bio').append(el('p', null, b));
 $('disc').textContent = F.disclosure;
+$('fic').textContent = F.disclosure_short;
+for (const p of planned) $('planned').append(el('p', null, `${p.premiere}　『${p.title}』　${p.company}　${p.venue}`));

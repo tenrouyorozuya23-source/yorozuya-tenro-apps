@@ -32,14 +32,19 @@ h2 span { margin-left: 1em; font: 400 14px var(--sans); letter-spacing: .2em; co
 /* 台本の一頁 */
 .page { padding: 40px 0 48px; border-top: 1px solid var(--line); }
 .page h3 { margin: 0; font: 600 34px/1.4 var(--mincho); letter-spacing: .14em; }
+.nw { white-space: nowrap; margin-right: 1em; }
+.tag { display: inline-block; margin-left: .8em; padding: 2px 8px; border: 1px solid var(--amber); font: 400 12px/1.6 var(--sans); letter-spacing: .1em; color: var(--amber); vertical-align: middle; }
+.fic { margin: 10px 0 0; font: 400 12px/1.6 var(--sans); letter-spacing: .14em; color: var(--sub); }
+.planned { margin: 0 0 24px; font-size: 15px; }
+.planned .ph { margin: 0; font: 400 13px/1.6 var(--sans); color: var(--sub); letter-spacing: .14em; }
+.planned p { margin: 0; }
 .page h3 small { display: block; margin-top: 6px; font: 400 14px/1.6 var(--sans); letter-spacing: .14em; color: var(--sub); }
 .script { margin: 28px 0 0; padding: 0; }
 .pillar { margin: 0 0 14px; font-weight: 600; letter-spacing: .14em; }
-.dir { margin: 0 0 18px; padding-left: 3em; font-size: 15px; color: var(--sub); }
-.line { display: grid; grid-template-columns: 6.5em 1fr; gap: 0 1em; margin: 0 0 8px; }
+.dir { margin: 0 0 18px; padding-left: calc(4.6em + 1.5em + 3em); font-size: 15px; color: var(--sub); }
+.line { display: grid; grid-template-columns: 4.6em 1fr; gap: 0 1.5em; margin: 0 0 8px; }
 .line .who2 { text-align: right; color: var(--amber); letter-spacing: .1em; }
 .line .say { min-width: 0; }
-.say::before { content: "「"; } .say::after { content: "」"; }
 .note { margin: 22px 0 0; font-size: 15px; color: var(--ink); }
 .tbl { overflow-x: auto; }
 table { width: 100%; border-collapse: collapse; font-size: 15px; font-variant-numeric: tabular-nums; }
@@ -51,8 +56,18 @@ th { font: 400 13px/1.4 var(--sans); color: var(--sub); letter-spacing: .14em; }
   .hero { grid-template-columns: 1fr; gap: 28px; padding-top: 48px; }
   .first { height: auto; justify-content: flex-end; }
   .first p { height: auto; }
-  .line { grid-template-columns: 1fr; }
-  .line .who2 { text-align: left; }
+  .line { grid-template-columns: 4.6em 1fr; gap: 0 1em; }
+  .dir { padding-left: 3em; }
+  .page h3 small { font-size: 13px; }
+  table, thead, tbody, tr, td { display: block; }
+  thead { display: none; }
+  tr { padding: 10px 0; border-bottom: 1px solid var(--line); }
+  td { border: 0; padding: 0; white-space: normal; }
+  td:nth-child(1) { display: inline; }
+  td:nth-child(2) { display: inline; margin-left: .6em; }
+  td:nth-child(n+3) { display: inline; font: 400 13px/1.8 var(--sans); color: var(--sub); }
+  td:nth-child(3)::before { content: "\A"; white-space: pre; }
+  td:nth-child(4)::before, td:nth-child(5)::before { content: "／"; }
   .page h3 { font-size: 28px; }
 }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
