@@ -61,13 +61,13 @@ window.renderAt=t=>{
   key.color.set(st.col);dots.forEach(d=>d.intensity=0);
   let I=0,ang=.42,px=0,py=3.2,pz=8,tx=0,ty=0;
   switch(st.move){
-   case 'scan': py=2.4; ang=hit?lerp(.06,.42,ease.outCubic(prog(u,HIT,.5))):.05; px=hit?0:lerp(-4,0,pre); tx=px; I=hit?260:120; break;
+   case 'scan': py=2.4; ang=hit?lerp(.1,.42,ease.outCubic(prog(u,HIT,.5))):.1; px=hit?0:lerp(-4,0,pre); tx=px; I=hit?260:120; break;
    case 'moon': py=hit?2.2:lerp(-2,2.2,pre); pz=7; ty=hit?.2:lerp(-1,.2,pre); I=hit?240:60*pre; ang=.5; break;
    case 'dawn': py=lerp(-3.5,-.6,pre)+(hit?lerp(0,1.8,ease.outCubic(prog(u,HIT,1.6))):0); pz=6.5; I=hit?280:90*pre; ang=.55; key.color.lerpColors(new THREE.Color(0xff7a3a),new THREE.Color(0xffd6a8),ease.outCubic(prog(u,HIT,1.6))); break;
    case 'dusk': px=lerp(3,1.2,ease.inOutSine(prog(u,0,SLOT))); py=1; I=hit?250:50*pre; ang=.5; break;
-   case 'pulse': py=3; ang=hit?lerp(.03,.46,1-Math.pow(1-prog(u,HIT,.35),4)):.03+.02*Math.sin(u*25)*pre; I=hit?270:180*pre; break;
+   case 'pulse': py=3; ang=hit?lerp(.03,.46,1-Math.pow(1-prog(u,HIT,.35),4)):.12+.03*Math.sin(u*25)*pre; I=hit?270:180; break;
    case 'rake': px=-7.5; py=.4; pz=2.6; tx=1.5; I=hit?120:20*pre; ang=.6; break;
-   case 'iris': py=3; ang=hit?lerp(.012,.44,1-Math.pow(1-prog(u,HIT,.45),3)):.012; I=hit?280:220*pre; break;
+   case 'iris': py=3; ang=hit?lerp(.1,.44,1-Math.pow(1-prog(u,HIT,.45),3)):.1; I=hit?280:200; break;
    case 'glint': px=lerp(-5,5,ease.inOutSine(prog(u,HIT-.2,2.2))); py=lerp(3,-1,ease.inOutSine(prog(u,HIT-.2,2.2))); I=hit?120:40*pre; ang=.35; break;
    case 'sun': px=lerp(6.5,4.5,prog(u,0,SLOT)); py=2.5; pz=3.6; tx=-1; I=hit?130:25*pre; ang=.6; break;
    case 'dots': I=hit?lerp(0,240,ease.outCubic(prog(u,HIT+.25,.35))):0; ang=.5;
