@@ -10,9 +10,9 @@
 <p class="lead" style="margin-top:1.2em"><a href="works.html" style="border-bottom:1px solid var(--line)">作品を見る →</a></p></section></main>
 <script type="module">
 import {mountViewer,CUES} from './viewer.js';
-const SETS={glass:['『硝子の庭』（灯守座／2026）の舞台模型。下のキューを押すと、本番と同じ順番で明かりが変わります。'],stairs:['『夜鳴きの館』（架空／2025）の階段の装置。キューで夕景から月光へ移ります。'],gate:['『鬼門の夜』（架空／2024）の門と散る紙片。ピンスポットで一人を立たせます。']};
+const SETS={glass:['『硝子の庭』（灯守座・2026）の舞台模型。下のキューを押すと、本番と同じ順番で明かりが変わります。','光は、<br>時間を描く'],stairs:['『夜鳴きの館』（2025）の階段の装置。キューで夕景から月光へ移ります。','夜鳴きの館'],gate:['『鬼門の夜』（2024）の門と散る紙片。最後のピンで一人を立たせます。','鬼門の夜']};
 const set=new URLSearchParams(location.search).get('set')||'glass';const s=SETS[set]?set:'glass';
-document.getElementById('desc').textContent=SETS[s][0];
+document.getElementById('desc').textContent=SETS[s][0];document.getElementById('ttl').innerHTML=SETS[s][1];
 const clean=new URLSearchParams(location.search).has('clean');if(clean)document.body.classList.add('clean');
 const q0=Math.min(3,Math.max(0,+(new URLSearchParams(location.search).get('cue')||0)));
 const v=mountViewer(document.getElementById('stage'),{set:s,cues:CUES,still:clean,start:q0});
