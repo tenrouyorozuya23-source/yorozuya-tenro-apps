@@ -7,7 +7,7 @@
  *   hscroll    … 横スクロール（scrollWidth > innerWidth）
  *   tap        … 44px 未満のリンク・ボタン・入力（見えているものだけ）
  *   contrast   … 文字の色と、祖先をたどった背景色のコントラスト（4.5:1 未満。24px 以上か 18.66px 太字は 3:1）
- *   overlap    … 文字の箱どうしの重なり（同じ要素の親子は除く）
+ *   overlap    … 文字の箱どうしの重なり（同じ要素の親子と、sticky / fixed で固定した帯の中の文字は除く）
  * --out を付けると、全部の章を表示した状態のスクショ（sp.png / pc.png、上から）を保存する。
  * 背景が画像・グラデーションのときは、いちばん近い単色の背景で測る（目視も併用すること）。
  */
@@ -50,7 +50,8 @@ for (const [name, vp] of [['sp', { width: 390, height: 844 }], ['pc', { width: 1
     for (let n; (n = walk.nextNode());) { const t = n.textContent.trim(); if (!t) continue; const el = n.parentElement; if (el.closest('script,style,noscript,.skip')) continue; if (!visible(el)) continue; texts.push(el); }
     const contrast = []; const seen = new Set();
     for (const el of texts) { if (seen.has(el)) continue; seen.add(el); const s = getComputedStyle(el); const fg = parse(s.color); if (!fg) continue; let o = fg.a; for (let e = el; e; e = e.parentElement) o *= +getComputedStyle(e).opacity; const bg = bgOf(el); const f = { r: fg.r * o + bg.r * (1 - o), g: fg.g * o + bg.g * (1 - o), b: fg.b * o + bg.b * (1 - o) }; const L1 = lum(f), L2 = lum(bg); const cr = (Math.max(L1, L2) + .05) / (Math.min(L1, L2) + .05); const px = parseFloat(s.fontSize), bold = +s.fontWeight >= 700; const need = px >= 24 || (bold && px >= 18.66) ? 3 : 4.5; if (cr < need) contrast.push({ txt: el.textContent.trim().slice(0, 20), ratio: +cr.toFixed(2), need, fg: s.color }); }
-    const boxes = []; for (const el of seen) { const rg = document.createRange(); rg.selectNodeContents(el); for (const b of rg.getClientRects()) if (b.width > 2 && b.height > 2) boxes.push({ el, b }); }
+    const pinned = el => { for (let e = el; e; e = e.parentElement) { const ps = getComputedStyle(e).position; if (ps === 'sticky' || ps === 'fixed') return true; } return false; };
+    const boxes = []; for (const el of seen) { if (pinned(el)) continue; const rg = document.createRange(); rg.selectNodeContents(el); for (const b of rg.getClientRects()) if (b.width > 2 && b.height > 2) boxes.push({ el, b }); }
     const overlap = [];
     for (let i = 0; i < boxes.length; i++) for (let j = i + 1; j < boxes.length; j++) { const A = boxes[i], B = boxes[j]; if (A.el === B.el || A.el.contains(B.el) || B.el.contains(A.el)) continue; const ix = Math.min(A.b.right, B.b.right) - Math.max(A.b.left, B.b.left), iy = Math.min(A.b.bottom, B.b.bottom) - Math.max(A.b.top, B.b.top); if (ix > 3 && iy > 3) overlap.push([A.el.textContent.trim().slice(0, 16), B.el.textContent.trim().slice(0, 16)]); }
     return { hscroll, tap, contrast, overlap: overlap.slice(0, 20) };

@@ -15,8 +15,9 @@ for (const w of WORKS) {
   a.querySelector('.kind').textContent = LABEL[GROUP(w)];
   a.querySelector('.ttl').textContent = short(w.title);
   a.querySelector('.form').textContent = w.form;
-  a.querySelector('.go').textContent = w.site ? 'サイトを開く' : '作品のフォルダを開く';
-  a.setAttribute('aria-label', `${short(w.title)}（${LABEL[GROUP(w)]}）${w.site ? 'サイトを開く' : '作品のフォルダを開く'}`);
+  const go = w.site ? 'サイトを開く' : GROUP(w) === '音' ? '音源の入ったフォルダを開く' : '映像の入ったフォルダを開く';
+  a.querySelector('.go').textContent = go;
+  a.setAttribute('aria-label', `${short(w.title)}（${LABEL[GROUP(w)]}）${go}`);
   li.append(a); board.append(li);
 }
 const btns = [...document.querySelectorAll('.filter button')];
