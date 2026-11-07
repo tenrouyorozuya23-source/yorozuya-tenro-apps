@@ -3,13 +3,13 @@
 <script type="importmap">{"imports":{"three":"/node_modules/three/build/three.module.js","three/addons/":"/node_modules/three/examples/jsm/"}}</script><style>
 #ov{position:absolute;inset:0;color:#efe8dc;pointer-events:none}
 .t{position:absolute;left:0;right:0;text-align:center;opacity:0}
-#brand{top:300px;font:300 32px/1 "Noto Sans JP";letter-spacing:.6em;text-indent:.6em;color:#b9ae9c}
-#name{top:360px;font:600 120px/1 "Shippori Mincho";letter-spacing:.2em;text-indent:.2em}
-#sub{top:520px;font:400 32px/1.6 "Noto Sans JP";letter-spacing:.24em;text-indent:.24em;color:#c4b9a8}
-#cap{top:1380px;font:300 30px/1 "Noto Sans JP";letter-spacing:.4em;text-indent:.4em;color:#9d9384}
+#brand{top:1290px;font:300 32px/1 "Noto Sans JP";letter-spacing:.6em;text-indent:.6em;color:#b9ae9c}
+#name{top:1340px;font:600 120px/1 "Shippori Mincho";letter-spacing:.2em;text-indent:.2em}
+#sub{top:1470px;font:400 32px/1.6 "Noto Sans JP";letter-spacing:.24em;text-indent:.24em;color:#c4b9a8}
+#cap{top:300px;font:400 44px/1 "Noto Sans JP";letter-spacing:.4em;text-indent:.4em;color:#d6cbb9;text-shadow:0 0 24px #000}
 </style></head><body><div id="ov">
 <div class="t" id="cap">鋳鉄の肌</div>
-<div class="t" id="brand">雲龍堂</div><div class="t" id="name">霰</div><div class="t" id="sub">鋳鉄の鉄瓶　一・二リットル</div></div>
+<div class="t" id="brand">雲龍堂</div><div class="t" id="name">霰</div><div class="t" id="sub">鋳鉄の鉄瓶　容量 1.2L</div></div>
 <script type="module">
 // S07-05 鉄瓶「霰」：斜めの光が鋳鉄の粒（霰）を撫で、湯気が光の筋に浮かぶ。9〜10秒の無音の暗転のあと 10.0 秒に全体を見せる
 import * as C from '/tools/cine/cine.js';
@@ -25,7 +25,7 @@ const bc=document.createElement('canvas');bc.width=2048;bc.height=1024;{const x=
   const R=C.rand(5);for(let i=0;i<60000;i++){const v=70+R()*50;x.fillStyle=`rgb(${v},${v},${v})`;x.fillRect(R()*2048,R()*1024,2,2);}
   for(let row=0;row<26;row++)for(let col=0;col<72;col++){const cx=(col+(row%2)*.5)*2048/72,cy=90+row*30;const g=x.createRadialGradient(cx,cy,0,cx,cy,11);g.addColorStop(0,'#ffffff');g.addColorStop(.7,'#9a9a9a');g.addColorStop(1,'rgba(90,90,90,0)');x.fillStyle=g;x.beginPath();x.arc(cx,cy,11,0,6.283);x.fill();}}
 const bump=new THREE.CanvasTexture(bc);bump.wrapS=THREE.RepeatWrapping;
-const iron=new THREE.MeshPhysicalMaterial({color:0x2a2622,metalness:.55,roughness:.62,bumpMap:bump,bumpScale:3.2,clearcoat:.15,clearcoatRoughness:.6});
+const iron=new THREE.MeshPhysicalMaterial({color:0x1d1b1a,metalness:.5,roughness:.8,bumpMap:bump,bumpScale:3.2,clearcoat:.05,clearcoatRoughness:.8});
 const ironSm=new THREE.MeshPhysicalMaterial({color:0x221f1c,metalness:.6,roughness:.5});
 const prof=[[0,0],[.42,0],[.5,.04],[.6,.18],[.66,.36],[.64,.52],[.56,.66],[.42,.74],[.3,.77],[.29,.8]].map(p=>new THREE.Vector2(p[0],p[1]));
 const K=new THREE.Group();
@@ -51,7 +51,7 @@ K.updateMatrixWorld(true);const tipW=K.localToWorld(new THREE.Vector3(.96,.72,0)
 const rake=C.spot(scene,{pos:[-3.2,1.0,1.2],target:[0,.45,0],color:0xffd7ac,intensity:0,angle:.28,penumbra:.5});
 const key=C.spot(scene,{pos:[1.5,4.5,2.5],target:[0,.55,0],color:0xfff0de,intensity:0,angle:.17,penumbra:.7});
 const rim=C.spot(scene,{pos:[0,2.2,-3.5],target:[0,.6,0],color:0xbcd0ea,intensity:0,angle:.35,penumbra:.6,shadow:false});
-const bm=C.beam(scene,{from:[2.6,3.4,-1.2],to:[tipW.x,tipW.y+.6,tipW.z],radius:.5,color:0xffe6c8,density:.12});
+const bm=C.beam(scene,{from:[2.6,3.4,-1.2],to:[tipW.x,tipW.y+.6,tipW.z],radius:.5,color:0xffe6c8,density:.3});
 await document.fonts.load('600 120px "Shippori Mincho"','霰');await document.fonts.load('300 32px "Noto Sans JP"','雲龍堂鋳鉄の鉄瓶一・二リットル肌');
 window.__ready=Promise.resolve();
 const $=id=>document.getElementById(id);const op=(id,v)=>$(id).style.opacity=(+v).toFixed(3);
@@ -59,21 +59,23 @@ const DK=9.0,HIT=10.0;
 window.renderAt=t=>{
   const dark=t>=DK&&t<HIT, lit=t>=HIT;
   // 0〜9秒：斜光の位置がゆっくり回り、粒の影が流れる
-  const ra=lerp(-.35,.25,prog(t,0,9));rake.position.set(-3.2*Math.cos(ra),1.0+.4*prog(t,0,9),3.2*Math.sin(ra)+1.2);
-  rake.intensity=dark?0:lit?180:lerp(240,300,prog(t,0,9));
+  const ra=lerp(.02,.4,prog(t,0,9));rake.position.set(-3.2*Math.cos(ra),1.0+.4*prog(t,0,9),3.2*Math.sin(ra)+1.2);
+  rake.intensity=dark?0:lit?180:lerp(700,420,prog(t,0,9));
   key.intensity=lit?ease.outCubic(prog(t,HIT,.25))*110:0;
   rim.intensity=dark||lit?0:lerp(10,40,prog(t,0,6));
   // 湯気：6秒から上り始める（明転後も続く）
-  const so=dark?0:Math.min(.3,prog(t,5.5,2)*.3);steamM.opacity=so;
-  steams.forEach((m,i)=>{m.position.set(tipW.x+.03*i-.03,tipW.y+.55+i*.04,tipW.z+.02*i);m.rotation.y=i*1.05+t*.05;m.scale.set(1+.15*i,1+.08*Math.sin(t*1.3+i),1);m.position.x+=.04*Math.sin(t*.9+i*2);m.position.y+=((t*.06+i*.33)%1)*.12;});
+  const so=dark?0:Math.min(.22,prog(t,5.5,1.5)*.22);steamM.opacity=so;
+  steams.forEach((m,i)=>{m.position.set(tipW.x+.03*i-.03,tipW.y+.42+i*.04,tipW.z+.02*i);m.quaternion.copy(camera.quaternion);m.rotateZ((i-1)*.12+.05*Math.sin(t*.7+i));m.scale.set(1+.15*i,1+.08*Math.sin(t*1.3+i),1);m.position.x+=.04*Math.sin(t*.9+i*2);m.position.y+=((t*.06+i*.33)%1)*.12;});
   bm.set(t,dark?0:prog(t,5.5,2)*.7);
   // カメラ：0〜9秒は胴の霰に寄ったマクロで横へ流れる。明転後は全体を 3/4 で見せ、ゆっくり寄る
-  if(!lit){const a=lerp(.15,-.2,prog(t,0,9));camera.position.set(Math.sin(a)*1.6,lerp(.5,.75,prog(t,0,9)),Math.cos(a)*1.6);camera.lookAt(0,lerp(.42,.6,prog(t,0,9)),0);
-    if(S.bokeh){S.bokeh.uniforms.focus.value=1.0;S.bokeh.uniforms.aperture.value=.0022;}}
-  else{const u=ease.inOutSine(prog(t,HIT,5));camera.position.set(lerp(1.2,.9,u),lerp(1.1,1.0,u),lerp(6.4,5.8,u));camera.lookAt(.2,1.05,0);
+  if(!lit){const a=lerp(.15,-.1,prog(t,0,5.5)),v=ease.inOutCubic(prog(t,5.0,3.5));
+    const p0=new THREE.Vector3(Math.sin(a)*1.6,lerp(.5,.65,prog(t,0,5.5)),Math.cos(a)*1.6),p1=new THREE.Vector3(tipW.x+1.5,tipW.y+.25,tipW.z+3.6);
+    camera.position.lerpVectors(p0,p1,v);const l0=new THREE.Vector3(0,lerp(.42,.55,prog(t,0,5.5)),0),l1=new THREE.Vector3(tipW.x-.15,tipW.y+.45,tipW.z);camera.lookAt(l0.lerp(l1,v));
+    if(S.bokeh){S.bokeh.uniforms.focus.value=lerp(1.0,2.3,v);S.bokeh.uniforms.aperture.value=lerp(.0022,.0012,v);}}
+  else{const u=ease.inOutSine(prog(t,HIT,5));camera.position.set(lerp(1.2,.9,u),lerp(1.1,1.0,u),lerp(6.4,5.8,u));camera.lookAt(.2,.6,0);
     if(S.bokeh){S.bokeh.uniforms.focus.value=lerp(6.4,5.8,u);S.bokeh.uniforms.aperture.value=.0007;}}
-  op('cap',!lit&&!dark?ease.outCubic(prog(t,.3,.4))*(1-prog(t,5.0,.4)):0);
-  op('brand',lit?ease.outCubic(prog(t,HIT+.4,.4)):0);op('name',lit?1:0);op('sub',lit?ease.outCubic(prog(t,HIT+.9,.4)):0);
+  op('cap',!lit&&!dark?(1-prog(t,5.0,.4)):0);
+  op('name',lit?ease.outCubic(prog(t,HIT,.2)):0);op('brand',lit?ease.outCubic(prog(t,HIT+.4,.3)):0);op('sub',lit?ease.outCubic(prog(t,HIT+.8,.3)):0);
   S.render();
 };
 </script></body></html>
