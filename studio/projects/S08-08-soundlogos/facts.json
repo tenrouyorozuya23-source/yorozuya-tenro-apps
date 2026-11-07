@@ -1,0 +1,59 @@
+{
+ "_note": "すべて架空の企業（S06・S07 の架空クライアント）。実在の社名との重なりは 2026-11-07 にウェブ検索で確認し、該当なし",
+ "slot_sec": 4.5,
+ "hit_sec": 0.26667,
+ "count": 10,
+ "companies": [
+  {
+   "id": "L01",
+   "name": "霞ヶ丘精工",
+   "kind": "精密加工メーカー"
+  },
+  {
+   "id": "L02",
+   "name": "月影ホテル",
+   "kind": "ホテル"
+  },
+  {
+   "id": "L03",
+   "name": "暁ホールディングス",
+   "kind": "総合商社"
+  },
+  {
+   "id": "L04",
+   "name": "Maison Yūgure",
+   "kind": "フレグランス"
+  },
+  {
+   "id": "L05",
+   "name": "Sirius Acoustics",
+   "kind": "オーディオ"
+  },
+  {
+   "id": "L06",
+   "name": "筆影",
+   "kind": "文具"
+  },
+  {
+   "id": "L07",
+   "name": "Hoshimi Optics",
+   "kind": "光学メーカー"
+  },
+  {
+   "id": "L08",
+   "name": "Lune Atelier",
+   "kind": "コスメ"
+  },
+  {
+   "id": "L09",
+   "name": "Atelier Kasumi",
+   "kind": "建築設計事務所"
+  },
+  {
+   "id": "L10",
+   "name": "ノクターン・ラボ",
+   "kind": "IT 企業"
+  }
+ ],
+ "hit_frame_at_30fps": 8
+}
