@@ -81,7 +81,7 @@ window.renderAt=t=>{
   // 文字：題名はフレーム0から。5.0〜5.625 で消え、一打で同じ位置に役名が立つ
   const top=1-ease.inOutSine(prog(t,5.0,.625));
   for(const id of['sh','sh2']){$(id).style.opacity=top.toFixed(3);$(id).style.transform=`translateY(${(-6*prog(t,0,.625)).toFixed(1)}px)`;}
-  if(hit){land('kana',t,HIT+2/30);land('role',t,HIT,3/30,30);land('actor',t,HIT+BEAT*2,8/30,12);land('end',t,8.75,10/30,10);}else{for(const id of['kana','role','actor','end'])$(id).style.opacity=0;}
+  if(hit){land('kana',t,HIT+2/30);land('role',t,HIT,3/30,30);land('actor',t,HIT+BEAT*2,8/30,12);land('end',t,8.1,10/30,10);}else{for(const id of['kana','role','actor','end'])$(id).style.opacity=0;}
   $('disc').style.opacity='1';
   S.render();
 };
