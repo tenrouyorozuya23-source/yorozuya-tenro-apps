@@ -39,14 +39,19 @@ for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
   const R=20+r*.9, a=(c-(COLS-1)/2)*.62/R;
   seatPos.push({r,c,x:Math.sin(a)*R,z:-Math.cos(a)*R+20,y:r*.3,ry:-a});
 }
+const o=new THREE.Object3D();
 // 段床と左右の壁
 const stepMat=new THREE.MeshStandardMaterial({color:0x1b1613,roughness:.9});
 for(let r=0;r<ROWS;r++){const g=new THREE.BoxGeometry(5.2,.3,.9);const m=new THREE.Mesh(g,stepMat);m.position.set(0,r*.3-.15,-r*.9);m.receiveShadow=true;scene.add(m);}
 const wallMat=new THREE.MeshStandardMaterial({color:0x221a16,roughness:.95});
 for(const sx of[-1,1]){const w=new THREE.Mesh(new THREE.PlaneGeometry(26,12),wallMat);w.rotation.y=-sx*Math.PI/2;w.position.set(sx*2.9,5,-8);w.receiveShadow=true;scene.add(w);}
+// 通路の足元灯（段鼻の小さな灯。客席の形が暗転中も見える）
+const foot=new THREE.InstancedMesh(new THREE.BoxGeometry(.22,.02,.02),new THREE.MeshBasicMaterial({color:0x6a4426,toneMapped:false}),ROWS*2);
+{let k=0;for(let r=0;r<ROWS;r++)for(const sx of[-1,1]){o.position.set(sx*2.45,r*.3+.02,-r*.9+.46);o.rotation.set(0,0,0);o.updateMatrix();foot.setMatrixAt(k++,o.matrix);}}
+scene.add(foot);
 const bw=new THREE.Mesh(new THREE.PlaneGeometry(8,14),wallMat);bw.position.set(0,6,-18.5);scene.add(bw);
 // 椅子（臙脂の布）
-const fab=new THREE.MeshStandardMaterial({color:0x5a1a1c,roughness:.85});
+const fab=new THREE.MeshStandardMaterial({color:0x6e2224,roughness:.85});
 const cushion=new THREE.InstancedMesh(new THREE.BoxGeometry(.5,.12,.46),fab,N);
 const back=new THREE.InstancedMesh(new THREE.BoxGeometry(.5,.62,.1),fab,N);
 // 客席灯：背もたれの上の細い灯と、座面に落ちる光だまり
@@ -56,7 +61,6 @@ const cv=document.createElement('canvas');cv.width=cv.height=128;const cx=cv.get
 gr.addColorStop(0,'rgba(255,255,255,1)');gr.addColorStop(.35,'rgba(255,255,255,.35)');gr.addColorStop(1,'rgba(255,255,255,0)');cx.fillStyle=gr;cx.fillRect(0,0,128,128);
 const pool=new THREE.InstancedMesh(new THREE.PlaneGeometry(1.3,1.3),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(cv),transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,toneMapped:false}),N);
 const halo=new THREE.InstancedMesh(new THREE.PlaneGeometry(.9,.5),new THREE.MeshBasicMaterial({map:pool.material.map,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,toneMapped:false}),N);
-const o=new THREE.Object3D();
 seatPos.forEach((p,i)=>{
   o.position.set(p.x,p.y+.42,p.z);o.rotation.set(0,p.ry,0);o.updateMatrix();cushion.setMatrixAt(i,o.matrix);
   o.position.set(p.x+Math.sin(p.ry)*.0,p.y+.72,p.z-Math.cos(-p.ry)*.24);o.updateMatrix();back.setMatrixAt(i,o.matrix);
@@ -85,13 +89,14 @@ const REM=10.0, END=12.5;
 window.renderAt=t=>{
   // 地明かりは2拍周期でわずかに呼吸させる（静止判定の回避。谷でも客席が見える明るさ）
   const br=1+.06*Math.sin(t*Math.PI*2/1.25);
-  wash.intensity=lerp(60,26,ease.inOutSine(prog(t,REM-.6,1.2)))*br;
-  hero.intensity=180*ease.outCubic(prog(t,REM,.8))*br;
+  S.renderer.toneMappingExposure=1.0+.45*ease.inOutSine(prog(t,5,3))*(1-ease.inOutSine(prog(t,REM,1.2)));
+  wash.intensity=lerp(260,90,ease.inOutSine(prog(t,REM-.6,1.2)))*br;
+  hero.intensity=(90*ease.inOutSine(prog(t,6.5,2))+120*ease.outCubic(prog(t,REM,.8)))*br;
   for(let i=0;i<N;i++){
     const off=(x=>x*x*x)(prog(t,soldAt[i],.25));
     // 消える瞬間に一度だけ小さく瞬く
     const blink=t>=soldAt[i]&&t<soldAt[i]+.06?.5:1;
-    let v=lerp(1,.03,off)*blink;
+    let v=lerp(1,.07,off)*blink;
     const boost=1+1.4*ease.outCubic(prog(t,REM,.6))*(soldAt[i]>100?1:0);
     col.copy(WARM).lerp(HOT,clamp(boost-1)).multiplyScalar(v*boost*1.6);lamp.setColorAt(i,col);
     col.copy(WARM).multiplyScalar(v*boost*.22);pool.setColorAt(i,col);
