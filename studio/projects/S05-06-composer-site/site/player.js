@@ -1,7 +1,7 @@
 // 試聴プレイヤーと、音に反応する「照明バー」の可視化（舞台のボーダーライトのような横一列の光）
 const tracks = [...document.querySelectorAll('.track')];
 let ctx, an, data, cur = null;
-const audio = new Audio(); audio.preload = 'none';
+const audio = new Audio(); audio.preload = 'none'; audio.crossOrigin = 'anonymous';// githack は音源を raw.githubusercontent.com へ転送する。CORS 付きで読まないと解析器を通した音が無音になる
 function ensure() { if (ctx) return; ctx = new (window.AudioContext || window.webkitAudioContext)(); const src = ctx.createMediaElementSource(audio); an = ctx.createAnalyser(); an.fftSize = 256; an.smoothingTimeConstant = .82; src.connect(an); an.connect(ctx.destination); data = new Uint8Array(an.frequencyBinCount); }
 function fmt(s) { s = Math.max(0, Math.round(s)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); }
 export function play(li) {
