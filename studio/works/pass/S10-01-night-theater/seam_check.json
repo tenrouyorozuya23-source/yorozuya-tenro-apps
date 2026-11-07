@@ -1,0 +1,4 @@
+{"note":"ループの継ぎ目の測定（240×135 のグレー、画素あたりの平均絶対差、0〜255）",
+ "render_png":{"t29.967_to_t0":0.087,"t0_to_t0.033":0.087,"t15_to_t15.033":0.081,"t0_vs_t30_identical":true},
+ "mp4_final":{"median_adjacent":0.11,"p99_adjacent":0.185,"seam_899_to_0":0.24,"keyframe_interval":30,"grain":"noise c0s=2 temporal"},
+ "explanation":"レンダラーの出力（PNG）では継ぎ目の差は隣接フレームの差と同じ。mp4 では先頭が I フレームになるため、圧縮の差がわずかに上乗せされる"}
