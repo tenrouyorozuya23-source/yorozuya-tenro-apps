@@ -1,9 +1,9 @@
 // 配信オーバーレイ：時計、名前、話題、見本のコメント（一定間隔で流れる）。#obs で背景を透明にする
 import { F } from './data.js';
 const $ = id => document.getElementById(id);
-$('who').textContent = F.streamer; $('ttl').textContent = F.stream_title; $('topic').textContent = F.segment;
+$('who').textContent = F.streamer; $('ttl').textContent = F.stream_title; $('topic').textContent = F.segment.replace(/^今夜の話題[：:]\s*/, '');
 const obs = location.hash === '#obs';
-document.body.classList.toggle('obs', obs);
+document.body.classList.toggle('obs', obs); document.documentElement.classList.toggle('obs', obs);
 // 1920×1080 の舞台を画面の幅に合わせて縮める（OBS では等倍）
 const frame = $('frame'), stage = $('stage');
 const fit = () => { const s = obs ? 1 : Math.min(1, frame.clientWidth / F.canvas.w); stage.style.transform = `scale(${s})`; frame.style.height = (F.canvas.h * s) + 'px'; };
@@ -14,16 +14,26 @@ const tick = () => { const d = new Date(); $('hm').textContent = `${String(d.get
 tick(); setInterval(tick, 1000);
 // 見本のコメント：最初に4件、以後 4.5 秒ごとに1件ずつ。最大6件を表示
 const list = $('chat'); let i = 0;
+const reduceM = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const push = (anim) => {
   const [u, m] = F.sample_comments[i % F.sample_comments.length]; i++;
   const li = document.createElement('li'); li.dataset.id = 'c' + i;
   const a = document.createElement('span'); a.className = 'u'; a.textContent = u;
   const b = document.createElement('span'); b.className = 'm'; b.textContent = m;
-  li.append(a, b); if (anim) li.classList.add('new'); list.append(li);
-  while (list.children.length > 6) list.firstElementChild.remove();
-  if (anim) { const s = $('sweep'); s.classList.remove('go'); void s.offsetWidth; s.classList.add('go'); }
+  li.append(a, b);
+  // FLIP：追加前の位置を覚え、追加後の差分を補間して動かす。あふれた1件は先に消す
+  const before = new Map([...list.children].map(el => [el, el.getBoundingClientRect().top]));
+  if (list.children.length >= 6) { const old = list.firstElementChild; if (anim && !reduceM) { old.classList.add('out'); setTimeout(() => old.remove(), 360); old.style.position = 'absolute'; old.style.visibility = 'hidden'; } else old.remove(); }
+  list.querySelectorAll('li.lit').forEach(el => el.classList.remove('lit'));
+  list.append(li); li.classList.add('lit');
+  if (anim && !reduceM) {
+    const sc = stage.getBoundingClientRect().width / F.canvas.w || 1;
+    for (const [el, top] of before) { if (!el.isConnected || el.classList.contains('out')) continue; const dy = (top - el.getBoundingClientRect().top) / sc; el.style.transition = 'none'; el.style.transform = `translateY(${dy}px)`; requestAnimationFrame(() => requestAnimationFrame(() => { el.style.transition = 'transform .48s cubic-bezier(.22,1,.36,1)'; el.style.transform = ''; })); }
+    li.style.animationDelay = '.08s'; li.classList.add('new');
+    const s = $('sweep'); s.classList.remove('go'); void s.offsetWidth; s.classList.add('go');
+  }
 };
-for (let k = 0; k < 4; k++) push(false);
+for (let k = 0; k < 6; k++) push(false);
 setInterval(() => push(true), 4500);
 // プレビューで背景を消して確かめる
 const t = $('toggle');

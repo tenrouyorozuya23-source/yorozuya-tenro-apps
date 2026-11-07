@@ -25,17 +25,17 @@
     <section class="chat" aria-label="コメント">
       <span class="sweep" id="sweep" aria-hidden="true"></span>
       <ol id="chat" aria-live="off"></ol>
+      <p class="sample">架空の配信者・見本のコメントです</p>
     </section>
-    <p class="topic" id="topic"></p>
-    <p class="sample">架空の配信者・見本のコメントです</p>
+    <p class="topic"><span class="k">今夜の話題</span><span class="v" id="topic"></span></p>
   </div>
 </div>
 <main class="about">
   <h1>配信オーバーレイ（OBS のブラウザソース）</h1>
-  <p>配信画面に重ねる HTML です。名前と枠の題、時計、コメント欄、今夜の話題を、舞台の灯りの言葉で組みました。新しいコメントが来ると、コメント欄の上辺を一筋の光が走ります。</p>
+  <p>配信画面に重ねる HTML です。名前と枠の題、時計、コメント欄、今夜の話題を、舞台の灯りの言葉で組みました。新しいコメントが来ると、コメント欄の上辺を一筋の光が走り、そのコメントにだけピンスポットのような灯りが残ります。</p>
   <ul>
     <li>OBS では「ブラウザ」ソースを追加し、幅 1920・高さ 1080 にします。URL の末尾に <code>#obs</code> を付けると、背景が透明になります。</li>
-    <li>文字は 1080p の配信を縮小して見ても読める大きさ（本文 28px 以上）にしています。</li>
+    <li>文字は 1080p の配信を縮小して見ても読める大きさにしています（コメント本文・話題は 30px 以上、補助の文字は 24px 以上）。</li>
     <li>このページの配信者・コメントはすべて架空の見本です。</li>
   </ul>
   <p><button type="button" id="toggle" aria-pressed="false">背景を消して確かめる</button></p>
