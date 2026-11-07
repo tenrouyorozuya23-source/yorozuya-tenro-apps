@@ -10,7 +10,11 @@ export function mountViewer(el, { set = 'glass', cues, start = 0, still = false 
   const ctl = new OrbitControls(cam, R.domElement); ctl.target.set(0, .9, 0); ctl.enableDamping = true; ctl.enablePan = false;
   ctl.minDistance = 6; ctl.maxDistance = 13; ctl.minPolarAngle = .5; ctl.maxPolarAngle = 1.4; ctl.minAzimuthAngle = -.9; ctl.maxAzimuthAngle = .9;
   ctl.autoRotate = !matchMedia('(prefers-reduced-motion: reduce)').matches; ctl.autoRotateSpeed = .45;
-  R.domElement.tabIndex = 0; R.domElement.setAttribute('aria-label', '舞台模型。矢印キーまたはドラッグで回せます'); ctl.listenToKeyEvents(R.domElement); ctl.keyRotateSpeed = 1.2;
+  ctl.enableZoom = false; R.domElement.style.touchAction = 'pan-y';// ホイールと縦スワイプはページのスクロールに渡す
+  R.domElement.tabIndex = 0; R.domElement.setAttribute('aria-label', '舞台模型。左右の矢印キーまたは横ドラッグで回せます');
+  R.domElement.addEventListener('keydown', e => { const m = { ArrowLeft: [-.12, 0], ArrowRight: [.12, 0], ArrowUp: [0, -.08], ArrowDown: [0, .08] }[e.key]; if (!m) return; e.preventDefault();
+    const s = new THREE.Spherical().setFromVector3(cam.position.clone().sub(ctl.target)); s.theta = Math.min(.9, Math.max(-.9, s.theta + m[0])); s.phi = Math.min(1.4, Math.max(.5, s.phi + m[1]));
+    cam.position.setFromSpherical(s).add(ctl.target); ctl.autoRotate = false; ctl.update(); });
   // 模型の箱：黒い床と三方の壁（手前は開いた断面）
   const box = new THREE.MeshStandardMaterial({ color: 0x1b1a19, roughness: .85 });
   const floor = new THREE.Mesh(new THREE.BoxGeometry(6, .12, 4.2), new THREE.MeshStandardMaterial({ color: 0x24211e, roughness: .6 })); floor.position.y = -.06; floor.receiveShadow = true; scene.add(floor);
@@ -28,11 +32,12 @@ export function mountViewer(el, { set = 'glass', cues, start = 0, still = false 
   // 照明：キューごとに強さと色を持つ灯体
   const mk = (pos, tgt, color, angle) => { const l = new THREE.SpotLight(color, 0, 0, angle, .55, 2); l.position.set(...pos); l.target.position.set(...tgt); l.castShadow = true; l.shadow.mapSize.set(1024, 1024); l.shadow.bias = -.0004; scene.add(l, l.target); return l; };
   const L = { top: mk([0, 5.5, 1.5], [0, 0, -.2], 0xfff1df, .42), sideW: mk([-5, 2.2, .6], [0, .8, -.6], 0xffb46e, .42), sideC: mk([5, 2.6, -.4], [0, .8, -.6], 0x9fb9e8, .42), backL: mk([0, 4.2, -5], [0, .4, .4], 0x8fb0ff, .5), pin: mk([.6, 6, 3], [0, .4, .6], 0xffe6c8, .07) };
+  const FPt = { glass: [0, .5, .6], stairs: [1.6, 1.4, .4], gate: [0, .5, .2] }[set] || [0, .5, .6]; L.pin.position.set(FPt[0] + .6, 6, FPt[2] + 2.4); L.pin.target.position.set(...FPt);
   scene.add(new THREE.AmbientLight(0x404050, .25));
   // ピンスポットが当たる位置に立つ人のシルエット（最後のキューで「一人を立たせる」）
   const fig = new THREE.MeshStandardMaterial({ color: 0x2b2826, roughness: .7 }); const P = new THREE.Group();
   const body = new THREE.Mesh(new THREE.CapsuleGeometry(.13, .62, 6, 16), fig); body.position.y = .49; const head = new THREE.Mesh(new THREE.SphereGeometry(.1, 20, 14), fig); head.position.y = .98;
-  P.add(body, head); P.traverse(o => { if (o.isMesh) o.castShadow = o.receiveShadow = true; }); P.position.set(0, 0, .6); scene.add(P);
+  P.add(body, head); P.traverse(o => { if (o.isMesh) o.castShadow = o.receiveShadow = true; }); const FP = { glass: [0, 0, .6], stairs: [1.6, .93, .4], gate: [0, 0, .2] }[set] || [0, 0, .6]; P.position.set(...FP); scene.add(P);
   const cur = {}, from = {}; let to = cues[start].v, t0 = 0, tween = 1; const KEYS = Object.keys(L);
   for (const k in L) cur[k] = to[k] || 0;
   const apply = () => { for (const k in L) L[k].intensity = cur[k]; };
