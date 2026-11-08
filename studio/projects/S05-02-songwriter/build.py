@@ -11,7 +11,10 @@ html = (S / 'index.html').read_text()
 # 明朝で組む字：見出し・名前・曲名・会場・タグライン（index.html の class="m" の要素と data の値）
 heads = ''.join(re.findall(r'<h[12][^>]*>([^<]*)<', html)) + ''.join(re.findall(r'data-m>([^<]*)<', html))
 vals = F['artist']['name'] + F['artist']['tagline'] + ''.join(t['title'] for t in F['tracks']) + ''.join(r['title'] + ''.join(r['songs']) for r in F['releases']) + ''.join(l['venue'] for l in F['lives'])
-chars = ''.join(sorted(set(heads + vals + '『』（）・') - set(' \n')))
+# app.js が書き込む固定の文言（再生中・曲を選んでください など）も明朝で出るので、app.js の和文もすべて入れる（S05-02 審査2回目の critical）
+import re as _re
+js = ''.join(_re.findall(r'[\u3000-\u30ff\u4e00-\u9fff\uff00-\uffef]', (S / 'app.js').read_text() + html))
+chars = ''.join(sorted(set(heads + vals + js + '『』（）・') - set(' \n')))
 url = 'https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600&display=swap&text=' + urllib.parse.quote(chars)
 html = re.sub(r'<link id="fm"[^>]*>', f'<link id="fm" rel="stylesheet" href="{url}">', html)
 (S / 'index.html').write_text(html)

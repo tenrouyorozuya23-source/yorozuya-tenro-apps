@@ -68,14 +68,14 @@ h2 { font: 600 clamp(30px, 8vw, 40px)/1.3 var(--mincho); letter-spacing: .2em; m
 
 /* 作品 */
 .rel { list-style: none; padding: 0; margin: 0; display: grid; gap: 36px; }
-.rel li { display: grid; grid-template-columns: 120px 1fr; gap: 20px; align-items: start; }
+.rel > li { display: grid; grid-template-columns: 120px 1fr; gap: 20px; align-items: start; }
 .cover { width: 120px; aspect-ratio: 1; position: relative; overflow: hidden; background: radial-gradient(60% 60% at 50% 30%, rgba(255, 201, 138, .5), rgba(255, 201, 138, 0) 70%), #121014; border: 1px solid #2c2722; }
 .cover span { position: absolute; left: 10px; bottom: 8px; font: 600 13px/1.3 var(--mincho); letter-spacing: .14em; color: #f5efe6; }
 .cover.s { background: radial-gradient(50% 40% at 70% 60%, rgba(245, 239, 230, .38), rgba(245, 239, 230, 0) 70%), #0e0e12; }
 .rel .ty { font: 400 13px/1 var(--num); letter-spacing: .2em; color: var(--amber); margin: 2px 0 8px; text-transform: uppercase; }
 .rel h3 { font: 600 22px/1.4 var(--mincho); letter-spacing: .14em; margin: 0; }
 .rel .dt { font-size: 13px; color: var(--sub); margin: 4px 0 10px; }
-.rel ol { margin: 0; padding-left: 1.4em; font-size: 14px; color: var(--sub); line-height: 1.9; }
+.rel ol { list-style: decimal-leading-zero; margin: 0; padding-left: 2.2em; font-size: 14px; color: var(--sub); line-height: 1.9; }
 
 /* ライブ：日付を大きく */
 .lives { list-style: none; padding: 0; margin: 0; }
@@ -130,3 +130,4 @@ time, .nw { white-space: nowrap; }
   .rel h3 { font-size: 19px; letter-spacing: .04em; }
 }
 html.cover-mode header, html.cover-mode main, html.cover-mode footer, html.cover-mode .skip { visibility: hidden; }
+.rel ol li::marker { font: 300 12px var(--num); color: var(--dim); }

@@ -42,6 +42,7 @@ function mark() {
   const on0 = cur >= 0 && !au.paused;
   lightBtns.forEach(b => b.setAttribute('aria-pressed', String(on0)));
   $('light-lbl').textContent = on0 ? '灯りを消す' : '灯りをつける';
+  $('light-again').lastElementChild.textContent = on0 ? '灯りを消す' : 'もう一度、灯りをつける';
   btns.forEach((b, i) => { const on = i === cur && !au.paused; b.setAttribute('aria-pressed', String(on)); b.setAttribute('aria-label', `${F.tracks[i].title} を${on ? '一時停止' : '再生'}`); }); }
 async function toggle(i) {
   if (!ctx) {
@@ -51,13 +52,13 @@ async function toggle(i) {
   }
   if (ctx.state === 'suspended') await ctx.resume();
   if (i === cur) { au.paused ? au.play() : au.pause(); return; }
-  cur = i; au.src = F.tracks[i].file; seek.disabled = false; $('bar').classList.remove('idle'); $('now').textContent = `再生中　${F.tracks[i].title}`; au.play();
+  au.pause(); cur = i; au.src = F.tracks[i].file; seek.disabled = false; $('bar').classList.remove('idle'); $('now').textContent = `再生中　${F.tracks[i].title}`; play();
 }
 $('bar').classList.add('idle');
 // 灯りのボタン：鳴っていれば止め、止まっていれば1曲目（または今の曲）を流す
 let relightAt = -1;
 $('light-on').addEventListener('click', () => (cur >= 0 && !au.paused) ? au.pause() : toggle(cur >= 0 ? cur : 0));
-$('light-again').addEventListener('click', () => { if (cur >= 0 && !au.paused) { au.pause(); return; } relightAt = performance.now(); if (cur === 0) { au.currentTime = 0; au.play(); } else toggle(0); });
+$('light-again').addEventListener('click', () => { if (cur >= 0 && !au.paused) { au.pause(); return; } relightAt = performance.now(); if (cur === 0) { au.currentTime = 0; play(); } else toggle(0); });
 au.addEventListener('play', mark); au.addEventListener('pause', mark);
 au.addEventListener('ended', () => { mark(); seek.value = 0; $('cur').textContent = '0:00'; });
 au.addEventListener('loadedmetadata', () => { $('dur').textContent = mmss(au.duration); });
@@ -69,6 +70,8 @@ function sinceBar() {
   const t = au.currentTime, d = F.tracks[cur].downbeats; let last = -9; for (const x of d) { if (x <= t) last = x; else break; }
   return t - last;
 }
+// 早押しで play() が pause() に割り込まれても、エラーにしない
+function play() { const p = au.play(); if (p) p.catch(e => { if (e.name !== 'AbortError') console.warn(e); }); }
 // 今の音の大きさ（0〜1）。再生していなければ 0
 function level() {
   if (!an || au.paused) return 0;

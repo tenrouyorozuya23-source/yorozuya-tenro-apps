@@ -33,3 +33,4 @@ Artifact の制約（変換の道具で吸収している）:
 - S05-05 劇作家サイト: https://claude.ai/artifact/T1WT7AD3sdoZ9imKS6FrKV
 - S05-09 室内楽団サイト: https://claude.ai/artifact/BP5Moxpu9eQtQFc2tJGL1W
 - S05-07 ライバー公式サイト: https://claude.ai/artifact/VmfnpdDwdrh5nmq8msktwN
+- S05-02 シンガーソングライター公式サイト: https://claude.ai/artifact/6DcfRJH5JCZd2x7VsgrB5F
