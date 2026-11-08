@@ -18,7 +18,7 @@ const A = F.ab;
 row($('spec'), '比べるもの', 'ヒーローの絵だけ（A 動画／B 静止画）。文字・ボタン・順番は同じ');
 row($('spec'), '割り当て', `${A.split}。はじめて開いたときに決め、端末に覚えて以後は同じ案を出す`);
 row($('spec'), '主な指標', `${A.metric}（${A.metric_def}）`);
-row($('spec'), '副の指標', 'ボタンを押した割合、ボタンが見えるまでの秒数、A 案の動画の再生開始率');
+row($('spec'), '副の指標', 'ヒーローのボタンを押した割合（cta_click の cta=hero）、予約ボタンが見えるまでの秒数、A 案の動画の再生開始率');
 row($('spec'), '判定', `有意水準 ${A.alpha}・検出力 ${A.power * 100}%（両側）。期間の途中で結果を見て止めない`);
 
 // イベント
@@ -42,7 +42,7 @@ function hero() {
   const m = $('media'); m.textContent = '';
   if (variant === 'a') {
     const v = document.createElement('video');
-    v.src = 'hero.mp4'; v.poster = 'hero_first.jpg'; v.muted = true; v.playsInline = true; v.preload = 'auto'; v.autoplay = !reduce;
+    v.src = 'hero.mp4'; v.poster = 'hero_first.jpg'; v.muted = true; v.playsInline = true; v.preload = 'auto'; v.autoplay = !reduce; v.controls = reduce;   // 動きを減らす設定のときは自動で再生せず、自分で再生できるようにする
     v.setAttribute('aria-label', '客席の灯りが、売れた席から順に消えていき、残りの席だけが灯る動画（音なし）');
     v.addEventListener('play', () => send('hero_video_play'), { once: true });
     m.append(v); if (!reduce) v.play().catch(() => {});
@@ -53,30 +53,36 @@ function hero() {
   send('hero_view');
 }
 document.querySelectorAll('.abbar button').forEach(b => b.addEventListener('click', () => {
-  if (b.dataset.v === variant) return; variant = b.dataset.v; store.set('ab_variant', variant);
+  if (b.dataset.v === variant) return; const from = variant; variant = b.dataset.v; store.set('ab_variant', variant);
+  send('ab_preview_switch', { from, to: variant });
   try { const u = new URL(location.href); u.searchParams.set('v', variant); history.replaceState(null, '', u); } catch {}   // 埋め込み先によっては URL を書き換えられない
-  seen.clear(); hero();
+  io.disconnect(); for (const id of timers.values()) clearTimeout(id); timers.clear(); seen.clear(); hero(); watch();   // 見本の切り替えは、はじめて開いたときと同じ状態から数え直す
 }));
 if (fresh) send('ab_assign');
 hero();
 
-// ボタンが半分以上・0.5 秒以上見えたら cta_visible（ボタンごとに1回）
+// ボタンが半分以上・0.5 秒以上見えたら cta_visible（ボタンごとに1回。0.5 秒未満で通り過ぎたら数えない）
 const seen = new Set(), timers = new Map();
 const io = new IntersectionObserver(es => es.forEach(e => {
   const k = e.target.dataset.cta;
-  if (e.intersectionRatio >= .5 && !seen.has(k)) timers.set(k, setTimeout(() => { seen.add(k); send('cta_visible', { cta: k, sec: +((performance.now() - t0) / 1000).toFixed(1) }); }, 500));
-  else clearTimeout(timers.get(k));
-}), { threshold: [0, .5, 1] });
-document.querySelectorAll('[data-cta]').forEach(b => { io.observe(b); b.addEventListener('click', () => send('cta_click', { cta: b.dataset.cta })); });
+  if (e.intersectionRatio >= .5) { if (!seen.has(k) && !timers.has(k)) timers.set(k, setTimeout(() => { timers.delete(k); seen.add(k); send('cta_visible', { cta: k, sec: +((performance.now() - t0) / 1000).toFixed(1) }); }, 500)); }
+  else { clearTimeout(timers.get(k)); timers.delete(k); }
+}), { threshold: [.5] });
+const watch = () => document.querySelectorAll('[data-cta]').forEach(b => io.observe(b));
+watch(); document.querySelectorAll('[data-cta]').forEach(b => b.addEventListener('click', () => send('cta_click', { cta: b.dataset.cta })));
 $('buy').addEventListener('click', () => { $('msg').textContent = '見本のため、予約はできません。押されたことだけを記録しました。'; });
 
 // 必要な人数（2つの割合の差の検定、両側）
 const Z = { a: 1.959964, b: .841621 };
 function calc() {
-  const p1 = Math.min(.95, Math.max(.01, (+$('p0').value || A.baseline_example) / 100)), p2 = Math.min(.99, p1 + Math.max(.01, (+$('mde').value || A.mde_example) / 100)), pb = (p1 + p2) / 2;
+  const a = +$('p0').value, d = +$('mde').value, ok = $('p0').value !== '' && $('mde').value !== '' && a >= 1 && a <= 95 && d >= 1 && a + d <= 99;
+  $('p0').setAttribute('aria-invalid', String(!ok)); $('mde').setAttribute('aria-invalid', String(!ok)); $('nres').textContent = '';
+  if (!ok) { $('nnote').textContent = '今の到達率は 1〜95%、差は 1 ポイント以上で、合計は 99% 以下で入れてください。'; $('nnote').classList.add('warn'); return; }
+  $('nnote').classList.remove('warn');
+  const p1 = a / 100, p2 = (a + d) / 100, pb = (p1 + p2) / 2;
   const n = Math.ceil((Z.a * Math.sqrt(2 * pb * (1 - pb)) + Z.b * Math.sqrt(p1 * (1 - p1) + p2 * (1 - p2))) ** 2 / (p2 - p1) ** 2);
-  $('nres').textContent = ''; $('nres').append(n.toLocaleString('ja-JP'), el('small', null, '人（1案あたり）'));
-  $('nnote').textContent = `到達率 ${Math.round(p1 * 100)}% が ${Math.round(p2 * 100)}% になったときに、有意水準 5%・検出力 80% で見つけられる人数です。2案で合計 ${(n * 2).toLocaleString('ja-JP')} 人が要ります（数値は例）。`;
+  $('nres').append(n.toLocaleString('ja-JP'), el('small', null, '人（1案あたり）'));
+  $('nnote').textContent = `到達率 ${a}% が ${a + d}% になったときに、有意水準 5%・検出力 80% で見つけられる人数です。2案で合計 ${(n * 2).toLocaleString('ja-JP')} 人が要ります（数値は例）。`;
 }
 $('p0').value = A.baseline_example; $('mde').value = A.mde_example;
 $('p0').addEventListener('input', calc); $('mde').addEventListener('input', calc); calc();

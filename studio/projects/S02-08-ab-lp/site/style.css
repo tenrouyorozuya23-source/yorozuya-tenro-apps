@@ -71,3 +71,8 @@ time, .nw { white-space: nowrap; }
 }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
 @media (max-width: 480px) { .ablabel { display: none; } .abbar { flex-wrap: nowrap; padding: 6px 12px; } .abbar button { min-width: 0; padding: 0 12px; } .ablink { font-size: 12px; } }
+code { white-space: nowrap; overflow-wrap: normal; word-break: keep-all; }
+th:first-child, td:first-child { width: 11.5em; }
+table { min-width: 600px; }
+.note.warn { color: var(--amber); }
+.sec h2 { font-feature-settings: "palt" 1; }
