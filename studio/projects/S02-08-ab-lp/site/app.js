@@ -1,4 +1,4 @@
-// 冬の灯 チケット LP の A/B 見本。A＝客席が埋まっていく動画、B＝同じ客席の静止画。
+// 冬の灯 チケット LP の A/B 見本。A＝売れた席から灯りが消えていく客席の動画、B＝その最後の静止画。
 // 指標は「購入ボタン到達率」。イベントは window.dataLayer に積み、見本としてページの一覧にも出す（外部には送らない）
 import { F } from './data.js';
 const $ = id => document.getElementById(id);
@@ -43,18 +43,18 @@ function hero() {
   if (variant === 'a') {
     const v = document.createElement('video');
     v.src = 'hero.mp4'; v.poster = 'hero_first.jpg'; v.muted = true; v.playsInline = true; v.preload = 'auto'; v.autoplay = !reduce;
-    v.setAttribute('aria-label', '客席の灯りが、発売から前日までの売れ行きに合わせて少しずつ点いていく動画（音なし）');
+    v.setAttribute('aria-label', '客席の灯りが、売れた席から順に消えていき、残りの席だけが灯る動画（音なし）');
     v.addEventListener('play', () => send('hero_video_play'), { once: true });
     m.append(v); if (!reduce) v.play().catch(() => {});
   } else {
-    const i = new Image(); i.src = 'hero.jpg'; i.alt = '千秋楽の前日、ほとんどの席に灯りが点いた客席'; i.width = 720; i.height = 1280; m.append(i);
+    const i = new Image(); i.src = 'hero.jpg'; i.alt = '売れた席の灯りが消え、残りの席だけが灯る客席'; i.width = 720; i.height = 1280; m.append(i);
   }
   document.querySelectorAll('.abbar button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === variant)));
   send('hero_view');
 }
 document.querySelectorAll('.abbar button').forEach(b => b.addEventListener('click', () => {
   if (b.dataset.v === variant) return; variant = b.dataset.v; store.set('ab_variant', variant);
-  const u = new URL(location.href); u.searchParams.set('v', variant); history.replaceState(null, '', u);
+  try { const u = new URL(location.href); u.searchParams.set('v', variant); history.replaceState(null, '', u); } catch {}   // 埋め込み先によっては URL を書き換えられない
   seen.clear(); hero();
 }));
 if (fresh) send('ab_assign');

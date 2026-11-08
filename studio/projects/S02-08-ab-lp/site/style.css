@@ -15,16 +15,17 @@ a { color: var(--amber); text-underline-offset: .3em; }
 
 /* ヒーロー：スマホは絵が上・文字とボタンが下。PC は文字が左・縦長の絵が右 */
 .hero { display: grid; }
-.media { margin: 0; position: relative; background: #050404; aspect-ratio: 9 / 16; max-height: 68svh; width: 100%; overflow: hidden; }
+.media { margin: 0; position: relative; background: #050404; height: 46svh; width: 100%; overflow: hidden; }
+.media video, .media img { object-position: 50% 30%; }
 .media video, .media img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
 .media::after { content: ""; position: absolute; inset: auto 0 0 0; height: 30%; background: linear-gradient(to top, var(--bg), rgba(10, 9, 8, 0)); pointer-events: none; }
 .hero-in { padding: 4px 24px 32px; }
 .troupe { margin: 0; font: 500 14px/1 var(--sans); letter-spacing: .5em; color: var(--sub); }
-.hero h1 { margin: 12px 0 0; font: 600 clamp(56px, 16vw, 112px)/1.1 var(--mincho); letter-spacing: .16em; }
+.hero h1 { margin: 8px 0 0; font: 600 clamp(48px, 13vw, 112px)/1.1 var(--mincho); letter-spacing: .16em; }
 .when { margin: 14px 0 0; font: 300 22px/1.4 var(--num); font-variant-numeric: tabular-nums; }
 .when small { font: 500 13px/1 var(--sans); color: var(--sub); margin: 0 2px; }
 .where { margin: 4px 0 0; color: var(--sub); font-size: 14px; }
-.cta { margin: 22px 0 0; }
+.cta { margin: 16px 0 0; }
 .btn { display: inline-flex; align-items: center; justify-content: center; min-height: 52px; padding: 0 26px; border: 1px solid var(--amber); border-radius: 26px; color: var(--ink); text-decoration: none; background: none; font: 500 15px/1 var(--sans); letter-spacing: .14em; cursor: pointer; }
 .btn:hover { background: rgba(255, 207, 150, .12); }
 .btn.big { min-height: 60px; padding: 0 40px; background: var(--amber); color: #1a140d; font-weight: 500; }
@@ -64,8 +65,9 @@ ol.log { font: 400 13px/1.7 ui-monospace, Menlo, monospace; color: var(--sub); p
 time, .nw { white-space: nowrap; }
 @media (min-width: 900px) {
   .hero { grid-template-columns: 1fr minmax(320px, 34vw); align-items: center; min-height: calc(100svh - 61px); padding: 0 6vw; gap: 4vw; }
-  .media { order: 2; max-height: 84svh; height: 84svh; width: auto; }
+  .media { order: 2; max-height: 84svh; height: 84svh; width: auto; aspect-ratio: 9 / 16; }
   .media::after { display: none; }
   .hero-in { padding: 0; }
 }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+@media (max-width: 480px) { .ablabel { display: none; } .abbar { flex-wrap: nowrap; padding: 6px 12px; } .abbar button { min-width: 0; padding: 0 12px; } .ablink { font-size: 12px; } }
