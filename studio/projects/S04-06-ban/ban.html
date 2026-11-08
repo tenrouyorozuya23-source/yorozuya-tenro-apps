@@ -65,8 +65,12 @@ const envScene=new THREE.Scene();envScene.background=new THREE.Color(0x000000);
 const stripBar=new THREE.Mesh(new THREE.BoxGeometry(.12,6,.12),new THREE.MeshBasicMaterial({color:0xffffff}));envScene.add(stripBar);
 const softBar=new THREE.Mesh(new THREE.BoxGeometry(.6,6,.1),new THREE.MeshBasicMaterial({color:0x2a2622}));envScene.add(softBar);
 const pm=new THREE.PMREMGenerator(renderer);let envRT=null;
-function setEnv(x,k){stripBar.position.set(x,0,3);softBar.position.set(x,0,3.05);stripBar.material.color.setScalar(k);softBar.material.color.setRGB(.16*k+.02,.15*k+.02,.13*k+.02);
-  const rt=pm.fromScene(envScene,0.0);if(envRT)envRT.dispose();envRT=rt;scene.environment=rt.texture;}
+// 作り直しは重い（ソフトウェア GL で 1 回 4〜5 秒）。位置と明るさを刻んで、同じ値なら作ったものを使い回す
+const envCache=new Map();
+function setEnv(x,k){x=Math.round(x*16)/16;k=Math.round(k*3)/3;const key=x+'|'+k;let rt=envCache.get(key);
+  if(!rt){stripBar.position.set(x,0,3);softBar.position.set(x,0,3.05);stripBar.material.color.setScalar(k);softBar.material.color.setRGB(.16*k+.02,.15*k+.02,.13*k+.02);
+    rt=pm.fromScene(envScene,0.0);envCache.set(key,rt);}
+  scene.environment=rt.texture;}
 scene.environmentIntensity=1;
 window.__ready=Promise.resolve();
 const $=id=>document.getElementById(id);const op=(id,v)=>$(id).style.opacity=(+v).toFixed(3);
