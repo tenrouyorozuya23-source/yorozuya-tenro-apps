@@ -1,0 +1,194 @@
+{
+ "id": "S04-06-bgm",
+ "title": "凪の朝（告知用・歌なし）",
+ "genre": "Singer-songwriter (instrumental)",
+ "base": {
+  "bpm": 96,
+  "key": "E",
+  "seed": 61,
+  "brightness": 0.5,
+  "reverb": 0.42,
+  "drive": 0.04,
+  "sidechain": 0.0,
+  "progression": [
+   "Emaj9",
+   "C#m9",
+   "Amaj7",
+   "B6"
+  ],
+  "mix": {
+   "epiano": 0.5,
+   "pad": 0.34,
+   "sub": 0.15,
+   "pluck": 0.3,
+   "chime": 0.42,
+   "impact": 0.45,
+   "stab": 0.3,
+   "riser": 0.2,
+   "lead": 0.28
+  },
+  "end_chord": "Emaj9",
+  "pre_end_chord": "B6"
+ },
+ "versions": {
+  "15s": {
+   "length": 15.0,
+   "bars": 6,
+   "tail_sec": 2.2,
+   "sections": [
+    {
+     "from": 0,
+     "to": 1,
+     "layers": [
+      "epiano"
+     ]
+    },
+    {
+     "from": 1,
+     "to": 3,
+     "layers": [
+      "epiano",
+      "pad",
+      "sub"
+     ]
+    },
+    {
+     "from": 3,
+     "to": 4,
+     "layers": [
+      "epiano",
+      "pad",
+      "sub",
+      "pluck"
+     ]
+    },
+    {
+     "from": 4,
+     "to": 6,
+     "layers": [
+      "epiano",
+      "pad",
+      "sub",
+      "pluck"
+     ]
+    }
+   ],
+   "melody": [
+    [
+     1,
+     0,
+     "G#5",
+     1
+    ],
+    [
+     1,
+     1,
+     "B5",
+     1
+    ],
+    [
+     1,
+     2,
+     "C#6",
+     2
+    ],
+    [
+     2,
+     0,
+     "B5",
+     2
+    ],
+    [
+     2,
+     2,
+     "G#5",
+     2
+    ],
+    [
+     3,
+     0,
+     "F#5",
+     1
+    ],
+    [
+     3,
+     1,
+     "G#5",
+     1
+    ],
+    [
+     3,
+     2,
+     "B5",
+     1
+    ],
+    [
+     3,
+     3,
+     "D#6",
+     1
+    ],
+    [
+     4,
+     0,
+     "E6",
+     3
+    ]
+   ],
+   "cues": [
+    {
+     "bar": 0,
+     "beat": 0,
+     "type": "chime",
+     "note": 88
+    },
+    {
+     "bar": 3,
+     "beat": 2,
+     "type": "riser",
+     "len_beats": 2
+    },
+    {
+     "bar": 4,
+     "beat": 0,
+     "type": "impact"
+    },
+    {
+     "bar": 4,
+     "beat": 0,
+     "type": "chime",
+     "note": 100
+    },
+    {
+     "bar": 4,
+     "beat": 0,
+     "type": "stab"
+    }
+   ],
+   "automation": [
+    [
+     0,
+     -2
+    ],
+    [
+     7.5,
+     -1
+    ],
+    [
+     10,
+     1
+    ],
+    [
+     13,
+     0
+    ],
+    [
+     15,
+     -1
+    ]
+   ]
+  }
+ },
+ "spec_version": "15s",
+ "max_low_mid_db": 3.0
+}

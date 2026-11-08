@@ -1,0 +1,101 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><style>html,body{margin:0;background:#000;overflow:hidden}</style>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@600&family=Noto+Sans+JP:wght@300;400&family=Jost:wght@300;400&display=block" rel="stylesheet">
+<script type="importmap">{"imports":{"three":"/node_modules/three/build/three.module.js","three/addons/":"/node_modules/three/examples/jsm/"}}</script><style>
+#ov{position:absolute;inset:0;color:#efe9df;pointer-events:none}
+.t{position:absolute;left:0;right:0;text-align:center;opacity:0}
+#artist{top:290px;font:600 64px/1 "Shippori Mincho";letter-spacing:.34em;text-indent:.34em}
+#type{top:1296px;font:300 34px/1 "Jost";letter-spacing:.5em;text-indent:.5em;color:#cfc6b8}
+#date{top:1352px;font:300 52px/1 "Jost";letter-spacing:.12em;text-indent:.12em}
+#date span{font:400 34px/1 "Noto Sans JP";letter-spacing:.2em;margin-left:.6em}
+#disc{top:1438px;font:300 24px/1 "Noto Sans JP";letter-spacing:.14em;text-indent:.14em;color:#b3aa9c}
+</style></head><body><div id="ov">
+<div class="t" id="artist">凪野ソラ</div>
+<div class="t" id="type">NEW SINGLE</div><div class="t" id="date">2027.1.20<span>配信開始</span></div><div class="t" id="disc">※架空のアーティスト・作品です</div></div>
+<script type="module">
+// S04-06 新譜リリース告知「盤」：ガラスのケースに立てた盤がゆっくり回り、ストリップライトの光の帯が表面を撫でる。
+// 最後の帯がケースの前面を左から右へ渡り、刷られた題『凪の朝』を順に読ませて、10.0 秒（小節頭）で読み終える
+import * as C from '/tools/cine/cine.js';
+const {lerp,prog,ease}=C;
+const W=innerWidth,H=innerHeight;
+const S=C.createStage({width:W,height:H,exposure:1.0,fov:30,envIntensity:.05,dof:true});
+const {THREE,scene,camera,renderer}=S;
+if(S.bloom){S.bloom.threshold=1.1;S.bloom.strength=.3;S.bloom.radius=.4;}
+scene.fog=new THREE.FogExp2(0x030303,.12);scene.background=new THREE.Color(0x030303);
+C.stageFloor(scene,{material:new THREE.MeshPhysicalMaterial({color:0x050505,roughness:.45,clearcoat:.3,clearcoatRoughness:.35,envMapIntensity:.02})});
+await document.fonts.load('600 220px "Shippori Mincho"','凪の朝凪野ソラ');await document.fonts.load('300 52px Jost','NEW SINGLE 2027.1.20');await document.fonts.load('400 34px "Noto Sans JP"','配信開始※架空のアーティスト・作品です');
+const CY=.17;   // ケースの中心の高さ
+const tex=(w,h,draw)=>{const c=document.createElement('canvas');c.width=w;c.height=h;draw(c.getContext('2d'),w,h);const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=8;return t;};
+// 盤：溝（同心円のバンプ）と、中心のラベル
+const grooves=tex(2048,2048,(g,w,h)=>{g.fillStyle='#808080';g.fillRect(0,0,w,h);const R=C.rand(3);
+  for(let r=330;r<1010;r+=2.2){const v=100+R()*90;g.strokeStyle=`rgb(${v},${v},${v})`;g.lineWidth=1.1;g.beginPath();g.arc(w/2,h/2,r,0,6.2832);g.stroke();}
+  g.fillStyle='#7a7a7a';for(const r of [560,760]){g.beginPath();g.arc(w/2,h/2,r+9,0,6.2832);g.arc(w/2,h/2,r,0,6.2832,true);g.fill();}});
+grooves.colorSpace=THREE.NoColorSpace;
+const vinyl=new THREE.MeshPhysicalMaterial({color:0x0b0b0c,roughness:.3,metalness:0,clearcoat:.9,clearcoatRoughness:.12,bumpMap:grooves,bumpScale:.6});
+const DISC=new THREE.Group();DISC.position.set(0,CY,0);scene.add(DISC);
+const disc=new THREE.Mesh(new THREE.CylinderGeometry(.15,.15,.0024,180),vinyl);disc.rotation.x=Math.PI/2;disc.castShadow=disc.receiveShadow=true;DISC.add(disc);
+const label=tex(1024,1024,(g,w,h)=>{g.fillStyle='#9c8f7a';g.fillRect(0,0,w,h);g.fillStyle='#1c1712';g.textAlign='center';g.textBaseline='middle';
+  g.font='600 120px "Shippori Mincho"';g.fillText('凪の朝',w/2,h*.33);g.font='600 64px "Shippori Mincho"';g.fillText('凪野ソラ',w/2,h*.7);
+  g.strokeStyle='#8a7a62';g.lineWidth=6;g.beginPath();g.arc(w/2,h/2,470,0,6.2832);g.stroke();g.fillStyle='#111';g.beginPath();g.arc(w/2,h/2,28,0,6.2832);g.fill();});
+const lab=new THREE.Mesh(new THREE.CircleGeometry(.05,96),new THREE.MeshStandardMaterial({map:label,roughness:.8,envMapIntensity:.15}));lab.position.z=.00125;DISC.add(lab);
+const labB=lab.clone();labB.rotation.y=Math.PI;labB.position.z=-.00125;DISC.add(labB);
+// ガラスのケース（前後2枚の板と、縁の厚み）
+const glass=new THREE.MeshPhysicalMaterial({color:0xffffff,transmission:1,roughness:.04,thickness:.004,ior:1.5,clearcoat:1,clearcoatRoughness:.03,transparent:true,opacity:1});
+const edgeM=new THREE.MeshPhysicalMaterial({color:0xa9c3bb,transmission:.7,roughness:.08,thickness:.02,ior:1.5});
+for(const z of [-.014,.014]){const p=new THREE.Mesh(new THREE.BoxGeometry(.34,.34,.003),glass);p.position.set(0,CY,z);scene.add(p);}
+for(const [x,y,w,h] of [[0,CY+.1685,.34,.003],[0,CY-.1685,.34,.003],[.1685,CY,.003,.34],[-.1685,CY,.003,.34]]){const e=new THREE.Mesh(new THREE.BoxGeometry(w,h,.031),edgeM);e.position.set(x,y,0);e.castShadow=true;scene.add(e);}
+// ガラスの縁：光を拾う細い線（ケースの輪郭が黒地に消えないように）
+const edgeL=new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.BoxGeometry(.34,.34,.031)),new THREE.LineBasicMaterial({color:0xb7c6c0,transparent:true,opacity:.28,blending:THREE.AdditiveBlending,depthWrite:false}));edgeL.position.y=CY;scene.add(edgeL);
+// 前面に刷られた題。光の帯が通った所から読めるようになる（帯の位置 sweep より左は明るく残る）
+const titleT=tex(2048,1024,(g,w,h)=>{g.fillStyle='#fff';g.textAlign='center';g.textBaseline='middle';g.font='600 300px "Shippori Mincho"';g.fillText('凪の朝',w/2,h/2);});
+const titleM=new THREE.ShaderMaterial({transparent:true,depthWrite:false,uniforms:{map:{value:titleT},sweep:{value:-1},base:{value:.06},lit:{value:0}},
+  vertexShader:'varying vec2 vU; varying vec3 vP; void main(){ vU=uv; vP=position; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.); }',
+  fragmentShader:'uniform sampler2D map; uniform float sweep,base,lit; varying vec2 vU; varying vec3 vP; void main(){ float a=texture2D(map,vU).a; float s=smoothstep(sweep+.02,sweep-.03,vP.x); float edge=exp(-pow((vP.x-sweep)/.012,2.)); float k=base+max(s*.9,lit)+edge*.8; gl_FragColor=vec4(vec3(.97,.94,.89)*(1.+edge*.6),a*min(1.,k)); }'});
+const title=new THREE.Mesh(new THREE.PlaneGeometry(.3,.15),titleM);title.position.set(0,CY-.095,.0158);scene.add(title);
+// ストリップライト：反射として見える細い光の帯（ガラスの前面に沿って動く）と、盤を照らす細いスポット
+const streakT=tex(64,1024,(g,w,h)=>{const gx=g.createLinearGradient(0,0,w,0);gx.addColorStop(0,'rgba(255,255,255,0)');gx.addColorStop(.5,'rgba(255,255,255,1)');gx.addColorStop(1,'rgba(255,255,255,0)');g.fillStyle=gx;g.fillRect(0,0,w,h);
+  g.globalCompositeOperation='destination-in';const gy=g.createLinearGradient(0,0,0,h);gy.addColorStop(0,'rgba(0,0,0,0)');gy.addColorStop(.2,'rgba(0,0,0,1)');gy.addColorStop(.8,'rgba(0,0,0,1)');gy.addColorStop(1,'rgba(0,0,0,0)');g.fillStyle=gy;g.fillRect(0,0,w,h);});
+const streakM=new THREE.MeshBasicMaterial({map:streakT,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,color:0xfff3e4,opacity:0});
+const streak=new THREE.Mesh(new THREE.PlaneGeometry(.022,.5),streakM);streak.rotation.z=-.22;streak.position.set(0,CY,.0162);scene.add(streak);
+const strip=C.spot(scene,{pos:[0,.9,.55],target:[0,CY,0],color:0xfff1e2,intensity:0,angle:.09,penumbra:.9});
+const fill=C.spot(scene,{pos:[-.8,1.2,1.2],target:[0,CY,0],color:0xffd9b0,intensity:0,angle:.25,penumbra:.8});
+const rim=C.spot(scene,{pos:[.25,CY+.12,-1.6],target:[0,CY+.1,0],color:0xbfd2ea,intensity:0,angle:.13,penumbra:.6,shadow:false});
+const bm=C.beam(scene,{from:[.6,2.4,.8],to:[0,CY,0],radius:.28,color:0xfff1e2,density:.18});
+// 映り込み用の環境：黒い部屋に縦長のストリップライトを1本。帯の位置が変わるたびに PMREM を作り直す
+const envScene=new THREE.Scene();envScene.background=new THREE.Color(0x000000);
+const stripBar=new THREE.Mesh(new THREE.BoxGeometry(.12,6,.12),new THREE.MeshBasicMaterial({color:0xffffff}));envScene.add(stripBar);
+const softBar=new THREE.Mesh(new THREE.BoxGeometry(.6,6,.1),new THREE.MeshBasicMaterial({color:0x2a2622}));envScene.add(softBar);
+const pm=new THREE.PMREMGenerator(renderer);let envRT=null;
+function setEnv(x,k){stripBar.position.set(x,0,3);softBar.position.set(x,0,3.05);stripBar.material.color.setScalar(k);softBar.material.color.setRGB(.16*k+.02,.15*k+.02,.13*k+.02);
+  const rt=pm.fromScene(envScene,0.0);if(envRT)envRT.dispose();envRT=rt;scene.environment=rt.texture;}
+scene.environmentIntensity=1;
+window.__ready=Promise.resolve();
+const $=id=>document.getElementById(id);const op=(id,v)=>$(id).style.opacity=(+v).toFixed(3);
+// 光の帯が渡る時間（開始, 長さ）。最後の帯は 8.6 秒に入り、10.0 秒に題を読み終える
+const SW=[[-0.5,2.8,-.03,.17],[5.2,2.0,-.21,.21],[8.6,1.4,-.21,.21]];
+const HIT=10.0;
+window.renderAt=t=>{
+  DISC.rotation.z=-t*.42;
+  // 帯の位置（x：-0.2→0.2）
+  let sx=-9,sv=0;for(const [s,d,a,b] of SW){const u=(t-s)/d;if(u>=0&&u<=1){sx=lerp(a,b,ease.inOutSine(u));sv=Math.sin(Math.PI*Math.min(1,u*1.15))**.5;}}
+  streak.position.x=sx;streakM.opacity=sv*.35;
+  if(sx<-5){const u=prog(t,HIT,1.2);setEnv(t>=HIT?lerp(-1.8,-1.1,ease.outCubic(u)):-4,t>=HIT?lerp(.6,9,ease.outCubic(u)):.6);}else setEnv((sx-camera.position.x)*7,.6+sv*5.4);
+  strip.position.set(sx*1.6,.9,.55);strip.target.position.set(sx,CY,0);strip.intensity=sv*3+(t>=HIT?2:0);
+  fill.intensity=lerp(.6,2.2,prog(t,4,5))+(t>=HIT?1.4*ease.outCubic(prog(t,HIT,.6)):0);
+  rim.intensity=lerp(1.5,8,prog(t,0,9));
+  bm.set(t,lerp(.25,.55,prog(t,4,6)));
+  // 題：最後の帯の位置で読める範囲が広がり、10.0 秒からは全体が灯ったまま
+  const last=t>=SW[2][0];titleM.uniforms.sweep.value=last?(t<HIT?sx:.4):-1;titleM.uniforms.lit.value=t>=HIT?lerp(.9,1,prog(t,HIT,.3)):0;
+  titleM.uniforms.base.value=lerp(.04,.1,prog(t,4,4));
+  // カメラ：0〜4.5秒は溝のマクロ。4.5〜9秒で引いて正面へ。10秒以降は正面でゆっくり寄る
+  const P0=new THREE.Vector3(lerp(.16,.08,prog(t,0,4.5)),CY+.1,.28),L0=new THREE.Vector3(lerp(.08,.03,prog(t,0,4.5)),CY+.07,0);
+  const P1=new THREE.Vector3(0,.118,1.32),L1=new THREE.Vector3(0,.118,0);
+  const v=ease.inOutCubic(prog(t,4.5,4.6));
+  if(t<HIT){camera.position.lerpVectors(P0,P1,v);camera.position.x+=Math.sin(v*Math.PI)*.35;camera.lookAt(L0.clone().lerp(L1,v));}
+  else{const u=ease.inOutSine(prog(t,HIT,5));camera.position.set(0,.118,lerp(1.32,1.25,u));camera.lookAt(0,.118,0);}
+  if(S.bokeh){S.bokeh.uniforms.focus.value=camera.position.distanceTo(new THREE.Vector3(0,CY,0));S.bokeh.uniforms.aperture.value=lerp(.006,.0006,v);}
+  // 文字：題を読み終えた拍で名前、続けて日付（1フレームで立ち上げる）
+  op('artist',t>=HIT?1:0);op('type',t>=HIT+.625?1:0);op('date',t>=HIT+.625?1:0);op('disc',t>=HIT+1.25?1:0);
+  edgeL.material.opacity=.16+sv*.25+(t>=HIT?.08:0);
+  S.render();
+};
+</script></body></html>
