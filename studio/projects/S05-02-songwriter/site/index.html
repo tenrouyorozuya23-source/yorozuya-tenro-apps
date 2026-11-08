@@ -19,7 +19,8 @@
   <p class="kana" id="kana"></p>
   <h1 id="name"></h1>
   <p class="tag" id="tagline"></p>
-  <p class="fic">※架空のシンガーソングライターの見本サイトです</p>
+  <button class="light" id="light-on" type="button"><span class="dot" aria-hidden="true"></span><span id="light-lbl">灯りをつける</span></button>
+  <p class="fic">※架空のシンガーソングライターの見本サイトです。灯りをつけると、1曲目の見本音源が流れます</p>
   <nav class="jump" aria-label="ページ内の移動">
     <a href="#listen">試聴</a><a href="#disc">作品</a><a href="#live">ライブ</a><a href="#about">プロフィール</a>
   </nav>
@@ -31,9 +32,10 @@
   <p class="lead">再生すると、舞台の灯りが音に合わせて呼吸します。</p>
   <div class="player">
     <ol class="tracks" id="tracks"></ol>
-    <div class="bar">
+    <div class="bar" id="bar">
+      <p class="now" id="now">曲を選んでください</p>
       <input type="range" id="seek" min="0" max="1000" value="0" aria-label="再生位置" disabled>
-      <p class="time"><span id="cur">0:00</span> / <span id="dur">0:00</span></p>
+      <p class="time"><span id="cur">—:—</span> / <span id="dur">—:—</span></p>
     </div>
     <audio id="audio" preload="metadata"></audio>
   </div>
@@ -59,6 +61,7 @@
 
 <footer class="foot" data-shot="5">
   <p class="end" data-m>おやすみなさい</p>
+  <button class="light" id="light-again" type="button"><span class="dot" aria-hidden="true"></span><span>もう一度、灯りをつける</span></button>
   <p id="discl"></p>
 </footer>
 <script type="module" src="app.js"></script>

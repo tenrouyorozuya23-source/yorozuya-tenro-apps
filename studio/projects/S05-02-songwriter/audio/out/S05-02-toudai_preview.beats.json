@@ -88,7 +88,6 @@
     "pluck",
     "pad",
     "kick",
-    "hat",
     "bass"
    ]
   },
@@ -99,8 +98,7 @@
     "pluck",
     "pad",
     "kick",
-    "snare",
-    "hat",
+    "rim",
     "bass"
    ]
   }

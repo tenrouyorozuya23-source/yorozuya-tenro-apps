@@ -14,5 +14,10 @@
    "limiter_db": 1.5,
    "stereo_corr": 0.75
   }
+ },
+ "m4a": {
+  "lufs": -14.1,
+  "tp": -2.5,
+  "note": "配信する m4a を ebur128 で測った値"
  }
 }

@@ -4,6 +4,8 @@ import json, re, urllib.parse
 from pathlib import Path
 H = Path(__file__).parent; S = H / 'site'
 F = json.loads((H / 'facts.json').read_text())
+for t in F['tracks']:
+    t['downbeats'] = json.loads((H / 'audio/out' / f"S05-02-{t['id']}_preview.beats.json").read_text())['downbeats']
 (S / 'data.js').write_text('// facts.json から生成（手で書き換えない）\nexport const F = ' + json.dumps(F, ensure_ascii=False) + ';\n')
 html = (S / 'index.html').read_text()
 # 明朝で組む字：見出し・名前・曲名・会場・タグライン（index.html の class="m" の要素と data の値）

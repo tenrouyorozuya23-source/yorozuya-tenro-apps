@@ -17,12 +17,11 @@
    "A6"
   ],
   "mix": {
-   "pluck": 0.4,
+   "pluck": 0.42,
    "pad": 0.36,
-   "kick": 0.5,
-   "snare": 0.3,
-   "hat": 0.18,
-   "bass": 0.36,
+   "kick": 0.3,
+   "rim": 0.2,
+   "bass": 0.28,
    "lead": 0.3
   },
   "end_chord": "Dmaj7",
@@ -49,7 +48,6 @@
       "pluck",
       "pad",
       "kick",
-      "hat",
       "bass"
      ]
     },
@@ -60,8 +58,7 @@
       "pluck",
       "pad",
       "kick",
-      "snare",
-      "hat",
+      "rim",
       "bass"
      ]
     }

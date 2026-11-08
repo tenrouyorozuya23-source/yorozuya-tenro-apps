@@ -10,7 +10,7 @@ const mmss = s => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2
 
 // 作品
 F.releases.forEach((r, i) => {
-  const li = el('li'), cv = el('div', 'cover' + (i ? ' s' : '')); cv.setAttribute('aria-hidden', 'true'); cv.append(el('span', null, r.title));
+  const li = el('li'), cv = el('div', 'cover' + (i ? ' s' : '')); cv.setAttribute('aria-hidden', 'true'); const im = new Image(); im.src = `cover${i + 1}.jpg`; im.alt = ''; im.width = im.height = 640; im.loading = 'lazy'; cv.append(im, el('span', null, r.title));
   const tx = el('div'); tx.append(el('p', 'ty', r.type), el('h3', null, `『${r.title}』`), el('p', 'dt', `${r.date} 発売（架空）`));
   const ol = el('ol'); r.songs.forEach(s => ol.append(el('li', null, s))); tx.append(ol);
   li.append(cv, tx); $('releases').append(li);
@@ -20,7 +20,7 @@ for (const l of F.lives) {
   const [y, m, d] = l.date.split('-').map(Number);
   const li = el('li'), day = el('p', 'day'), tm = document.createElement('time');
   tm.dateTime = l.date; tm.append(el('span', 'yr', String(y)), `${m}.${d}`); day.append(tm, el('small', null, l.dow));
-  li.append(day, el('p', 'v', l.venue), el('p', 't', `開場 ${l.open}　開演 ${l.start}`), el('p', 'm', l.memo));
+  li.append(day, el('p', 'v', l.venue), (() => { const p = el('p', 't'); p.append(el('span', null, `開場 ${l.open}`), el('span', null, `開演 ${l.start}`)); return p; })(), el('p', 'm', l.memo));
   for (const p of li.querySelectorAll('p')) p.style.margin = '0';
   $('lives').append(li);
 }
@@ -37,7 +37,12 @@ const btns = F.tracks.map((t, i) => {
   b.setAttribute('aria-label', `${t.title} を再生`);
   b.addEventListener('click', () => toggle(i)); li.append(b); $('tracks').append(li); return b;
 });
-function mark() { btns.forEach((b, i) => { const on = i === cur && !au.paused; b.setAttribute('aria-pressed', String(on)); b.setAttribute('aria-label', `${F.tracks[i].title} を${on ? '一時停止' : '再生'}`); }); }
+const lightBtns = [$('light-on'), $('light-again')];
+function mark() {
+  const on0 = cur >= 0 && !au.paused;
+  lightBtns.forEach(b => b.setAttribute('aria-pressed', String(on0)));
+  $('light-lbl').textContent = on0 ? '灯りを消す' : '灯りをつける';
+  btns.forEach((b, i) => { const on = i === cur && !au.paused; b.setAttribute('aria-pressed', String(on)); b.setAttribute('aria-label', `${F.tracks[i].title} を${on ? '一時停止' : '再生'}`); }); }
 async function toggle(i) {
   if (!ctx) {
     ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -46,13 +51,24 @@ async function toggle(i) {
   }
   if (ctx.state === 'suspended') await ctx.resume();
   if (i === cur) { au.paused ? au.play() : au.pause(); return; }
-  cur = i; au.src = F.tracks[i].file; seek.disabled = false; au.play();
+  cur = i; au.src = F.tracks[i].file; seek.disabled = false; $('bar').classList.remove('idle'); $('now').textContent = `再生中　${F.tracks[i].title}`; au.play();
 }
+$('bar').classList.add('idle');
+// 灯りのボタン：鳴っていれば止め、止まっていれば1曲目（または今の曲）を流す
+let relightAt = -1;
+$('light-on').addEventListener('click', () => (cur >= 0 && !au.paused) ? au.pause() : toggle(cur >= 0 ? cur : 0));
+$('light-again').addEventListener('click', () => { if (cur >= 0 && !au.paused) { au.pause(); return; } relightAt = performance.now(); if (cur === 0) { au.currentTime = 0; au.play(); } else toggle(0); });
 au.addEventListener('play', mark); au.addEventListener('pause', mark);
-au.addEventListener('ended', () => { mark(); seek.value = 0; });
+au.addEventListener('ended', () => { mark(); seek.value = 0; $('cur').textContent = '0:00'; });
 au.addEventListener('loadedmetadata', () => { $('dur').textContent = mmss(au.duration); });
 au.addEventListener('timeupdate', () => { if (au.duration) { seek.value = Math.round(au.currentTime / au.duration * 1000); $('cur').textContent = mmss(au.currentTime); } });
 seek.addEventListener('input', () => { if (au.duration) au.currentTime = seek.value / 1000 * au.duration; });
+// 小節頭からの経過（秒）。再生していなければ大きな値
+function sinceBar() {
+  if (cur < 0 || au.paused) return 9;
+  const t = au.currentTime, d = F.tracks[cur].downbeats; let last = -9; for (const x of d) { if (x <= t) last = x; else break; }
+  return t - last;
+}
 // 今の音の大きさ（0〜1）。再生していなければ 0
 function level() {
   if (!an || au.paused) return 0;
@@ -76,7 +92,7 @@ function level() {
   const floor = add(new THREE.PlaneGeometry(30, 30), std(0x17130f, .42, .0)); floor.rotation.x = -Math.PI / 2;
   const cg = new THREE.PlaneGeometry(16, 7, 160, 1); const pa = cg.attributes.position;
   for (let i = 0; i < pa.count; i++) pa.setZ(i, Math.sin(pa.getX(i) * 7.5) * .07 + Math.sin(pa.getX(i) * 2.3) * .05);
-  cg.computeVertexNormals(); const curtain = add(cg, std(0x120c0e, .9)); curtain.position.set(0, 3.5, -3.2);
+  cg.computeVertexNormals(); const curtain = add(cg, std(0x070506, 1.0)); curtain.position.set(0, 3.5, -3.2);
 
   // マイクスタンド
   const metal = std(0x2a2a2c, .32, .85), black = std(0x0d0d0e, .4, .5);
@@ -86,10 +102,11 @@ function level() {
   const mic = new THREE.Group(); mic.position.set(0, 1.49, .02); mic.rotation.x = .28; scene.add(mic);
   add(new THREE.CylinderGeometry(.026, .018, .17, 32), new THREE.MeshStandardMaterial({ color: 0x1b1b1d, roughness: .3, metalness: .7 }), 0, .02, 0, mic);   // 胴（先が太い）
   add(new THREE.CylinderGeometry(.03, .027, .02, 32), new THREE.MeshStandardMaterial({ color: 0x8c8780, roughness: .35, metalness: .9 }), 0, .115, 0, mic);
-  add(new THREE.SphereGeometry(.036, 40, 28), new THREE.MeshStandardMaterial({ color: 0x6d6862, roughness: .66, metalness: .7 }), 0, .14, 0, mic);   // 網の頭
+  add(new THREE.SphereGeometry(.036, 40, 28), new THREE.MeshStandardMaterial({ color: 0x2e2c2a, roughness: .55, metalness: .9 }), 0, .14, 0, mic);   // 網の頭
+  const mesh = new THREE.Mesh(new THREE.SphereGeometry(.0368, 32, 16), new THREE.MeshBasicMaterial({ color: 0x8a847b, wireframe: true, transparent: true, opacity: .32 })); mesh.position.y = .14; mic.add(mesh);
   add(new THREE.BoxGeometry(.02, .05, .03), metal, 0, -.07, 0, mic);
   // スツール
-  const wood = new THREE.MeshPhysicalMaterial({ color: 0x3b2416, roughness: .45, clearcoat: .6, clearcoatRoughness: .3 });
+  const wood = new THREE.MeshPhysicalMaterial({ color: 0x3b2416, roughness: .5, clearcoat: .25, clearcoatRoughness: .4 });
   const stool = new THREE.Group(); stool.position.set(.72, 0, -.35); scene.add(stool);
   add(new THREE.CylinderGeometry(.19, .18, .045, 40), wood, 0, .74, 0, stool);
   for (let k = 0; k < 3; k++) {
@@ -99,26 +116,29 @@ function level() {
   add(new THREE.TorusGeometry(.17, .008, 8, 48), metal, 0, .26, 0, stool).rotation.x = Math.PI / 2;
 
   // ギター（8の字の胴を押し出し、ネックと弦）。スツールに立てかける
-  const s = new THREE.Shape();
-  s.moveTo(0, -.26);
-  s.bezierCurveTo(.27, -.26, .25, .02, .12, .06); s.bezierCurveTo(.06, .08, .07, .1, .1, .14);
-  s.bezierCurveTo(.2, .26, .1, .3, 0, .3); s.bezierCurveTo(-.1, .3, -.2, .26, -.1, .14);
-  s.bezierCurveTo(-.07, .1, -.06, .08, -.12, .06); s.bezierCurveTo(-.25, .02, -.27, -.26, 0, -.26);
+  const s = new THREE.Shape();   // 胴の幅は 上部 .29・くびれ .23・下部 .38（m）
+  s.moveTo(0, -.25);
+  s.bezierCurveTo(.255, -.25, .205, .0, .115, .06); s.bezierCurveTo(.09, .08, .175, .13, .145, .22);
+  s.bezierCurveTo(.125, .28, .05, .29, 0, .29); s.bezierCurveTo(-.05, .29, -.125, .28, -.145, .22);
+  s.bezierCurveTo(-.175, .13, -.09, .08, -.115, .06); s.bezierCurveTo(-.205, .0, -.255, -.25, 0, -.25);
   const hole = new THREE.Path(); hole.absarc(0, .07, .045, 0, Math.PI * 2, true); s.holes.push(hole);
   const top = new THREE.MeshPhysicalMaterial({ color: 0x6a4220, roughness: .38, clearcoat: 1, clearcoatRoughness: .12 });
   const side = new THREE.MeshPhysicalMaterial({ color: 0x24120a, roughness: .35, clearcoat: 1, clearcoatRoughness: .15 });
   const gtr = new THREE.Group(); scene.add(gtr);
   const body = add(new THREE.ExtrudeGeometry(s, { depth: .09, bevelEnabled: true, bevelThickness: .008, bevelSize: .008, bevelSegments: 3, curveSegments: 40 }), [top, side], 0, 0, -.09, gtr);
   add(new THREE.CylinderGeometry(.044, .044, .002, 32), std(0x050403, 1), 0, .07, -.05, gtr).rotation.x = Math.PI / 2; // 響孔の奥
-  add(new THREE.BoxGeometry(.05, .5, .024), std(0x2a170c, .5), 0, .55, .006, gtr);
-  add(new THREE.BoxGeometry(.075, .17, .02), std(0x1a0f08, .45), 0, .88, .0, gtr);
+  add(new THREE.BoxGeometry(.05, .5, .024), std(0x2a170c, .5), 0, .54, .006, gtr);
+  for (let k = 1; k <= 18; k++) { const y = .29 + .5 * (1 - Math.pow(2, -k / 12)) * 1.6; if (y < .78) add(new THREE.BoxGeometry(.05, .0025, .003), std(0xb8b0a2, .3, 1), 0, y, .019, gtr); }   // フレット
+  const hs = new THREE.Shape(); hs.moveTo(-.03, 0); hs.lineTo(.03, 0); hs.lineTo(.0375, .17); hs.lineTo(-.0375, .17); hs.closePath();
+  add(new THREE.ExtrudeGeometry(hs, { depth: .018, bevelEnabled: false }), std(0x1a0f08, .45), 0, .79, -.009, gtr);
+  for (let k = 0; k < 6; k++) { const side = k < 3 ? -1 : 1, y = .83 + (k % 3) * .045; const tn = add(new THREE.CylinderGeometry(.006, .006, .03, 10), std(0xb8b0a2, .3, 1), side * .05, y, 0, gtr); tn.rotation.z = Math.PI / 2; add(new THREE.CylinderGeometry(.011, .011, .006, 16), std(0xb8b0a2, .3, 1), side * .066, y, 0, gtr).rotation.z = Math.PI / 2; }
   add(new THREE.BoxGeometry(.11, .022, .012), std(0x1a0f08, .5), 0, -.17, .01, gtr);                                // ブリッジ
   const sm = new THREE.LineBasicMaterial({ color: 0xd8d0c2, transparent: true, opacity: .55 });
-  for (let k = 0; k < 6; k++) { const x = (k - 2.5) * .007; gtr.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(x * 1.4, -.17, .02), new THREE.Vector3(x, .8, .02)]), sm)); }
+  for (let k = 0; k < 6; k++) { const x = (k - 2.5) * .007; gtr.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(x * 1.4, -.17, .02), new THREE.Vector3(x, .79, .02)]), sm)); }
   gtr.position.set(.92, .27, .02); gtr.rotation.set(-.08, -.5, .2);
 
   // 照明
-  const key = new THREE.SpotLight(0xfff1dc, 520, 14, .3, .55, 1.4); key.position.set(.15, 5.2, 1.4); key.target.position.set(.3, .4, -.1);
+  const key = new THREE.SpotLight(0xfff1dc, 520, 14, .24, .55, 1.4); key.position.set(.15, 5.2, 1.4); key.target.position.set(.3, .4, -.1);
   key.castShadow = true; key.shadow.mapSize.set(2048, 2048); key.shadow.bias = -.0004; scene.add(key, key.target);
   const rim = new THREE.SpotLight(0xe9a64b, 160, 10, .38, .7, 1.4); rim.position.set(-.6, 3.6, -2.6); rim.target.position.set(.2, 1.1, 0); scene.add(rim, rim.target);
   scene.add(new THREE.HemisphereLight(0x22202a, 0x050405, .25));
@@ -131,6 +151,17 @@ function level() {
   });
   const coneH = 5.0, cone = new THREE.Mesh(new THREE.CylinderGeometry(.02, 1.45, coneH, 64, 1, true), hz);
   cone.position.set(.22, coneH / 2 + .02, .6); cone.rotation.x = -.16; scene.add(cone);
+  // 上手・下手の吊りから細い筋を2本（舞台の奥行き）
+  const hz2 = hz.clone(); hz2.uniforms = { t: hz.uniforms.t, k: { value: .1 } };
+  for (const sx of [-1, 1]) { const c2 = new THREE.Mesh(new THREE.CylinderGeometry(.012, .3, 6.4, 48, 1, true), hz2); c2.position.set(sx * 1.9, 3.0, -1.8); c2.rotation.z = sx * .3; scene.add(c2); }
+  // 一灯の中を漂う塵（決まった種から並べる。再生中は明るく）
+  const N = 400, dp = new Float32Array(N * 3); let sd = 7; const rnd = () => (sd = (sd * 16807) % 2147483647) / 2147483647;
+  for (let i = 0; i < N; i++) { const y = rnd() * 4.2, rr = Math.sqrt(rnd()) * (.05 + 1.2 * (1 - y / 5)), a = rnd() * 6.283; dp.set([.22 + Math.cos(a) * rr, y, .6 - y * .16 + Math.sin(a) * rr], i * 3); }
+  const dg = new THREE.BufferGeometry(); dg.setAttribute('position', new THREE.BufferAttribute(dp, 3));
+  const dm = new THREE.ShaderMaterial({ transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, uniforms: { t: { value: 0 }, k: { value: .5 }, px: { value: Math.min(2, devicePixelRatio) } },
+    vertexShader: 'uniform float t,px; varying float vA; void main(){ vec3 p=position; float ph=p.x*13.+p.z*7.; p.y=mod(p.y+t*.015,4.2); p.x+=sin(t*.8/(6.+mod(ph,3.))+ph)*.03; vec4 w=modelViewMatrix*vec4(p,1.); gl_PointSize=px*(1.2+mod(ph,1.)*.8); vA=.5+.5*sin(ph*3.1); gl_Position=projectionMatrix*w; }',
+    fragmentShader: 'uniform float k; varying float vA; void main(){ vec2 c=gl_PointCoord-.5; float d=1.-smoothstep(.2,.5,length(c)); gl_FragColor=vec4(vec3(1.,.92,.8)*d*vA*k,1.); }' });
+  scene.add(new THREE.Points(dg, dm));
 
   // カメラの位置（節ごと）。PC では文字の面が左にあるので、主役が右に来るよう横にずらす
   const V = (x, y, z) => new THREE.Vector3(x, y, z);
@@ -143,6 +174,9 @@ function level() {
     { p: V(.3, 1.7, 6.2), l: V(.3, 1.25, 0), lv: .12 },     // 結び：灯りが落ちる
   ];
   const marks = [...document.querySelectorAll('[data-shot]')];
+  const coverMode = new URLSearchParams(location.search).get('cover');
+  if (coverMode) document.documentElement.classList.add('cover-mode');
+  const COVERS = { 1: { p: V(1.05, 1.9, .9), l: V(.9, .45, -.05), key: .38, rim: 1.6 }, 2: { p: V(-.35, 1.2, .9), l: V(0, 1.56, 0), key: .06, rim: 3 } };
   let wide = innerWidth >= 900;
   const fit = () => { const w = innerWidth, h = innerHeight; r.setSize(w, h, false); cam.aspect = w / h; wide = w >= 900; cam.fov = w < h ? 46 : 30; cam.updateProjectionMatrix(); };
   addEventListener('resize', fit); fit();
@@ -154,27 +188,33 @@ function level() {
     if (i >= tops.length - 1) return [SHOTS.length - 1, SHOTS.length - 1, 0];
     let u = Math.max(0, Math.min(1, (y - tops[i]) / (tops[i + 1] - tops[i])));
     if (reduce) u = u < .5 ? 0 : 1;
-    return [i, i + 1, ease(u)];
+    const E = [u => 1 - (1 - u) * (1 - u), u => 1 - (1 - u) * (1 - u), u => u < .5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2, u => 1 - (1 - u) * (1 - u), u => u < .5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2][i];
+    return [i, i + 1, E(u)];
   }
   const pos = V(0, 0, 0), look = V(0, 0, 0), right = V(0, 0, 0), tmp = V(0, 0, 0);
   let lv = 0, t0 = performance.now(), first = true;
   function frame(now) {
     const t = (now - t0) / 1000;
     const [a, b, u] = shotAt(), A = SHOTS[a], B = SHOTS[b];
-    pos.lerpVectors(A.p, B.p, u); look.lerpVectors(A.l, B.l, u);
+    pos.lerpVectors(A.p, B.p, a === 2 ? Math.pow(u, 1.3) : u); look.lerpVectors(A.l, B.l, a === 2 ? Math.min(1, u * 1.1) : u);
     const shift = wide ? [0, .42, .42, .55, .42, 0][a] * (1 - u) + [0, .42, .42, .55, .42, 0][b] * u : 0;
     right.subVectors(look, pos).cross(V(0, 1, 0)).normalize().multiplyScalar(-shift);
     if (!reduce) { tmp.set(Math.sin(t * .21) * .04, Math.sin(t * .17) * .02, 0); pos.add(tmp); }
     if (!wide && cam.aspect < 1) look.y -= [.5, 0, 0, 0, 0, .35][a] * (1 - u) + [.5, 0, 0, 0, 0, .35][b] * u;
     cam.position.copy(pos).add(right); cam.lookAt(tmp.copy(look).add(right));
+    const CV = COVERS[coverMode]; if (CV) { cam.position.copy(CV.p); cam.lookAt(CV.l); }
     // 一灯の呼吸：再生中は音の大きさ、止まっているときは 5 秒周期のゆっくりした呼吸
     const breath = reduce ? 0 : Math.sin(t * Math.PI * 2 / 5) * .06;
     const target = level();
     lv += (target - lv) * (reduce ? .05 : (target > lv ? .35 : .08));
-    const dim = A.lv + (B.lv - A.lv) * u;
-    key.intensity = 520 * dim * (.82 + breath + lv * .75);
+    let dim = A.lv + (B.lv - A.lv) * u;
+    if (relightAt >= 0 && !au.paused) { const q = Math.min(1, (now - relightAt) / 1200); dim += (1 - dim) * (1 - Math.pow(1 - q, 3)); } else relightAt = -1;
+    const pulse = reduce ? 0 : Math.exp(-sinceBar() / .12);
+    key.intensity = 520 * dim * (.80 + breath + lv * .30);
     rim.intensity = 160 * Math.max(dim, .1) * (.85 + lv * .5);
-    hz.uniforms.k.value = .24 * dim * (.85 + breath * 2 + lv * 1.6); hz.uniforms.t.value = reduce ? 0 : t;
+    const HZ = [1, .35, .5, 1, .5, 1], hzS = HZ[a] + (HZ[b] - HZ[a]) * u;   // 寄りのショットでは筋の中にカメラが入るので薄くする
+    hz.uniforms.k.value = .24 * dim * hzS * (.85 + breath * 2 + lv * 1.6) * (1 + .15 * pulse); hz2.uniforms.k.value = .055 * Math.max(dim, .2) * Math.max(0, hzS * 1.5 - .5) * (.9 + lv * 1.2); dm.uniforms.k.value = .5 * dim * (1 + lv * 1.2); dm.uniforms.t.value = reduce ? 0 : t; hz.uniforms.t.value = reduce ? 0 : t;
+    if (CV) { key.intensity = 520 * CV.key; rim.intensity = 160 * CV.rim; }
     r.render(scene, cam);
     if (first) { first = false; cv.classList.add('ready'); }
     requestAnimationFrame(frame);

@@ -12,11 +12,16 @@
    ],
    "silence": [],
    "lufs": -14.0,
-   "tp": -2.7,
-   "low_minus_mid_db": 3.96,
-   "low_shelf_db": -1.0,
-   "limiter_db": 1.6,
-   "stereo_corr": 0.857
+   "tp": -2.8,
+   "low_minus_mid_db": 1.6,
+   "low_shelf_db": 0.0,
+   "limiter_db": 0.9,
+   "stereo_corr": 0.81
   }
+ },
+ "m4a": {
+  "lufs": -14.1,
+  "tp": -2.2,
+  "note": "配信する m4a を ebur128 で測った値"
  }
 }
