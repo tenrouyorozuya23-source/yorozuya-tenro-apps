@@ -28,7 +28,8 @@ const ANCH = { wide: [[.52, .56], [-.18, .66], [.64, -.18], [.2, -.02]], tall: [
 const smooth = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 
 // 入口の言葉（線の終わりに立つ）
-const links = LIMBS.map((L, i) => { const a = el('a', null, L.label); a.href = L.href; a.dataset.i = i; a.style.setProperty('--c', `rgb(${L.color.map(v => Math.round(v * 255)).join(',')})`); $('ends').append(a); return a; });
+const links = LIMBS.map((L, i) => { const a = el('a', null, L.label); a.href = L.href; a.dataset.i = i; a.style.setProperty('--c', `rgb(${L.color.map(v => Math.round(v * 255)).join(',')})`); a.tabIndex = -1; a.setAttribute('aria-hidden', 'true');   // 線が描き終わるまでは触れない（見えない所にフォーカスが出ないように）
+  $('ends').append(a); return a; });
 
 // 結び：右手首の線を、そのまま署名のように小さく描く
 (() => {
@@ -85,11 +86,11 @@ const links = LIMBS.map((L, i) => { const a = el('a', null, L.label); a.href = L
       const kk = focus < 0 ? 1 : focus === i ? 1.35 : .3;
       for (const m of [T.core, T.soft, T.refl.material]) m.uniforms.prog.value = e;
       T.core.uniforms.k.value += (kk - T.core.uniforms.k.value) * .15; T.soft.uniforms.k.value = T.core.uniforms.k.value; T.refl.material.uniforms.k.value = .12 * T.core.uniforms.k.value;
-      links[i].classList.toggle('on', e >= .995);
+      const on = e >= .995; if (on !== links[i].classList.contains('on')) { links[i].classList.toggle('on', on); if (on) { links[i].removeAttribute('tabindex'); links[i].removeAttribute('aria-hidden'); } }
     });
     // カメラはごくゆっくり左右に回る（入口の言葉はいつも線の終わりについていく）
     const a = reduce ? 0 : Math.sin(t * .12) * .06;
-    const d = cam.position.length(); cam.position.x = Math.sin(a) * cam.position.z; cam.lookAt(look);
+    cam.position.x = Math.sin(a) * cam.position.z; cam.lookAt(look);
     cam.updateMatrixWorld();
     const W = hero.clientWidth, H = hero.clientHeight;
     anchors.forEach((v, i) => { tmp.copy(v).project(cam); const x = (tmp.x + 1) / 2 * W, y = (1 - tmp.y) / 2 * H; links[i].style.left = `${Math.min(W - 70, Math.max(70, x))}px`; links[i].style.top = `${Math.min(H - 40, Math.max(40, y - 30))}px`; links[i].style.setProperty('--dy', '30px'); });
