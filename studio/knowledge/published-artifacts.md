@@ -29,3 +29,7 @@ Artifact の制約（変換の道具で吸収している）:
 - `index.html` は公開ページ自身を指す予約名で、files には入れられない。サブページから index.html へのリンクは、そのまま公開ページに届く
 - `.m4a` は配信されない（contentType を付けても不可）。中身は同じまま `.mp4` に名前を変え、参照も書き換える
 - 外部の読み込みは cdn.jsdelivr.net/npm・cdnjs・unpkg のスクリプトと Google Fonts だけ
+- S05-10 作品集（ショーケース）: https://claude.ai/artifact/9h7ASYzCEmKLFq2jmsGzh7
+- S05-05 劇作家サイト: https://claude.ai/artifact/T1WT7AD3sdoZ9imKS6FrKV
+- S05-09 室内楽団サイト: https://claude.ai/artifact/BP5Moxpu9eQtQFc2tJGL1W
+- S05-07 ライバー公式サイト: https://claude.ai/artifact/VmfnpdDwdrh5nmq8msktwN
