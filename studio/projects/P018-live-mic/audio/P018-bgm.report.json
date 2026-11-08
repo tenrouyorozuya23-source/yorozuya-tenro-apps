@@ -1,0 +1,23 @@
+{
+ "id": "P018-bgm",
+ "title": "灯台（告知用・合成）",
+ "versions": {
+  "15s": {
+   "sec": 15.0,
+   "bpm": 128,
+   "fps_beat_exact": [],
+   "silence": [
+    [
+     9.1406,
+     9.375
+    ]
+   ],
+   "lufs": -14.2,
+   "tp": -2.6,
+   "low_minus_mid_db": 3.18,
+   "low_shelf_db": -7.8,
+   "limiter_db": 6.8,
+   "stereo_corr": 0.757
+  }
+ }
+}

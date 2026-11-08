@@ -1,0 +1,90 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><style>html,body{margin:0;background:#000;overflow:hidden}</style>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@600&family=Noto+Sans+JP:wght@300;400&family=Jost:wght@300;400&display=block" rel="stylesheet">
+<script type="importmap">{"imports":{"three":"/node_modules/three/build/three.module.js","three/addons/":"/node_modules/three/examples/jsm/"}}</script><style>
+#ov{position:absolute;inset:0;color:#f1ece4;pointer-events:none}
+.t{position:absolute;left:0;right:0;text-align:center;opacity:0;text-shadow:0 0 24px #000}
+#band{top:290px;font:600 104px/1 "Shippori Mincho";letter-spacing:.3em;text-indent:.3em}
+#tour{top:420px;font:300 34px/1 "Noto Sans JP";letter-spacing:.24em;text-indent:.24em;color:#d8cfc2}
+#fin{top:1176px;font:400 32px/1 "Jost";letter-spacing:.5em;text-indent:.5em;color:#ffcf96}
+#date{top:1226px;font:300 76px/1 "Jost";letter-spacing:.06em;text-indent:.06em}
+#date small{font:400 34px/1 "Jost";letter-spacing:.2em;margin-left:.5em}
+#venue{top:1326px;font:400 36px/1 "Noto Sans JP";letter-spacing:.16em;text-indent:.16em}
+#time{top:1382px;font:300 30px/1 "Noto Sans JP";letter-spacing:.12em;text-indent:.12em;color:#d8cfc2}
+#disc{top:1440px;font:300 24px/1 "Noto Sans JP";letter-spacing:.12em;text-indent:.12em;color:#b2a99c}
+</style></head><body><div id="ov">
+<div class="t" id="band">残響室</div><div class="t" id="tour">TOUR 2027「灯台」</div>
+<div class="t" id="fin">TOUR FINAL</div><div class="t" id="date">2027.2.20<small>SAT</small></div>
+<div class="t" id="venue">白砂音楽堂（東京）</div><div class="t" id="time">開場 17:00　開演 18:00</div><div class="t" id="disc">※架空のバンド・公演です</div></div>
+<script type="module">
+// P018 音楽ライブ告知：ステージ中央のマイクを製品撮影のように見せ、上のトラスの8台のムービングライトの光の筋が拍ごとに1本ずつ開く。
+// 9.14〜9.375 秒（半拍）の無音で全部消え、9.375 秒（5小節目の頭）で8本がマイクに集まり、キーライトが入る
+import * as C from '/tools/cine/cine.js';
+const {lerp,prog,ease}=C;
+const W=innerWidth,H=innerHeight;
+const S=C.createStage({width:W,height:H,exposure:1.0,fov:32,envIntensity:.06,dof:true});
+const {THREE,scene,camera}=S;
+if(S.bloom){S.bloom.threshold=1.0;S.bloom.strength=.35;S.bloom.radius=.45;}
+scene.fog=new THREE.FogExp2(0x040405,.07);scene.background=new THREE.Color(0x040405);
+C.stageFloor(scene,{material:new THREE.MeshPhysicalMaterial({color:0x070707,roughness:.38,clearcoat:.5,clearcoatRoughness:.3,envMapIntensity:.05})});
+await document.fonts.load('600 104px "Shippori Mincho"','残響室');await document.fonts.load('300 76px Jost','2027.2.20 SAT TOUR FINAL');await document.fonts.load('400 36px "Noto Sans JP"','白砂音楽堂（東京）開場開演※架空のバンド・公演です「灯台」');
+const BEAT=60/128,BAR=BEAT*4,HIT=5*BAR,SIL=HIT-BEAT/2;
+// マイク：丸い台・細い支柱・クロームの胴・網の頭
+const chrome=C.chrome(.16),dark=new THREE.MeshPhysicalMaterial({color:0x111113,roughness:.35,metalness:.8,clearcoat:.4});
+const MIC=new THREE.Group();scene.add(MIC);
+const add=(g,m,x,y,z,p=MIC)=>{const o=new THREE.Mesh(g,m);o.position.set(x,y,z);o.castShadow=o.receiveShadow=true;p.add(o);return o;};
+add(new THREE.CylinderGeometry(.2,.22,.035,64),dark,0,.018,0);
+add(new THREE.CylinderGeometry(.012,.012,1.42,16),chrome,0,.73,0);
+const head=new THREE.Group();head.position.set(0,1.47,0);head.rotation.x=.32;MIC.add(head);
+add(new THREE.CylinderGeometry(.027,.019,.18,40),dark,0,.02,0,head);
+add(new THREE.CylinderGeometry(.031,.028,.022,40),chrome,0,.12,0,head);
+const meshTex=(()=>{const c=document.createElement('canvas');c.width=c.height=256;const g=c.getContext('2d');g.fillStyle='#000';g.fillRect(0,0,256,256);g.strokeStyle='#fff';g.lineWidth=2;for(let i=0;i<256;i+=8){g.beginPath();g.moveTo(i,0);g.lineTo(i,256);g.stroke();g.beginPath();g.moveTo(0,i);g.lineTo(256,i);g.stroke();}const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(6,3);return t;})();
+add(new THREE.SphereGeometry(.04,48,32),new THREE.MeshPhysicalMaterial({color:0x8d8a86,metalness:1,roughness:.42,bumpMap:meshTex,bumpScale:.8}),0,.152,0,head);
+const headW=new THREE.Vector3();head.updateMatrixWorld(true);head.localToWorld(headW.set(0,.12,0));
+// トラスと8台のムービングライト
+const truss=new THREE.Mesh(new THREE.BoxGeometry(6.4,.12,.12),new THREE.MeshStandardMaterial({color:0x1a1a1c,roughness:.5,metalness:.7}));truss.position.set(0,3.5,-2.4);scene.add(truss);
+const N=8,heads=[];
+for(let i=0;i<N;i++){const x=-2.8+i*.8,p=new THREE.Vector3(x,3.32,-2.4);
+  const body=new THREE.Mesh(new THREE.BoxGeometry(.18,.24,.18),new THREE.MeshStandardMaterial({color:0x0e0e10,roughness:.45,metalness:.6}));body.position.copy(p);scene.add(body);
+  const lens=new THREE.Mesh(new THREE.CircleGeometry(.06,24),new THREE.MeshBasicMaterial({color:0xfff2dc,toneMapped:false}));lens.position.copy(p);lens.position.y-=.121;lens.rotation.x=-Math.PI/2;scene.add(lens);
+  const bm=C.beam(scene,{from:[x,3.3,-2.4],to:[x,0,-.5],radius:.42,color:0xfff0dc,density:.32});
+  heads.push({x,p,body,lens,bm,dir:new THREE.Vector3()});}
+const key=C.spot(scene,{pos:[.4,4.2,2.2],target:[0,1.3,0],color:0xfff3e2,intensity:0,angle:.12,penumbra:.6});
+const rim=C.spot(scene,{pos:[-.3,2.0,-2.0],target:[0,1.45,0],color:0xe9a64b,intensity:0,angle:.18,penumbra:.6,shadow:false});
+const top=C.beam(scene,{from:[0,4.4,.2],to:[0,0,.1],radius:.55,color:0xfff0dc,density:.22});
+const dust=C.dust(scene,{center:[0,1.6,-.6],radius:2.4,height:3.2,count:260,seed:18});
+window.__ready=Promise.resolve();
+const $=id=>document.getElementById(id);const on=(id,v)=>$(id).style.opacity=v?'1':'0';
+const tmp=new THREE.Vector3();
+// 光の筋の向き：床の点 target へ向ける
+function aim(h,tx,ty,tz){tmp.set(tx,ty,tz).sub(h.p).normalize();h.bm.mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0,-1,0),tmp);}
+window.renderAt=t=>{
+  const beatN=Math.floor(t/BEAT+1e-6), silent=t>=SIL&&t<HIT, hit=t>=HIT;
+  heads.forEach((h,i)=>{
+    // 1〜2小節目：拍ごとに外側から1本ずつ開く（拍のフレームで一度に点ける）
+    const order=[3,4,2,5,1,6,0,7].indexOf(i), openAt=BAR+order*BEAT;
+    let s=t>=openAt?1:0;
+    // 3〜4小節目：拍に合わせて扇を開いたり閉じたり。ヒーロー以後はマイクの頭に集まる
+    const side=(h.x/2.8), sw=Math.sin(Math.PI*(t-2*BAR)/(BAR))*.9;
+    if(hit){const u=ease.outCubic(prog(t,HIT,BEAT*.5));const swing=Math.sin((t-HIT)*1.3+i)*.08;aim(h,lerp(h.x*.6,headW.x+swing,u),lerp(0,headW.y,u),lerp(-.4,headW.z,u));s=t>=7*BAR?lerp(1,.35,ease.inOutSine(prog(t,7*BAR,BAR))):1;}
+    else if(t>=2*BAR){// 2拍ごとに「扇に開く」と「交差する」を切り替える（拍の0.2秒前から動き出して拍で着く）
+      const k=Math.floor((t-2*BAR+.2)/(2*BEAT)),ph=prog((t-2*BAR+.2)-k*2*BEAT,0,.2),from=k%2?1:0,to=1-from,c=lerp(from,to,ease.inOutCubic(k>0?ph:1));
+      aim(h,lerp(h.x*1.05,-h.x*.75,c),0,lerp(-.2,.4,c));}
+    else aim(h,h.x*.55,0,-.4);
+    if(silent)s=0;
+    h.bm.set(t,s*(1+(hit?.25*Math.exp(-(t-HIT)*3):0)));h.lens.material.color.setScalar(s>0?1:.04);
+  });
+  top.set(t,silent?0:t<BAR?lerp(.6,.9,prog(t,0,BAR)):hit?.25:.45);
+  key.intensity=hit&&!silent?(t<HIT+1/30?320:lerp(320,260,prog(t,HIT,2))):0;
+  rim.intensity=silent?0:lerp(14,40,prog(t,0,HIT))*(hit?.8:1);
+  dust.update(t,silent?0:.5);
+  // カメラ：0〜1.875 はマイクの頭の寄り。1.875〜9.1 で引いてトラスと光の筋を見せる。9.375 以後は中景でマイクを主役に
+  let P,L;
+  if(t<BAR){const a=lerp(-.35,-.15,prog(t,0,BAR));P=new THREE.Vector3(Math.sin(a)*.6,1.42,Math.cos(a)*.6);L=headW.clone();}
+  else if(!hit){const u=ease.inOutCubic(prog(t,BAR,1.4*BAR));P=new THREE.Vector3(lerp(-.2,.6,u),lerp(1.42,.9,u),lerp(.6,7.6,u));L=new THREE.Vector3(0,lerp(1.5,2.35,u),lerp(0,-1,u));}
+  else{const u=ease.inOutSine(prog(t,HIT,15-HIT));P=new THREE.Vector3(lerp(.35,.22,u),1.25,lerp(4.4,3.9,u));L=new THREE.Vector3(0,1.62,0);}
+  camera.position.copy(P);camera.lookAt(L);
+  if(S.bokeh){S.bokeh.uniforms.focus.value=camera.position.distanceTo(headW);S.bokeh.uniforms.aperture.value=t<BAR?.004:.0009;}
+  on('band',t>=HIT);on('tour',t>=HIT+BEAT);on('fin',t>=HIT+2*BEAT);on('date',t>=HIT+2*BEAT);on('venue',t>=HIT+3*BEAT);on('time',t>=HIT+3*BEAT);on('disc',t>=HIT+4*BEAT);
+  S.render();
+};
+</script></body></html>

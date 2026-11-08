@@ -1,0 +1,153 @@
+{
+ "id": "P018-bgm",
+ "title": "灯台（告知用・合成）",
+ "genre": "Future bass (instrumental)",
+ "base": {
+  "bpm": 128,
+  "key": "F#",
+  "seed": 18,
+  "brightness": 0.62,
+  "reverb": 0.3,
+  "drive": 0.06,
+  "sidechain": 0.5,
+  "progression": [
+   "F#m9",
+   "Dmaj7",
+   "Amaj9",
+   "E6"
+  ],
+  "mix": {
+   "kick": 0.42,
+   "hat": 0.18,
+   "bass": 0.22,
+   "pad": 0.34,
+   "pluck": 0.36,
+   "chop": 0.3,
+   "impact": 0.42,
+   "riser": 0.3,
+   "chime": 0.4,
+   "stab": 0.36,
+   "clap": 0.3,
+   "lead": 0.3
+  },
+  "end_chord": "F#m9",
+  "pre_end_chord": "E6"
+ },
+ "versions": {
+  "15s": {
+   "length": 15.0,
+   "bars": 8,
+   "tail_sec": 1.6,
+   "sections": [
+    {
+     "from": 0,
+     "to": 1,
+     "layers": [
+      "pad"
+     ]
+    },
+    {
+     "from": 1,
+     "to": 3,
+     "layers": [
+      "pad",
+      "kick",
+      "pluck"
+     ]
+    },
+    {
+     "from": 3,
+     "to": 5,
+     "layers": [
+      "pad",
+      "kick",
+      "hat",
+      "pluck",
+      "bass"
+     ]
+    },
+    {
+     "from": 5,
+     "to": 7,
+     "layers": [
+      "pad",
+      "kick",
+      "hat",
+      "clap",
+      "bass",
+      "chop",
+      "pluck"
+     ]
+    },
+    {
+     "from": 7,
+     "to": 8,
+     "layers": [
+      "pad"
+     ]
+    }
+   ],
+   "cues": [
+    {
+     "bar": 0,
+     "beat": 0,
+     "type": "chime",
+     "note": 90
+    },
+    {
+     "bar": 4,
+     "beat": 0,
+     "type": "riser",
+     "len_beats": 4
+    },
+    {
+     "bar": 5,
+     "beat": 0,
+     "type": "impact"
+    },
+    {
+     "bar": 5,
+     "beat": 0,
+     "type": "stab"
+    },
+    {
+     "bar": 7,
+     "beat": 0,
+     "type": "chime",
+     "note": 97
+    }
+   ],
+   "silence": [
+    [
+     4,
+     3.5,
+     0.5
+    ]
+   ],
+   "automation": [
+    [
+     0,
+     -3
+    ],
+    [
+     3.75,
+     -1
+    ],
+    [
+     9.375,
+     1
+    ],
+    [
+     13.1,
+     -1
+    ],
+    [
+     15,
+     -2
+    ]
+   ]
+  }
+ },
+ "spec_version": "15s",
+ "max_low_mid_db": 4.0
+}
