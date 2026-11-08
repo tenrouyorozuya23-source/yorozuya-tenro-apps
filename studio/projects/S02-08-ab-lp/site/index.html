@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>冬の灯 チケット A/B 見本</title>
+<meta name="description" content="架空の劇団・灯守座『冬の灯』のチケット LP。ヒーローが動画の A 案と静止画の B 案を切り替えられ、購入ボタン到達率で比べる計測の設計まで載せた見本（天狼スタジオ制作）。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link id="fm" rel="stylesheet" href="">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500&family=Jost:wght@300;400&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="abbar" role="group" aria-label="見本の切り替え（A/B）">
+  <span class="ablabel">見本の切り替え</span>
+  <button type="button" data-v="a" aria-pressed="false">A　動画</button>
+  <button type="button" data-v="b" aria-pressed="false">B　静止画</button>
+  <a href="#measure" class="ablink">計測の設計</a>
+</div>
+<header class="hero" id="top">
+  <figure class="media" id="media" aria-label="ヒーローの絵"></figure>
+  <div class="hero-in">
+    <p class="troupe">灯守座 公演</p>
+    <h1 id="title"></h1>
+    <p class="when" id="when"></p>
+    <p class="where" id="where"></p>
+    <p class="cta"><a href="#tickets" class="btn" id="cta-hero" data-cta="hero">チケットの日程を見る</a></p>
+    <p class="fic">※架空の公演の見本です。チケットの販売はありません</p>
+  </div>
+</header>
+<main>
+<section class="sec" id="story" aria-labelledby="h-story"><h2 id="h-story">あらすじ</h2><p class="log" id="logline"></p><p class="by" id="by"></p></section>
+<section class="sec" id="tickets" aria-labelledby="h-tickets">
+  <h2 id="h-tickets">日時と料金</h2>
+  <dl class="info" id="info"></dl>
+  <ul class="price" id="price"></ul>
+  <p class="buy"><button type="button" class="btn big" id="buy" data-cta="buy">チケットを予約する</button></p>
+  <p class="msg" id="msg" role="status"></p>
+</section>
+<section class="sec measure" id="measure" aria-labelledby="h-measure">
+  <h2 id="h-measure">計測の設計（見本）</h2>
+  <p class="lead">ヒーローを「動画（A）」と「静止画（B）」の2案にし、どちらが購入ボタンまで人を運ぶかを比べます。</p>
+  <dl class="spec" id="spec"></dl>
+  <h3>送るイベント</h3>
+  <div class="tbl" role="region" aria-label="イベントの一覧" tabindex="0">
+  <table>
+    <thead><tr><th scope="col">イベント名</th><th scope="col">送るとき</th><th scope="col">中身</th></tr></thead>
+    <tbody>
+      <tr><td><code>ab_assign</code></td><td>はじめて開いたとき（以後は同じ案）</td><td>variant（a / b）</td></tr>
+      <tr><td><code>hero_view</code></td><td>ヒーローが表示されたとき</td><td>variant</td></tr>
+      <tr><td><code>hero_video_play</code></td><td>A 案の動画が再生を始めたとき</td><td>variant</td></tr>
+      <tr><td><code>cta_visible</code></td><td>購入ボタンが半分以上・0.5秒以上見えたとき（1回だけ）</td><td>variant、cta（hero / buy）、秒数（開いてから）</td></tr>
+      <tr><td><code>cta_click</code></td><td>ボタンを押したとき</td><td>variant、cta</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <h3>必要な人数（1案あたり）</h3>
+  <form class="calc" id="calc" onsubmit="return false">
+    <label>今の到達率 <input id="p0" type="number" min="1" max="95" step="1" inputmode="numeric"> %</label>
+    <label>見つけたい差 <input id="mde" type="number" min="1" max="30" step="1" inputmode="numeric"> ポイント</label>
+  </form>
+  <p class="nres" id="nres" aria-live="polite"></p>
+  <p class="note" id="nnote"></p>
+  <h3>このページで今送ったイベント</h3>
+  <ol class="log" id="evlog" aria-live="polite"></ol>
+  <p class="note">見本のため外部には送らず、この一覧に出すだけです（window.dataLayer に積んでいます）。</p>
+</section>
+</main>
+<footer class="foot"><p id="discl"></p></footer>
+<script type="module" src="app.js"></script>
+</body>
+</html>

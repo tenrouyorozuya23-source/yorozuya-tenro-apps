@@ -1,0 +1,139 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><style>html,body{margin:0;background:#000;overflow:hidden}</style>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@600&family=Noto+Sans+JP:wght@400;500&display=block" rel="stylesheet">
+<script type="importmap">{"imports":{"three":"/node_modules/three/build/three.module.js","three/addons/":"/node_modules/three/examples/jsm/"}}</script><style>
+#ov{position:absolute;inset:0;color:#f1ece4;pointer-events:none}
+.t{z-index:2;position:absolute;left:0;right:0;text-align:center;opacity:0}
+#ti{top:300px;font:600 64px/1.3 "Shippori Mincho";letter-spacing:.12em;text-indent:.12em}
+#ti2{top:400px;font:500 38px/1.5 "Noto Sans JP";letter-spacing:.24em;text-indent:.24em;color:#d8cfc2}
+#ph{top:1176px;font:500 40px/1.5 "Noto Sans JP";letter-spacing:.3em;text-indent:.3em;color:#d8cfc2}
+#cnt{top:1240px;font:600 120px/1 "Shippori Mincho";letter-spacing:.04em}
+#cnt small{font:500 40px "Noto Sans JP";letter-spacing:.2em;margin-left:.3em}
+#cl{top:1376px;font:400 34px/1 "Noto Sans JP";letter-spacing:.3em;text-indent:.3em;color:#c9c0b2}
+#rem1{top:1170px;font:500 44px/1.5 "Noto Sans JP";letter-spacing:.3em;text-indent:.3em;color:#ffd7a0}
+#rem2{top:1240px;font:600 168px/1 "Shippori Mincho";letter-spacing:.04em;color:#ffe7c4}
+#rem2 small{font:600 64px "Shippori Mincho";margin-left:.15em}
+#d1{top:1200px;font:600 72px/1.3 "Shippori Mincho";letter-spacing:.08em;text-indent:.08em}
+#d2{top:1308px;font:500 40px/1.5 "Noto Sans JP";letter-spacing:.2em;text-indent:.2em;color:#d8cfc2}
+#cr1{top:300px;font:600 52px/1.3 "Shippori Mincho";letter-spacing:.14em;text-indent:.14em}
+#cr2{top:385px;font:400 34px/1.5 "Noto Sans JP";letter-spacing:.2em;text-indent:.2em;color:#d8cfc2}
+#scrim{z-index:1;position:absolute;left:0;right:0;top:1060px;bottom:0;background:linear-gradient(rgba(0,0,0,0),rgba(0,0,0,.62) 22%,rgba(0,0,0,.62))}
+#disc{top:1442px;font:400 28px/1.3 "Noto Sans JP";letter-spacing:.12em;text-indent:.12em;color:#b4ab9e}
+#ov{display:none!important}</style></head><body><div id="ov"><div id="scrim"></div>
+<div class="t" id="ti">灯守座『冬の灯』</div><div class="t" id="ti2">千秋楽　客席120席</div>
+<div class="t" id="ph"></div><div class="t" id="cnt"></div><div class="t" id="cl">販売済み</div>
+<div class="t" id="rem1">千秋楽の残り</div><div class="t" id="rem2">18<small>席</small></div>
+<div class="t" id="d1">12月20日（日）</div><div class="t" id="d2">18:00 開演</div>
+<div class="t" id="cr1">映像制作　天狼スタジオ</div><div class="t" id="cr2">データを、客席の光で見せる</div>
+<div class="t" id="disc">※架空の劇団・架空のデータです</div>
+</div>
+<script type="module">
+// S09-07 残席の可視化：120席の客席灯が売れた順に消え、残り18席だけが光る（架空データ）
+import * as C from '/tools/cine/cine.js';
+import {RoundedBoxGeometry} from 'three/addons/geometries/RoundedBoxGeometry.js';
+const {lerp,prog,ease,clamp}=C;
+const W=innerWidth,H=innerHeight;
+const S=C.createStage({width:W,height:H,exposure:1.0,fov:40,envIntensity:0,dof:true});
+const {THREE,scene,camera}=S;
+if(S.bloom){S.bloom.threshold=.9;S.bloom.strength=.55;S.bloom.radius=.5;}
+scene.fog=new THREE.FogExp2(0x050403,.035);scene.background=new THREE.Color(0x020202);
+C.stageFloor(scene,{material:new THREE.MeshPhysicalMaterial({color:0x14100d,roughness:.5,clearcoat:.3,clearcoatRoughness:.4})});
+// 客席：6列×20段、段ごとに 0.3m 上がる。わずかに扇形
+const ROWS=20,COLS=6,N=ROWS*COLS;
+const seatPos=[];
+for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
+  const R=20+r*.9, a=(c-(COLS-1)/2)*.62/R;
+  seatPos.push({r,c,x:Math.sin(a)*R,z:-Math.cos(a)*R+20,y:r*.3,ry:-a});
+}
+const o=new THREE.Object3D();
+// 段床と左右の壁
+const stepMat=new THREE.MeshStandardMaterial({color:0x1b1613,roughness:.9});
+for(let r=0;r<ROWS;r++){const g=new THREE.BoxGeometry(5.2,.3,.9);const m=new THREE.Mesh(g,stepMat);m.position.set(0,r*.3-.15,-r*.9);m.receiveShadow=true;scene.add(m);}
+const wallMat=new THREE.MeshStandardMaterial({color:0x221a16,roughness:.95});
+for(const sx of[-1,1]){const w=new THREE.Mesh(new THREE.PlaneGeometry(26,12),wallMat);w.rotation.y=-sx*Math.PI/2;w.position.set(sx*2.9,5,-8);w.receiveShadow=true;scene.add(w);}
+// 通路の足元灯（段鼻の小さな灯。客席の形が暗転中も見える）
+const foot=new THREE.InstancedMesh(new THREE.BoxGeometry(.22,.02,.02),new THREE.MeshBasicMaterial({color:0x6a4426,toneMapped:false}),ROWS*2);
+{let k=0;for(let r=0;r<ROWS;r++)for(const sx of[-1,1]){o.position.set(sx*2.45,r*.3+.02,-r*.9+.46);o.rotation.set(0,0,0);o.updateMatrix();foot.setMatrixAt(k++,o.matrix);}}
+scene.add(foot);
+const bw=new THREE.Mesh(new THREE.PlaneGeometry(8,14),wallMat);bw.position.set(0,6,-18.5);scene.add(bw);
+// 椅子（臙脂の布）
+const fab=new THREE.MeshPhysicalMaterial({color:0x6e2224,roughness:.78,sheen:.6,sheenRoughness:.5,sheenColor:new THREE.Color(0xc8605a)});
+const cushion=new THREE.InstancedMesh(new RoundedBoxGeometry(.5,.13,.46,3,.035),fab,N);
+const back=new THREE.InstancedMesh(new RoundedBoxGeometry(.5,.62,.11,3,.04),fab,N);
+// 客席灯：背もたれの上の細い灯と、座面に落ちる光だまり
+const lampG=new THREE.BoxGeometry(.38,.035,.05);
+const lamp=new THREE.InstancedMesh(lampG,new THREE.MeshBasicMaterial({color:0xffffff,toneMapped:false}),N);
+const cv=document.createElement('canvas');cv.width=cv.height=128;const cx=cv.getContext('2d');const gr=cx.createRadialGradient(64,64,0,64,64,64);
+gr.addColorStop(0,'rgba(255,255,255,1)');gr.addColorStop(.35,'rgba(255,255,255,.35)');gr.addColorStop(1,'rgba(255,255,255,0)');cx.fillStyle=gr;cx.fillRect(0,0,128,128);
+const pool=new THREE.InstancedMesh(new THREE.PlaneGeometry(1.3,1.3),new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(cv),transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,toneMapped:false}),N);
+const halo=new THREE.InstancedMesh(new THREE.PlaneGeometry(.9,.5),new THREE.MeshBasicMaterial({map:pool.material.map,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,toneMapped:false}),N);
+seatPos.forEach((p,i)=>{
+  o.position.set(p.x,p.y+.42,p.z);o.rotation.set(0,p.ry,0);o.updateMatrix();cushion.setMatrixAt(i,o.matrix);
+  o.position.set(p.x+Math.sin(p.ry)*.0,p.y+.72,p.z-Math.cos(-p.ry)*.24);o.updateMatrix();back.setMatrixAt(i,o.matrix);
+  o.position.y=p.y+1.05;o.updateMatrix();lamp.setMatrixAt(i,o.matrix);
+  o.position.set(p.x,p.y+.49,p.z);o.rotation.set(-Math.PI/2,0,p.ry);o.updateMatrix();pool.setMatrixAt(i,o.matrix);
+  o.position.set(p.x,p.y+1.06,p.z-.25);o.rotation.set(0,p.ry,0);o.updateMatrix();halo.setMatrixAt(i,o.matrix);
+});
+for(const m of[cushion,back]){m.castShadow=m.receiveShadow=true;scene.add(m);}
+for(const m of[lamp,pool,halo]){m.instanceColor=new THREE.InstancedBufferAttribute(new Float32Array(N*3),3);scene.add(m);}
+// 売れた順：前方中央ほど早い（固定の乱数）
+const rnd=C.rand(707);
+const order=seatPos.map((p,i)=>({i,s:p.r*.42+Math.abs(p.c-2.5)*.55+rnd()*3.6})).sort((a,b)=>a.s-b.s).map(x=>x.i);
+const soldAt=new Float32Array(N).fill(1e9);
+// 区間ごとの販売数（facts.json）：発売日 54、1週間後 88、前日 102
+const BEAT=60/96,S16=BEAT/4;
+const PH=[{hit:2.5,from:0,to:54},{hit:5.0,from:54,to:88},{hit:7.5,from:88,to:102}];
+for(const ph of PH)for(let k=ph.from;k<ph.to;k++){const g=Math.floor((k-ph.from)*8/(ph.to-ph.from));soldAt[order[k]]=ph.hit-2*BEAT+g*S16;}
+const remain=new Uint8Array(N);for(let k=102;k<N;k++)remain[order[k]]=1;
+const soldCount=t=>{let n=0;for(let i=0;i<N;i++)if(t>=soldAt[i]+.12)n++;return n;};
+// 舞台側からの地明かり（客席が黒く沈まない程度）
+const wash=C.spot(scene,{pos:[0,9,12],target:[0,2.4,-8],color:0xffd9b0,intensity:0,angle:.6,penumbra:.9});
+const hero=C.spot(scene,{pos:[0,12,0],target:[0,3,-10],color:0xffc98e,intensity:0,angle:.55,penumbra:.9});
+const rim=C.spot(scene,{pos:[0,9,-22],target:[0,1,6],color:0xffb070,intensity:0,angle:.5,penumbra:.9,shadow:false});
+const WARM=new THREE.Color(0xffc27a),HOT=new THREE.Color(0xffe2b4),col=new THREE.Color();
+await document.fonts.load('600 120px "Shippori Mincho"','灯守座『冬の灯』0123456789席12月20日（日）映像制作天狼スタジオ');await document.fonts.load('500 40px "Noto Sans JP"','千秋楽客席120席発売日1週間後前日販売済みの残り18:00開演※架空の劇団データです客席光で見せる、');
+window.__ready=Promise.resolve();
+const $=id=>document.getElementById(id);const op=(id,v)=>$(id).style.opacity=(+v).toFixed(3);
+const REM=10.0, END=12.5;
+const KF=[ // カメラの鍵：0〜2.5 ゆっくり押す／2.5〜5 ほぼ据える／5〜7.5 横へトラック／7.5〜9.6 クレーンで上がる／10〜 客席の上を進む
+ [0.0,[-1.1,2.8,19.5],[-.2,1.9,-6],34],[2.4,[-.8,3.05,19.0],[-.15,1.85,-6],34],[4.6,[-.7,3.15,18.8],[-.12,1.83,-6],34],
+ [7.2,[1.5,3.35,18.6],[.25,1.8,-6],33.5],[9.6,[.9,5.6,17.6],[.1,1.2,-6],33],[10.0,[.88,5.75,17.4],[.1,1.25,-6.4],33],[13.6,[.6,7.3,8.4],[0,4.2,-14],32],[15.0,[.4,7.6,7.6],[0,4.25,-14.2],32]];
+const camAt=t=>{let i=0;while(i<KF.length-2&&t>KF[i+1][0])i++;const [t0,p0,l0,f0]=KF[i],[t1,p1,l1,f1]=KF[i+1];const u=ease.inOutSine(clamp((t-t0)/(t1-t0)));
+  const L=(a,b)=>a.map((v,k)=>lerp(v,b[k],u));return [L(p0,p1),L(l0,l1),lerp(f0,f1,u)];};
+window.renderAt=t=>{
+  const br=1+.06*Math.sin(t*Math.PI*2/1.25);
+  // 9.72〜10.0 は客席を落として無音、10.0 の一打で残りの18席だけが点く
+  const dark=t>=9.72&&t<REM?ease.outCubic(prog(t,9.72,.08)):0, hit=t>=REM?1:0;
+  S.renderer.toneMappingExposure=1.0+.45*ease.inOutSine(prog(t,5,3))*(1-prog(t,9.72,.08))+(hit?.12:0)+.3*dark;
+  wash.intensity=(t<9.72?260:hit?lerp(40,90,prog(t,REM,2)):lerp(260,30,dark))*br;
+  hero.intensity=(t<9.72?90*ease.inOutSine(prog(t,6.5,2)):0)+(hit?180*(1-Math.pow(1-prog(t,REM,4/30),5))*br:0);
+  rim.intensity=(t<9.72?160:hit?220:40)*br;
+  for(let i=0;i<N;i++){
+    const off=prog(t,soldAt[i],3/30);
+    let v=lerp(1,.07,off);
+    if(remain[i]){v=t<9.72?1:t<REM?lerp(1,.03,dark):1;}
+    else if(t>=9.72&&t<REM)v*=lerp(1,.4,dark);
+    const boost=remain[i]&&hit?1+1.4*(1-Math.pow(1-prog(t,REM,4/30),5)):1;
+    col.copy(WARM).lerp(HOT,clamp(boost-1)).multiplyScalar(v*boost*1.6);lamp.setColorAt(i,col);
+    col.copy(WARM).multiplyScalar(v*boost*.22);pool.setColorAt(i,col);
+    col.copy(WARM).multiplyScalar(v*boost*.32);halo.setColorAt(i,col);
+  }
+  lamp.instanceColor.needsUpdate=pool.instanceColor.needsUpdate=halo.instanceColor.needsUpdate=true;
+  const [P,LK,F]=camAt(t);
+  camera.position.set(...P);camera.lookAt(...LK);camera.fov=F;camera.updateProjectionMatrix();
+  if(S.bokeh){S.bokeh.uniforms.focus.value=t<REM?lerp(25,23.5,prog(t,0,10)):lerp(23.5,20.5,ease.inOutSine(prog(t,REM,3.6)));S.bokeh.uniforms.aperture.value=.00065;}
+  // 文字：打点で着地（下から 24px、3フレーム）。数字は打点の頭に出る
+  const land=(id,a,d=3/30,dy=24)=>{const u=ease.outCubic(prog(t,a,d));$(id).style.transform=`translateY(${((1-u)*dy).toFixed(1)}px)`;return u;};
+  const out=(a,d=.15)=>1-prog(t,a,d);
+  op('ti',land('ti',.15,.3)*out(3.0,.2));op('ti2',land('ti2',.25,.3)*out(3.0,.2));
+  const pi=t<5?0:t<7.5?1:2;$('ph').textContent=['発売日','1週間後','前日'][pi];
+  $('cnt').innerHTML=PH[pi].to+'<small>席</small>';
+  const hk=PH[pi].hit, nx=pi<2?PH[pi+1].hit:9.72;
+  const on=t>=2.5&&t<9.72;
+  op('ph',on?land('ph',hk-4/30)*out(nx-.05,.05):0);op('cnt',on?land('cnt',hk,3/30,30)*out(nx-.05,.05):0);op('cl',on?land('cl',hk+3/30)*out(nx-.05,.05):0);
+  op('rem1',t>=REM?land('rem1',REM-4/30+4/30)*out(END-.12,.12):0);op('rem2',t>=REM?land('rem2',REM,3/30,30)*out(END-.12,.12):0);
+  op('d1',land('d1',END,3/30,30));op('d2',land('d2',END+3/30));
+  op('cr1',land('cr1',END+2/30,.2));op('cr2',land('cr2',END+4/30,.2));
+  op('disc',ease.outCubic(prog(t,.2,.3)));
+  S.render();
+};
+</script></body></html>
