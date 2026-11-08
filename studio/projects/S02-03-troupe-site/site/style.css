@@ -102,3 +102,4 @@ time, .nw { white-space: nowrap; }
 @media (max-width: 899px) { .shelf.open .stagebox { height: 52svh; min-height: 0; } }
 @media (orientation: landscape) and (max-height: 500px) { .stagebox { min-height: 0; height: calc(100svh - 56px); } }
 @media (prefers-reduced-motion: reduce) { .stagebox { transition: none; } }
+.stagebox canvas:focus-visible { outline-offset: -4px; }

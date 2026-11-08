@@ -34,3 +34,4 @@ Artifact の制約（変換の道具で吸収している）:
 - S05-09 室内楽団サイト: https://claude.ai/artifact/BP5Moxpu9eQtQFc2tJGL1W
 - S05-07 ライバー公式サイト: https://claude.ai/artifact/VmfnpdDwdrh5nmq8msktwN
 - S05-02 シンガーソングライター公式サイト: https://claude.ai/artifact/6DcfRJH5JCZd2x7VsgrB5F
+- S02-03 劇団 灯守座 公式サイト: https://claude.ai/artifact/PtXv8o4iffAqvS7nWmPCsf

@@ -38,7 +38,7 @@ function route() {
   if (w) {
     $('d-year').textContent = String(w.year); $('d-title').textContent = w.title;
     $('d-status').textContent = w.status === 'planned' ? '上演予定（この台本はまだ稽古中です）' : `${w.year}年 上演`;
-    $('d-when').textContent = when(w); $('d-venue').textContent = w.venue; $('d-cast').textContent = w.cast.join('　');
+    $('d-when').textContent = ''; $('d-when').append(el('span', 'nw', `${w.year}年`), el('span', 'nw', `${md(w.from)}（${w.from_wd}）〜`), el('span', 'nw', `${md(w.to)}（${w.to_wd}）`)); $('d-venue').textContent = w.venue; $('d-cast').textContent = ''; w.cast.forEach((c, i) => { if (i) $('d-cast').append('　'); $('d-cast').append(el('span', 'nw', c)); });
     $('d-log').textContent = w.logline; $('d-syn').textContent = w.synopsis;
     const dl = $('d-link'); dl.textContent = '';
     if (w.status === 'planned') { const a = el('a', null, '公演パンフレット（見本）'); a.href = F.links.pamphlet; a.target = '_blank'; a.rel = 'noopener'; dl.append(a); }
@@ -139,7 +139,7 @@ addEventListener('keydown', e => { if (e.key === 'Escape' && !$('detail').hidden
     camTo.p.set(b.x + sh, .15, wide ? .72 : .72); camTo.l.set(b.x + sh, .13, .24);
   }
   const fit = () => { const w = box.clientWidth, h = box.clientHeight; r.setSize(w, h, false); cam.aspect = w / h; cam.fov = w < h ? 44 : 34; cam.updateProjectionMatrix(); selected ? focusBook(selected) : home(); };
-  addEventListener('resize', fit); fit();
+  addEventListener('resize', fit); new ResizeObserver(fit).observe(box); fit();   // 記録を開くと棚の高さが変わるので、箱の大きさも見張る
   camCur.p.copy(camTo.p); camCur.l.copy(camTo.l);
   onSelect = id => { selected = id ? books.find(b => b.w.id === id) : null; selected ? focusBook(selected) : home(); };
 
