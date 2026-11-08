@@ -44,15 +44,15 @@ function cue(now) { cueAt = now; for (const id of ORDER) from[id] = lamps[id] ? 
     const desk = new THREE.Mesh(new THREE.BoxGeometry(.52, .36, .02), metal); desk.position.set(0, 1.18, 0); desk.rotation.x = -.45; desk.castShadow = true; g.add(desk);
     const paperM = new THREE.MeshStandardMaterial({ color: 0x3a3630, roughness: .9, emissive: 0x000000 }); const paper = new THREE.Mesh(new THREE.PlaneGeometry(.46, .32), paperM); paper.position.set(0, 1.185, .015); paper.rotation.x = -.45; g.add(paper);
     for (const [x, z] of [[-.2, -.2], [.2, -.2], [0, .25]]) { const leg = new THREE.Mesh(new THREE.CylinderGeometry(.012, .012, .35, 6), metal); leg.position.set(x * .5, .14, z * .5); leg.rotation.z = x; g.add(leg); }
-    const chair = new THREE.Mesh(new THREE.BoxGeometry(.42, .46, .42), chairM); chair.position.set(0, .23, .75); chair.castShadow = chair.receiveShadow = true; g.add(chair);
-    const back = new THREE.Mesh(new THREE.BoxGeometry(.42, .5, .05), chairM); back.position.set(0, .7, .95); back.castShadow = true; g.add(back);
+    const chair = new THREE.Mesh(new THREE.BoxGeometry(.42, .46, .42), chairM); chair.position.set(0, .23, -.55); chair.castShadow = chair.receiveShadow = true; g.add(chair);
+    const back = new THREE.Mesh(new THREE.BoxGeometry(.42, .5, .05), chairM); back.position.set(0, .7, -.75); back.castShadow = true; g.add(back);
     // 譜面灯（クリップライト）と、上からの小さなスポット
     const lampM = new THREE.MeshBasicMaterial({ color: 0x221a10 }); const bulb = new THREE.Mesh(new THREE.BoxGeometry(.3, .03, .05), lampM); bulb.position.set(0, 1.38, -.08); bulb.rotation.x = -.45; g.add(bulb);
     const sp = new THREE.SpotLight(0xffe2b4, 0, 6, .34, .6, 1.5); sp.position.set(g.position.x, 4.2, g.position.z + .4); sp.target.position.copy(g.position); sp.castShadow = true; scene.add(sp, sp.target);
     lamps[id] = { sp, lampM, paperM, level: 0 };
   });
   scene.add(new THREE.HemisphereLight(0x2a2a3a, 0x08080a, .18));
-  const fit = () => { const w = cv.clientWidth, h = cv.clientHeight; r.setSize(w, h, false); cam.aspect = w / h; cam.fov = w < h ? 46 : 30; cam.updateProjectionMatrix(); };
+  const fit = () => { const w = cv.clientWidth, h = cv.clientHeight; r.setSize(w, h, false); cam.aspect = w / h; cam.fov = w < h ? 40 : 28; cam.updateProjectionMatrix(); };
   fit(); addEventListener('resize', fit);
   let visible = true; new IntersectionObserver(es => { visible = es[0].isIntersecting; }).observe(cv);
   const t0 = performance.now();
@@ -67,7 +67,7 @@ function cue(now) { cueAt = now; for (const id of ORDER) from[id] = lamps[id] ? 
     });
     const a = reduce ? 0 : Math.sin((now - t0) / 1000 * .07) * .06;
     const port = cam.aspect < 1;
-    cam.position.set(Math.sin(a) * 9, port ? 4.2 : 3.4, Math.cos(a) * 9 + 1); cam.lookAt(0, port ? 1.6 : .8, 0);
+    const D = port ? 7.4 : 6.4; cam.position.set(Math.sin(a) * D, port ? 3.6 : 3.0, Math.cos(a) * D + 1); cam.lookAt(0, port ? 1.4 : 1.0, 0);
     r.render(scene, cam);
   };
   requestAnimationFrame(frame);
