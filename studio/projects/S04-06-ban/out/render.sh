@@ -3,7 +3,7 @@
 set -e
 cd /home/user/yorozuya-tenro-apps/studio
 P=projects/S04-06-ban
-for seg in "0 5" "5 5" "10 5"; do set -- $seg
+for seg in "0 5" "5 5"; do   # 10〜15秒は前回の書き出しをそのまま使う set -- $seg
   node tools/render.mjs $P/ban.html $P/out/seg_$1.mp4 --w 1080 --h 1920 --fps 30 --from $1 --dur $2 --workers 3 --data $P/audio/S04-06-bgm_15s.beats.json
 done
 printf "file 'seg_0.mp4'\nfile 'seg_5.mp4'\nfile 'seg_10.mp4'\n" > $P/out/list.txt

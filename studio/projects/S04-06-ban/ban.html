@@ -71,14 +71,14 @@ scene.environmentIntensity=1;
 window.__ready=Promise.resolve();
 const $=id=>document.getElementById(id);const op=(id,v)=>$(id).style.opacity=(+v).toFixed(3);
 // 光の帯が渡る時間（開始, 長さ）。最後の帯は 8.6 秒に入り、10.0 秒に題を読み終える
-const SW=[[-0.5,2.8,-.03,.17],[5.2,2.0,-.21,.21],[8.6,1.4,-.21,.21]];
+const SW=[[-0.6,5.4,-.03,.11],[4.8,2.6,-.21,.21],[8.6,1.4,-.21,.21]];
 const HIT=10.0;
 window.renderAt=t=>{
   DISC.rotation.z=-t*.42;
   // 帯の位置（x：-0.2→0.2）
   let sx=-9,sv=0;for(const [s,d,a,b] of SW){const u=(t-s)/d;if(u>=0&&u<=1){sx=lerp(a,b,ease.inOutSine(u));sv=Math.sin(Math.PI*Math.min(1,u*1.15))**.5;}}
   streak.position.x=sx;streakM.opacity=sv*.35;
-  if(sx<-5){const u=prog(t,HIT,1.2);setEnv(t>=HIT?lerp(-1.8,-1.1,ease.outCubic(u)):-4,t>=HIT?lerp(.6,9,ease.outCubic(u)):.6);}else setEnv((sx-camera.position.x)*7,.6+sv*5.4);
+  if(sx<-5){const u=prog(t,HIT,1.2);setEnv(t>=HIT?lerp(-1.8,-1.1,ease.outCubic(u)):-1.8,t>=HIT?lerp(1.2,9,ease.outCubic(u)):1.2);}else setEnv((sx-camera.position.x)*7,1.2+sv*5.4);
   strip.position.set(sx*1.6,.9,.55);strip.target.position.set(sx,CY,0);strip.intensity=sv*3+(t>=HIT?2:0);
   fill.intensity=lerp(.6,2.2,prog(t,4,5))+(t>=HIT?1.4*ease.outCubic(prog(t,HIT,.6)):0);
   rim.intensity=lerp(1.5,8,prog(t,0,9));
