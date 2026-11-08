@@ -32,7 +32,7 @@ a { color: var(--amber); text-underline-offset: .3em; }
 .stagebox canvas { opacity: 0; transition: opacity .4s ease-out; }
 .stagebox canvas.ready { opacity: 1; }
 .stagebox canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; cursor: default; touch-action: pan-y; }
-.cap { position: absolute; left: 16px; right: 16px; bottom: 20px; pointer-events: none; }
+.cap { position: absolute; z-index: 1; left: 16px; right: 16px; bottom: 20px; pointer-events: none; }
 .cap h1 { margin: 0; font: 600 clamp(44px, 12vw, 88px)/1.1 var(--mincho); letter-spacing: .2em; text-shadow: 0 0 20px #000; }
 .cap .kana { display: block; font: 300 13px/1 var(--num); letter-spacing: .5em; color: var(--sub); margin-bottom: 10px; font-family: var(--sans); }
 .cap .lead { margin: 12px 0 0; font: 500 15px/1.9 var(--mincho); letter-spacing: .1em; text-shadow: 0 0 12px #000; }
@@ -91,6 +91,14 @@ time, .nw { white-space: nowrap; }
   .stagebox { height: calc(100svh - 56px); }
   .cap { left: 7vw; bottom: 8vh; }
   /* PC では記録を棚の右に重ねる */
-  .detail { position: absolute; top: 0; right: 0; bottom: 0; width: min(460px, 38vw); padding: 56px 44px; overflow-y: auto; background: rgba(13, 12, 11, .94); border-top: 0; border-left: 1px solid var(--line); }
+  .detail { position: absolute; top: 0; right: 0; bottom: 0; width: min(460px, 38vw); padding: 56px 44px; overflow-y: auto; background: #0d0c0b; border-top: 0; border-left: 1px solid var(--line); }
 }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+#h-shelf:focus { outline: none; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.cap::before { content: ""; position: absolute; left: -16px; right: -16px; bottom: -20px; height: calc(100% + 120px); z-index: -1; background: linear-gradient(to top, rgba(10, 9, 8, .92), rgba(10, 9, 8, .7) 55%, rgba(10, 9, 8, 0)); }
+.cap h1 { font-size: clamp(40px, 11vw, 88px); }
+.stagebox { transition: height .4s ease-out; }
+@media (max-width: 899px) { .shelf.open .stagebox { height: 52svh; min-height: 0; } }
+@media (orientation: landscape) and (max-height: 500px) { .stagebox { min-height: 0; height: calc(100svh - 56px); } }
+@media (prefers-reduced-motion: reduce) { .stagebox { transition: none; } }

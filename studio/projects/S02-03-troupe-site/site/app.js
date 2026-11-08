@@ -30,13 +30,14 @@ if (nx) {
 }
 
 // 記録を開く・閉じる（#/w/<id> で開き、#/ で棚に戻す）
-let onSelect = () => {};
+let onSelect = () => {}, lastLink = null;
+document.addEventListener('click', e => { const a = e.target.closest && e.target.closest('a[href^="#/w/"]'); if (a) lastLink = a; });
 function route() {
   const m = location.hash.match(/^#\/w\/([\w-]+)/), w = m && F.works.find(x => x.id === m[1]);
   for (const a of Object.values(links)) a.removeAttribute('aria-current');
   if (w) {
     $('d-year').textContent = String(w.year); $('d-title').textContent = w.title;
-    $('d-status').textContent = w.status === 'planned' ? '上演予定（この台本はまだ稽古中です）' : `第${F.works.indexOf(w) + 1}回公演`;
+    $('d-status').textContent = w.status === 'planned' ? '上演予定（この台本はまだ稽古中です）' : `${w.year}年 上演`;
     $('d-when').textContent = when(w); $('d-venue').textContent = w.venue; $('d-cast').textContent = w.cast.join('　');
     $('d-log').textContent = w.logline; $('d-syn').textContent = w.synopsis;
     const dl = $('d-link'); dl.textContent = '';
@@ -44,9 +45,10 @@ function route() {
     $('detail').hidden = false; document.querySelector('.shelf').classList.add('open'); links[w.id].setAttribute('aria-current', 'page');
     document.querySelector('.shelf').scrollIntoView({ block: 'start', behavior: reduce ? 'instant' : 'smooth' });
     $('detail').focus({ preventScroll: true }); onSelect(w.id);
-  } else if (location.hash === '#/' || location.hash === '') {
+  } else if (m || location.hash === '#/' || location.hash === '') {
+    if (m) history.replaceState(null, '', '#/');
     const was = !$('detail').hidden; $('detail').hidden = true; document.querySelector('.shelf').classList.remove('open'); onSelect(null);
-    if (was) $('h-shelf').focus({ preventScroll: true });
+    if (was) (lastLink || $('shelf')).focus({ preventScroll: true });
   }
 }
 $('h-shelf').tabIndex = -1;
@@ -60,7 +62,7 @@ addEventListener('keydown', e => { if (e.key === 'Escape' && !$('detail').hidden
   const cv = $('shelf'), box = cv.parentElement;
   const r = new THREE.WebGLRenderer({ canvas: cv, antialias: true });
   r.setPixelRatio(Math.min(2, devicePixelRatio)); r.shadowMap.enabled = true; r.shadowMap.type = THREE.PCFSoftShadowMap;
-  r.toneMapping = THREE.ACESFilmicToneMapping; r.toneMappingExposure = 1.0; r.outputColorSpace = THREE.SRGBColorSpace;
+  r.toneMapping = THREE.ACESFilmicToneMapping; r.toneMappingExposure = .8; r.outputColorSpace = THREE.SRGBColorSpace;
   const scene = new THREE.Scene(); scene.background = new THREE.Color(0x0a0908);
   const cam = new THREE.PerspectiveCamera(34, 1, .01, 20);
   const std = (c, ro = .7, me = 0) => new THREE.MeshStandardMaterial({ color: c, roughness: ro, metalness: me });
@@ -84,6 +86,7 @@ addEventListener('keydown', e => { if (e.key === 'Escape' && !$('detail').hidden
   const books = []; let x = -.2;
   F.works.forEach((w, i) => {
     const t = TH[i % TH.length], h = HT[i % HT.length];
+    const light = new THREE.Color(w.color).getHSL({}).l > .38;
     const spine = tex(128, 1024, (g, W, H) => {
       cloth(g, W, H, w.color); g.strokeStyle = gold; g.lineWidth = 3;
       for (const y of [46, 58, H - 58, H - 46]) { g.beginPath(); g.moveTo(10, y); g.lineTo(W - 10, y); g.stroke(); }
@@ -91,20 +94,22 @@ addEventListener('keydown', e => { if (e.key === 'Escape' && !$('detail').hidden
       const cs = [...w.title], fs = Math.min(76, 640 / cs.length); g.font = `600 ${fs}px "Shippori Mincho", serif`;
       cs.forEach((c, k) => g.fillText(c, W / 2, 130 + fs * .55 + k * fs * 1.08));
       g.fillStyle = gold; g.font = '600 30px "Shippori Mincho", serif'; [...F.troupe].forEach((c, k) => g.fillText(c, W / 2, H - 250 + k * 34));
-      g.font = '300 30px Jost, sans-serif'; g.fillText(String(w.year), W / 2, H - 100);
+      g.font = '400 30px Jost, sans-serif'; g.fillStyle = light ? '#2a2622' : gold; g.fillText(String(w.year), W / 2, H - 100);
     });
     const cover = tex(720, 1024, (g, W, H) => {
       cloth(g, W, H, w.color); g.strokeStyle = gold; g.lineWidth = 3; g.strokeRect(46, 46, W - 92, H - 92);
       g.fillStyle = '#f2e6cf'; g.textAlign = 'center'; g.textBaseline = 'middle';
       const fs = Math.min(92, 560 / [...w.title].length); g.font = `600 ${fs}px "Shippori Mincho", serif`; g.fillText(w.title, W / 2, H * .38);
       g.fillStyle = gold; g.font = '500 30px "Shippori Mincho", serif'; g.fillText(`${F.troupe}　上演台本`, W / 2, H * .38 + fs + 20);
-      g.font = '300 34px Jost, sans-serif'; g.fillText(String(w.year), W / 2, H - 140);
+      g.fillStyle = '#efe3cc'; g.font = '500 26px "Shippori Mincho", serif'; g.fillText('配役', W / 2, H * .62);
+      w.cast.forEach((c, k) => g.fillText(c, W / 2, H * .62 + 44 + k * 38));
+      g.fillStyle = gold; g.font = '300 34px Jost, sans-serif'; g.fillText(String(w.year), W / 2, H - 110);
     });
     const cm = new THREE.MeshStandardMaterial({ map: cover, roughness: .72 }), sm = new THREE.MeshStandardMaterial({ map: spine, roughness: .7 }), pm = new THREE.MeshStandardMaterial({ map: paper, roughness: .9 }), bm = std(new THREE.Color(w.color), .75);
     const mesh = new THREE.Mesh(new THREE.BoxGeometry(t, h, DP), [cm, bm, pm, pm, sm, pm]);
     mesh.castShadow = mesh.receiveShadow = true; mesh.userData.id = w.id;
     const g = new THREE.Group(); g.position.set(x + t / 2, h / 2, .118 - DP / 2); g.add(mesh); scene.add(g);
-    books.push({ w, g, mesh, x: x + t / 2, h, cur: { pull: 0, rot: 0, lift: 0, glow: 0 }, sm });
+    books.push({ w, g, mesh, x: x + t / 2, h, cur: { pull: 0, rot: 0, lift: 0, glow: 0, rv: 0 }, sm });
     x += t + .004;
   });
   // ブックエンド（右）
@@ -116,17 +121,18 @@ addEventListener('keydown', e => { if (e.key === 'Escape' && !$('detail').hidden
   const ghost = new THREE.PointLight(0xffc98a, .5, 1.2, 2); ghost.position.copy(bulb.position); scene.add(ghost);
 
   // 照明：上の段から台本を照らすクリップライト、奥からかすかなリム
-  const key = new THREE.SpotLight(0xffe3c0, 2.4, 3, .6, .75, 1.6); key.position.set(-.05, .3, .5); key.target.position.set(-.05, .08, .05);
+  const key = new THREE.SpotLight(0xffe3c0, 1.9, 3, .6, .45, 1.6); key.position.set(-.05, .3, .5); key.target.position.set(-.05, .08, .05);
   key.castShadow = true; key.shadow.mapSize.set(2048, 2048); key.shadow.bias = -.0003; key.shadow.camera.near = .05; scene.add(key, key.target);
-  scene.add(new THREE.HemisphereLight(0x2a2a36, 0x0a0806, .35));
+  const hemi = new THREE.HemisphereLight(0x2a2a36, 0x0a0806, .35); scene.add(hemi);
+  const keyHome = key.target.position.clone();
 
   // 視点
   const V = (a, b, c) => new THREE.Vector3(a, b, c);
   let selected = null, hovered = null;
   const camCur = { p: V(0, .12, 1.4), l: V(0, .08, 0) }, camTo = { p: V(), l: V() };
   function home() {
-    const a = cam.aspect, half = a < 1 ? .27 : .38, d = half / (Math.tan(cam.fov * Math.PI / 360) * a);
-    camTo.p.set(.015, a < 1 ? .1 : .1, Math.max(.5, d)); camTo.l.set(.015, a < 1 ? .02 : .06, 0);
+    const a = cam.aspect, half = a < 1 ? .21 : .38, d = half / (Math.tan(cam.fov * Math.PI / 360) * a);
+    camTo.p.set(.015, a < 1 ? .1 : .1, Math.max(.5, d)); camTo.l.set(a < 1 ? -.03 : .015, a < 1 ? -.04 : .06, 0); if (a < 1) camTo.p.x = -.03;
   }
   function focusBook(b) {
     const wide = innerWidth >= 900, sh = wide ? .085 : 0;
@@ -142,22 +148,39 @@ addEventListener('keydown', e => { if (e.key === 'Escape' && !$('detail').hidden
   const pick = e => { const q = cv.getBoundingClientRect(); ptr.set((e.clientX - q.left) / q.width * 2 - 1, -(e.clientY - q.top) / q.height * 2 + 1); ray.setFromCamera(ptr, cam); const hit = ray.intersectObjects(books.map(b => b.mesh))[0]; return hit ? books.find(b => b.mesh === hit.object) : null; };
   cv.addEventListener('pointermove', e => { if (e.pointerType !== 'mouse') return; hovered = pick(e); cv.style.cursor = hovered ? 'pointer' : 'default'; });
   cv.addEventListener('pointerleave', () => { hovered = null; });
+  // キーボード：←→で背表紙を選び、Enter で開く
+  let kbd = null; cv.tabIndex = 0; cv.setAttribute('role', 'group'); cv.setAttribute('aria-label', '台本の棚。左右の矢印で背表紙を選び、Enter で開きます'); cv.removeAttribute('aria-hidden');
+  const say = el('p', 'sr'); say.setAttribute('aria-live', 'polite'); box.append(say);
+  cv.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') { e.preventDefault(); const i = kbd ? books.indexOf(kbd) : -1; kbd = books[(i + (e.key === 'ArrowRight' ? 1 : books.length - 1 + (i < 0 ? 1 : 0))) % books.length]; say.textContent = `${kbd.w.year}年『${kbd.w.title}』`; }
+    if (e.key === 'Enter' && kbd) location.hash = `#/w/${kbd.w.id}`;
+  });
+  cv.addEventListener('blur', () => { kbd = null; });
   cv.addEventListener('click', e => { const b = pick(e); if (b) location.hash = `#/w/${b.w.id}`; });
 
-  let last = performance.now();
+  let last = performance.now(); const tmpV = new THREE.Vector3();
   function frame(now) {
     const dt = Math.min(.05, (now - last) / 1000); last = now;
     const k = reduce ? 1 : 1 - Math.exp(-dt * 7), kc = reduce ? 1 : 1 - Math.exp(-dt * 3.2);
     for (const b of books) {
-      const sel = b === selected, hov = b === hovered && !selected;
-      const to = { pull: sel ? .2 : hov ? .035 : 0, rot: sel ? -Math.PI / 2 : 0, lift: sel ? .025 : 0, glow: sel || hov ? 1 : 0 };
-      // 抜き出してから回す（棚にぶつけない）：回転は引き出し量が 0.14 を超えてから追う
-      const c = b.cur; c.pull += (to.pull - c.pull) * k; c.lift += (to.lift - c.lift) * k; c.glow += (to.glow - c.glow) * k;
-      const rotTo = sel ? (c.pull > .14 ? to.rot : 0) : (c.pull < .1 ? 0 : c.rot); c.rot += (rotTo - c.rot) * k;
-      if (!sel && c.rot !== 0) c.rot += (0 - c.rot) * k;
+      const sel = b === selected, hov = (b === hovered || b === kbd) && !selected, c = b.cur;
+      if (sel && !c.was) { c.was = true; c.t0 = now; } if (!sel) c.was = false;
+      const age = sel ? (now - c.t0) / 1000 : 9;
+      // 選んだら 80ms だけ奥へ押し込んでから引き出す（手で本を抜く予備動作）
+      const to = { pull: sel ? (age < .08 && !reduce ? -.006 : .2) : hov ? .012 : 0, rot: sel ? -Math.PI / 2 : 0, lift: sel ? .025 : hov ? .004 : 0, glow: sel || hov ? 1 : 0 };
+      if (reduce) { c.pull = to.pull; c.lift = to.lift; c.glow = to.glow; c.rot = to.rot; c.rv = 0; }
+      else {
+        c.pull += (to.pull - c.pull) * k; c.lift += (to.lift - c.lift) * k; c.glow += (to.glow - c.glow) * k;
+        // 回転は引き出しが 0.14 を超えてから。ばね（少しだけ行き過ぎて戻る）
+        const rt = sel ? (c.pull > .14 ? to.rot : 0) : (c.pull < .1 || c.rot === 0 ? 0 : 0);
+        const w0 = 10, z = .78; c.rv += (-(w0 * w0) * (c.rot - rt) - 2 * z * w0 * c.rv) * dt; c.rot += c.rv * dt;
+      }
       b.g.position.z = .118 - DP / 2 + c.pull; b.g.position.y = b.h / 2 + c.lift; b.g.rotation.y = c.rot;
       b.sm.emissive.setRGB(.06 * c.glow, .045 * c.glow, .02 * c.glow);
     }
+    // 選んだ本に一灯を寄せ、ほかの本も少しだけ見えるように
+    const kt = selected ? tmpV.set(selected.x, .12, .25) : keyHome; key.target.position.lerp(kt, reduce ? 1 : 1 - Math.exp(-dt * 6));
+    hemi.intensity += ((selected ? .6 : .35) - hemi.intensity) * (reduce ? 1 : 1 - Math.exp(-dt * 4));
     camCur.p.lerp(camTo.p, kc); camCur.l.lerp(camTo.l, kc);
     cam.position.copy(camCur.p); if (!reduce) cam.position.x += Math.sin(now / 4000) * .004; cam.lookAt(camCur.l);
     ghost.intensity = .5 + (reduce ? 0 : Math.sin(now / 1300) * .03);
