@@ -1,0 +1,23 @@
+{
+ "file": "P018.mp4",
+ "duration": 15.0,
+ "fps": 30.0,
+ "width": 1080,
+ "height": 1920,
+ "frames": 450,
+ "has_audio": true,
+ "color": {
+  "color_space": "bt709",
+  "color_primaries": "bt709",
+  "color_transfer": "bt709",
+  "color_range": "tv"
+ },
+ "black": [],
+ "freeze": [],
+ "loudness": {
+  "integrated_lufs": -14.3,
+  "true_peak_dbfs": -2.3,
+  "lra": 3.6
+ },
+ "warnings": []
+}
