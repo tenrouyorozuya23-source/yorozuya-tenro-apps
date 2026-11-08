@@ -1678,66 +1678,6 @@ function seatAvailability() {
   });
 }
 
-// ============================================================
-// 一時的な写真アップロード受け口（役名入り写真をドライブの「キャスト紹介用」フォルダへ入れるため）
-//   ・受付期限まで（PHOTO_UPLOAD_UNTIL）しか動かない。使い終わったらこの処理ごと削除する
-//   ・書き込み先は、ID の SHA-256 が PHOTO_UPLOAD_FOLDER_HASH と一致するフォルダの中だけ（ID 自体はここに書かない）
-//   ・受け付けるのは JPEG（.jpg / .JPG の名前）だけ。同じ名前のファイルがあれば上書きせずスキップ
-// ============================================================
-var PHOTO_UPLOAD_UNTIL = "2026-11-08T16:00:00+09:00";
-var PHOTO_UPLOAD_FOLDER_HASH = "145525b8b5053c8ac4ac36c9a1e96bdf9d3e3f8ec2d7f085f0daf398ad6cf7d3";
-function handlePhotoUpload(e) {
-  var out = function(o){ return ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON); };
-  try {
-    if (Date.now() > Date.parse(PHOTO_UPLOAD_UNTIL)) return out({ ok: false, error: "受付期限切れ" });
-    var p = e.parameter, folderId = String(p.folder || "");
-    var hash = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, folderId, Utilities.Charset.UTF_8)
-      .map(function(b){ return ("0" + (b & 255).toString(16)).slice(-2); }).join("");
-    if (hash !== PHOTO_UPLOAD_FOLDER_HASH) return out({ ok: false, error: "対象外のフォルダ" });
-    if (p.op === "fixnames") return out(fixMojibakeNames(DriveApp.getFolderById(folderId)));
-    var name = String(p.name || "");
-    if (!/^[^\/\\:*?"<>|]{1,80}\.(jpe?g|JPE?G)$/.test(name)) return out({ ok: false, error: "ファイル名が不正" });
-    var path = String(p.path || "").split("/");
-    if (path.length !== 2 || path.some(function(seg){ return !seg || seg.length > 60 || /[\\:*?"<>|]/.test(seg); }))
-      return out({ ok: false, error: "フォルダ名が不正" });
-    var bytes = Utilities.base64Decode(e.postData.contents);
-    if (bytes.length < 1000 || bytes.length > 20 * 1024 * 1024 || (bytes[0] & 255) !== 0xFF || (bytes[1] & 255) !== 0xD8)
-      return out({ ok: false, error: "JPEGではない" });
-    var lock = LockService.getScriptLock(); lock.waitLock(30000);
-    try {
-      var folder = DriveApp.getFolderById(folderId);
-      path.forEach(function(seg){
-        var it = folder.getFoldersByName(seg);
-        folder = it.hasNext() ? it.next() : folder.createFolder(seg);
-      });
-      if (folder.getFilesByName(name).hasNext()) return out({ ok: true, skipped: true });
-      folder.createFile(Utilities.newBlob(bytes, "image/jpeg", name));
-    } finally { lock.releaseLock(); }
-    return out({ ok: true });
-  } catch (err) {
-    return out({ ok: false, error: String(err && err.message || err) });
-  }
-}
-
-// 文字化けした名前（UTF-8 のバイトを1文字ずつ読んだ形）を正しい日本語に直す。フォルダの中を全部たどる
-function fixMojibakeNames(folder) {
-  var fixed = 0;
-  function fix(name) {
-    if (!/[\u0080-\u00ff]/.test(name) || /[^\u0000-\u00ff]/.test(name)) return null;
-    var bytes = name.split("").map(function(c){ var n = c.charCodeAt(0); return n > 127 ? n - 256 : n; });
-    var s = Utilities.newBlob(bytes).getDataAsString("UTF-8");
-    return s.indexOf("\ufffd") === -1 ? s : null;
-  }
-  function walk(f) {
-    var fs = f.getFolders();
-    while (fs.hasNext()) { var d = fs.next(); var n = fix(d.getName()); if (n) { d.setName(n); fixed++; } walk(d); }
-    var fl = f.getFiles();
-    while (fl.hasNext()) { var x = fl.next(); var m = fix(x.getName()); if (m) { x.setName(m); fixed++; } }
-  }
-  walk(folder);
-  return { ok: true, fixed: fixed };
-}
-
 // 売上管理シートの下に「席種別の残席」表を書く（予約一覧から毎回計算し直す。数式ではなく値）
 //   残席の更新・キャンセル・フォーム送信のたび、と1時間ごとに自動で更新される
 var SEAT_SUMMARY_TITLE = "🎟 席種別の残席（予約サイト・フォームと同じ計算）";
@@ -1842,7 +1782,7 @@ function setup_availability() {
 //   初回：appsscript.json に oauthScopes（script.projects・script.deployments ほか）を入れ、setup_selfDeploy() を1回実行
 // ============================================================
 // コードの目印（変更のたびに更新すると、?api=version で反映を確認できる）
-var CODE_REVISION = "2026-11-08-photo-upload-3";
+var CODE_REVISION = "2026-11-08-remove-photo-upload";
 
 var SELF_DEPLOY = {
   repo:   "tenrouyorozuya23-source/yorozuya-tenro-apps",
@@ -2701,7 +2641,6 @@ function test_line() {
 // LINE Webhook（doPost）
 // ============================================================
 function doPost(e) {
-  if (e && e.parameter && e.parameter.api === "upload") return handlePhotoUpload(e);
   try {
     if (!e || !e.postData || !e.postData.contents) {
       return ContentService.createTextOutput(JSON.stringify({status:"ok"}))
