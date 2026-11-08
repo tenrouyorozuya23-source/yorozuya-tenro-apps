@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>アンサンブル白夜 演奏会</title>
+<meta name="description" content="架空の室内楽団・アンサンブル白夜のサイト。演奏会を選ぶと、出演する奏者の譜面台に灯りが入ります（天狼スタジオの制作見本）。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600&family=Noto+Sans+JP:wght@400;500&family=Jost:wght@300&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
+</head>
+<body>
+<header class="hero">
+  <canvas id="stage" role="img" aria-label="舞台に5つの譜面台が半円に並ぶ。選んだ演奏会に出演する奏者の譜面台にだけ灯りが入る"></canvas>
+  <div class="hero-in">
+    <p class="en" lang="en">Ensemble Byakuya</p>
+    <h1>アンサンブル白夜</h1>
+    <p class="sub">2027年 演奏会シリーズ　霧笛ホール</p>
+    <p class="fic">※架空の楽団の見本です（曲は実在の作品）</p>
+  </div>
+</header>
+<main>
+  <section class="pick" aria-labelledby="h-pick">
+    <h2 id="h-pick">演奏会を選ぶ</h2>
+    <div class="dates" id="dates" role="group" aria-label="演奏会"></div>
+  </section>
+  <section class="detail" aria-live="polite">
+    <p class="no" id="d-no"></p>
+    <h3 id="d-title"></h3>
+    <p class="when" id="d-when"></p>
+    <ol class="prog" id="d-prog"></ol>
+  </section>
+  <section class="members" aria-labelledby="h-mem">
+    <h2 id="h-mem">団員</h2>
+    <ul id="mem"></ul>
+  </section>
+</main>
+<footer class="foot"><p id="disc"></p></footer>
+<script type="module" src="app.js"></script>
+</body>
+</html>

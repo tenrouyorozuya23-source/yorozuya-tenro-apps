@@ -1,0 +1,54 @@
+/* 夜の演奏会：黒い舞台に温白の譜面灯。選んだ日の奏者にだけ灯りが入る */
+:root {
+  color-scheme: dark;
+  --bg: #08080a;
+  --ink: #efeae1;
+  --sub: #b9b2a6;
+  --warm: #f2d3a2;
+  --line: #36332f;
+  --mincho: "Shippori Mincho", "Hiragino Mincho ProN", serif;
+  --sans: "Noto Sans JP", "Hiragino Sans", sans-serif;
+  --latin: "Jost", "Helvetica Neue", Arial, sans-serif;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 400 16px/1.9 var(--sans); letter-spacing: .04em; line-break: strict; word-break: auto-phrase; -webkit-font-smoothing: antialiased; }
+.hero { position: relative; height: min(78svh, 760px); min-height: 520px; overflow: hidden; }
+#stage { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.hero::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, rgba(8,8,10,.7) 0%, rgba(8,8,10,0) 34%, rgba(8,8,10,0) 70%, var(--bg) 100%); }
+.hero-in { position: relative; z-index: 1; max-width: 1080px; margin: 0 auto; padding: 56px max(20px, env(safe-area-inset-right, 0px)) 0 max(20px, env(safe-area-inset-left, 0px)); }
+.en { margin: 0; font: 300 15px/1.4 var(--latin); letter-spacing: .3em; text-transform: uppercase; color: var(--warm); }
+h1 { margin: 8px 0 0; font: 600 clamp(36px, 7vw, 64px)/1.3 var(--mincho); letter-spacing: .16em; }
+.sub { margin: 10px 0 0; font: 500 16px/1.6 var(--mincho); letter-spacing: .14em; }
+.fic { margin: 8px 0 0; font-size: 13px; color: var(--sub); }
+main, .foot { max-width: 1080px; margin: 0 auto; padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px)); }
+h2 { margin: 0 0 18px; font: 600 22px/1.4 var(--mincho); letter-spacing: .2em; }
+.pick { padding-top: 8px; }
+.dates { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.dates button { min-height: 64px; padding: 10px 16px; text-align: left; color: var(--ink); background: transparent; border: 1px solid var(--line); cursor: pointer; font: 400 14px/1.5 var(--sans); letter-spacing: .06em; }
+.dates button b { display: block; font: 600 18px/1.4 var(--mincho); letter-spacing: .08em; font-variant-numeric: tabular-nums; }
+.dates button[aria-pressed="true"] { border-color: var(--warm); background: rgba(242,211,162,.08); }
+.dates button:focus-visible { outline: 2px solid var(--warm); outline-offset: 3px; }
+.detail { margin-top: 40px; padding: 32px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.no { margin: 0; font: 400 13px/1.4 var(--sans); color: var(--warm); letter-spacing: .2em; }
+.detail h3 { margin: 6px 0 0; font: 600 34px/1.4 var(--mincho); letter-spacing: .14em; }
+.when { margin: 6px 0 0; font-size: 15px; color: var(--sub); font-variant-numeric: tabular-nums; }
+.prog { list-style: none; margin: 22px 0 0; padding: 0; display: grid; gap: 14px; }
+.prog li { display: grid; grid-template-columns: 9em 1fr; gap: 2px 16px; }
+.prog .c { font: 500 15px/1.6 var(--mincho); color: var(--sub); }
+.prog .w { font: 600 19px/1.6 var(--mincho); min-width: 0; }
+.prog .p { grid-column: 2; font-size: 13px; color: var(--sub); }
+.members { padding-top: 56px; }
+.members ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
+.members li { padding: 16px 14px; border-top: 2px solid var(--line); transition: border-color .8s ease; }
+.members li.on { border-top-color: var(--warm); }
+.members .part { display: block; font-size: 13px; color: var(--sub); }
+.members .nm { display: block; font: 600 18px/1.6 var(--mincho); letter-spacing: .1em; }
+.foot { margin-top: 80px; padding-top: 24px; padding-bottom: 56px; border-top: 1px solid var(--line); font-size: 13px; color: var(--sub); }
+@media (max-width: 760px) {
+  .dates { grid-template-columns: 1fr; }
+  .members ul { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .prog li { grid-template-columns: 1fr; }
+  .prog .p { grid-column: 1; }
+  .hero { height: 62svh; min-height: 460px; }
+}
+@media (prefers-reduced-motion: reduce) { .members li { transition: none; } }
