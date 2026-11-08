@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>宵待ルカ 公式サイト</title>
+<meta name="description" content="架空のライバー・宵待ルカの公式サイト。配信部屋の壁の灯りで今週の配信予定を見せる見本（天狼スタジオ制作）。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600&family=Noto+Sans+JP:wght@400;500&family=Jost:wght@300;400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
+</head>
+<body>
+<header class="hero">
+  <canvas id="room" role="img" aria-label="夜の配信部屋。机とマイク、モニターの光。奥の壁に曜日ごとの7本の灯りがあり、配信のある曜日だけが点いている"></canvas>
+  <div class="hero-in">
+    <p class="kana" id="kana"></p>
+    <h1 id="name"></h1>
+    <p class="tag" id="tagline"></p>
+    <p class="fic">※架空のライバーの見本サイトです</p>
+  </div>
+</header>
+<main>
+  <section id="week" aria-labelledby="h-week">
+    <h2 id="h-week">今週の配信</h2>
+    <p class="hint">壁の灯りは、配信のある曜日です。いちばん明るい灯りが今日です。</p>
+    <ol class="days" id="days"></ol>
+  </section>
+  <section id="stats" aria-labelledby="h-stats">
+    <h2 id="h-stats">これまで</h2>
+    <p class="since" id="since"></p>
+    <dl class="stats" id="stat-list"></dl>
+  </section>
+  <section id="work" aria-labelledby="h-work">
+    <h2 id="h-work">お仕事の相談</h2>
+    <ul class="types" id="types"></ul>
+    <form id="form" novalidate>
+      <div class="f"><label for="f-org">会社名・団体名</label><input id="f-org" name="org" autocomplete="organization"></div>
+      <div class="f"><label for="f-name">お名前<span class="req">必須</span></label><input id="f-name" name="name" required autocomplete="name"></div>
+      <div class="f"><label for="f-kind">ご相談の種類</label><select id="f-kind" name="kind"></select></div>
+      <div class="f"><label for="f-body">内容<span class="req">必須</span></label><textarea id="f-body" name="body" rows="5" required></textarea></div>
+      <button type="submit">相談を送る</button>
+      <p class="msg" id="msg" role="status"></p>
+    </form>
+  </section>
+</main>
+<footer class="foot"><p id="disc"></p></footer>
+<script type="module" src="app.js"></script>
+</body>
+</html>
