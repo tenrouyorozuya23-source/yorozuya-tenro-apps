@@ -1,0 +1,18 @@
+{
+ "id": "S05-02-enrai",
+ "title": "遠雷",
+ "versions": {
+  "preview": {
+   "sec": 30.07,
+   "bpm": 84,
+   "fps_beat_exact": [],
+   "silence": [],
+   "lufs": -14.0,
+   "tp": -2.6,
+   "low_minus_mid_db": 3.92,
+   "low_shelf_db": -0.5,
+   "limiter_db": 1.5,
+   "stereo_corr": 0.75
+  }
+ }
+}

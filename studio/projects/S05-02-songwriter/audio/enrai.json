@@ -1,0 +1,174 @@
+{
+ "id": "S05-02-enrai",
+ "title": "遠雷",
+ "genre": "Singer-songwriter (instrumental)",
+ "base": {
+  "bpm": 84,
+  "key": "A",
+  "seed": 44,
+  "brightness": 0.4,
+  "reverb": 0.5,
+  "drive": 0.05,
+  "sidechain": 0.0,
+  "progression": [
+   "Am9",
+   "Fmaj7",
+   "Cmaj7",
+   "G6"
+  ],
+  "mix": {
+   "pad": 0.42,
+   "rim": 0.22,
+   "sub": 0.18,
+   "pluck": 0.3,
+   "kick": 0.45,
+   "lead": 0.28
+  },
+  "end_chord": "Am9",
+  "pre_end_chord": "G6"
+ },
+ "versions": {
+  "preview": {
+   "length": 30.07,
+   "bars": 10,
+   "tail_sec": 1.5,
+   "sections": [
+    {
+     "from": 0,
+     "to": 2,
+     "layers": [
+      "pad",
+      "rim"
+     ]
+    },
+    {
+     "from": 2,
+     "to": 6,
+     "layers": [
+      "pad",
+      "rim",
+      "sub",
+      "pluck"
+     ]
+    },
+    {
+     "from": 6,
+     "to": 10,
+     "layers": [
+      "pad",
+      "kick",
+      "rim",
+      "sub",
+      "pluck"
+     ]
+    }
+   ],
+   "melody": [
+    [
+     2,
+     0,
+     "E6",
+     2
+    ],
+    [
+     2,
+     2,
+     "D6",
+     1
+    ],
+    [
+     2,
+     3,
+     "C6",
+     1
+    ],
+    [
+     3,
+     0,
+     "A5",
+     4
+    ],
+    [
+     4,
+     0,
+     "C6",
+     1
+    ],
+    [
+     4,
+     1,
+     "D6",
+     1
+    ],
+    [
+     4,
+     2,
+     "E6",
+     2
+    ],
+    [
+     5,
+     0,
+     "G6",
+     2
+    ],
+    [
+     5,
+     2,
+     "E6",
+     2
+    ],
+    [
+     6,
+     0,
+     "A6",
+     2
+    ],
+    [
+     6,
+     2,
+     "G6",
+     1
+    ],
+    [
+     6,
+     3,
+     "E6",
+     1
+    ],
+    [
+     7,
+     0,
+     "E6",
+     4
+    ],
+    [
+     8,
+     0,
+     "D6",
+     1
+    ],
+    [
+     8,
+     1,
+     "E6",
+     1
+    ],
+    [
+     8,
+     2,
+     "G6",
+     2
+    ],
+    [
+     9,
+     0,
+     "A6",
+     4
+    ]
+   ]
+  }
+ },
+ "spec_version": "preview",
+ "max_low_mid_db": 4.0
+}

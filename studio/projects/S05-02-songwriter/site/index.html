@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>凪野ソラ 公式サイト</title>
+<meta name="description" content="架空のシンガーソングライター・凪野ソラの公式サイト。試聴の音に合わせて、舞台の一灯が呼吸する見本（天狼スタジオ制作）。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link id="fm" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600&display=swap&text=%E3%80%81%E3%80%8E%E3%80%8F%E3%81%84%E3%81%8A%E3%81%8D%E3%81%91%E3%81%95%E3%81%99%E3%81%A4%E3%81%A8%E3%81%AA%E3%81%AE%E3%81%B2%E3%81%BF%E3%82%84%E3%82%8A%E3%82%A3%E3%82%A4%E3%82%BD%E3%83%8E%E3%83%95%E3%83%96%E3%83%97%E3%83%9B%E3%83%A9%E3%83%AB%E3%83%AD%E3%83%BB%E3%83%BC%E4%BD%9C%E5%87%AA%E5%8F%B0%E5%93%81%E5%9D%82%E5%A0%82%E5%A3%B0%E5%A4%9C%E5%AE%A4%E5%B8%B0%E5%BC%BE%E6%89%8B%E6%98%8E%E6%A5%BD%E6%AD%8C%E6%B1%90%E7%81%AF%E7%99%BD%E7%A0%82%E7%B4%99%E8%81%B4%E8%A6%8B%E8%A9%A6%E8%AA%9E%E9%81%93%E9%81%A0%E9%87%8E%E9%9B%B7%E9%9F%B3%EF%BC%88%EF%BC%89">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500&family=Jost:wght@300;400&display=swap">
+<link rel="stylesheet" href="style.css">
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
+</head>
+<body>
+<a class="skip" href="#listen">本文へ移動</a>
+<div class="stage" aria-hidden="true"><canvas id="stage"></canvas></div>
+
+<header class="hero" id="top" data-shot="0">
+  <p class="kana" id="kana"></p>
+  <h1 id="name"></h1>
+  <p class="tag" id="tagline"></p>
+  <p class="fic">※架空のシンガーソングライターの見本サイトです</p>
+  <nav class="jump" aria-label="ページ内の移動">
+    <a href="#listen">試聴</a><a href="#disc">作品</a><a href="#live">ライブ</a><a href="#about">プロフィール</a>
+  </nav>
+</header>
+
+<main>
+<section id="listen" class="sec" data-shot="1" aria-labelledby="h-listen">
+  <h2 id="h-listen">試聴</h2>
+  <p class="lead">再生すると、舞台の灯りが音に合わせて呼吸します。</p>
+  <div class="player">
+    <ol class="tracks" id="tracks"></ol>
+    <div class="bar">
+      <input type="range" id="seek" min="0" max="1000" value="0" aria-label="再生位置" disabled>
+      <p class="time"><span id="cur">0:00</span> / <span id="dur">0:00</span></p>
+    </div>
+    <audio id="audio" preload="metadata"></audio>
+  </div>
+  <p class="note">見本の音源です（歌なし・天狼スタジオが作曲）。</p>
+</section>
+
+<section id="disc" class="sec" data-shot="2" aria-labelledby="h-disc">
+  <h2 id="h-disc">作品</h2>
+  <ul class="rel" id="releases"></ul>
+</section>
+
+<section id="live" class="sec" data-shot="3" aria-labelledby="h-live">
+  <h2 id="h-live">ライブ</h2>
+  <ol class="lives" id="lives"></ol>
+  <p class="note">※架空の公演です。チケットの販売・予約はありません。</p>
+</section>
+
+<section id="about" class="sec" data-shot="4" aria-labelledby="h-about">
+  <h2 id="h-about">プロフィール</h2>
+  <div class="prof" id="profile"></div>
+</section>
+</main>
+
+<footer class="foot" data-shot="5">
+  <p class="end" data-m>おやすみなさい</p>
+  <p id="discl"></p>
+</footer>
+<script type="module" src="app.js"></script>
+</body>
+</html>
