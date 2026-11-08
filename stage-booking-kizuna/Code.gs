@@ -1682,7 +1682,7 @@ function seatAvailability() {
 // 一時的な写真アップロード受け口（役名入り写真をドライブの「キャスト紹介用」フォルダへ入れるため）
 //   ・受付期限まで（PHOTO_UPLOAD_UNTIL）しか動かない。使い終わったらこの処理ごと削除する
 //   ・書き込み先は、ID の SHA-256 が PHOTO_UPLOAD_FOLDER_HASH と一致するフォルダの中だけ（ID 自体はここに書かない）
-//   ・受け付けるのは JPEG（DSC00000.JPG 形式の名前）だけ。同じ名前のファイルがあれば上書きせずスキップ
+//   ・受け付けるのは JPEG（.jpg / .JPG の名前）だけ。同じ名前のファイルがあれば上書きせずスキップ
 // ============================================================
 var PHOTO_UPLOAD_UNTIL = "2026-11-08T16:00:00+09:00";
 var PHOTO_UPLOAD_FOLDER_HASH = "145525b8b5053c8ac4ac36c9a1e96bdf9d3e3f8ec2d7f085f0daf398ad6cf7d3";
@@ -1695,7 +1695,7 @@ function handlePhotoUpload(e) {
       .map(function(b){ return ("0" + (b & 255).toString(16)).slice(-2); }).join("");
     if (hash !== PHOTO_UPLOAD_FOLDER_HASH) return out({ ok: false, error: "対象外のフォルダ" });
     var name = String(p.name || "");
-    if (!/^DSC\d{5}\.JPG$/.test(name)) return out({ ok: false, error: "ファイル名が不正" });
+    if (!/^[^\/\\:*?"<>|]{1,80}\.(jpe?g|JPE?G)$/.test(name)) return out({ ok: false, error: "ファイル名が不正" });
     var path = String(p.path || "").split("/");
     if (path.length !== 2 || path.some(function(seg){ return !seg || seg.length > 60 || /[\\:*?"<>|]/.test(seg); }))
       return out({ ok: false, error: "フォルダ名が不正" });
@@ -1822,7 +1822,7 @@ function setup_availability() {
 //   初回：appsscript.json に oauthScopes（script.projects・script.deployments ほか）を入れ、setup_selfDeploy() を1回実行
 // ============================================================
 // コードの目印（変更のたびに更新すると、?api=version で反映を確認できる）
-var CODE_REVISION = "2026-11-08-photo-upload";
+var CODE_REVISION = "2026-11-08-photo-upload-2";
 
 var SELF_DEPLOY = {
   repo:   "tenrouyorozuya23-source/yorozuya-tenro-apps",
