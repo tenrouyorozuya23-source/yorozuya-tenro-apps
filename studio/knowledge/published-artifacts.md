@@ -40,3 +40,4 @@ Artifact の制約（変換の道具で吸収している）:
 - S02-02 ミュージカル『星屑通り』特設サイト: https://claude.ai/artifact/PfDY1GtRBPHLe26E9NzXVi
 - S07-09 3D 製品 LP ORVANE ONE（架空）: https://claude.ai/artifact/BfS43gMt9PMUKvnwgk5169
 - S02-04 座席ビューア（月見坂シアター・架空）: https://claude.ai/artifact/PpJyepLKPNiSknHsonDEsP
+- S02-10 公演 LP ジェネレータ（社内用の見本）: https://claude.ai/artifact/UUBh4PFZgNu5aCEPW5NhFi
