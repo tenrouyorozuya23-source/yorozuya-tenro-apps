@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ORVANE ONE｜Orvane Acoustics（架空の見本）</title>
+<meta name="description" content="架空のオーディオブランド Orvane Acoustics の 360° スピーカー「ORVANE ONE」の製品ページの見本。スクロールに合わせて製品が回り、分解し、組み上がる（天狼スタジオ制作）。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500&family=Jost:wght@200;300;400&display=swap">
+<link rel="stylesheet" href="style.css">
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+</head>
+<body>
+<a class="skip" href="#specs">仕様へ移動</a>
+<div class="stage" aria-hidden="true"><canvas id="gl"></canvas></div>
+<header class="top">
+  <p class="brand" id="brand"></p>
+  <nav aria-label="ページ内"><a href="#specs">仕様</a><a href="#buy">色と価格</a></nav>
+</header>
+
+<main>
+  <section class="sec hero" id="hero" data-k="0" aria-labelledby="h-hero">
+    <div class="copy">
+      <p class="kind" id="kind"></p>
+      <h1 id="h-hero"><span id="product"></span></h1>
+      <p class="tag" id="tag"></p>
+      <p class="hint">スクロールすると、製品が開きます</p>
+    </div>
+  </section>
+  <div id="stages"></div>
+  <section class="sec buy" id="buy" data-k="5" aria-labelledby="h-buy">
+    <div class="copy">
+      <h2 id="h-buy">2つの色。</h2>
+      <div class="sw" id="sw" role="radiogroup" aria-label="色"></div>
+      <p class="price" id="price"></p>
+      <p class="note">見本のため、購入はできません。</p>
+    </div>
+  </section>
+  <section class="specs" id="specs" aria-labelledby="h-specs">
+    <h2 id="h-specs">仕様</h2>
+    <dl id="spec"></dl>
+  </section>
+</main>
+<footer class="foot"><p id="discl"></p></footer>
+<script type="module" src="app.js"></script>
+</body>
+</html>
