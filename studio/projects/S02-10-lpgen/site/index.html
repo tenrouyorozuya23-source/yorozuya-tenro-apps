@@ -7,7 +7,7 @@
 <meta name="description" content="公演の情報を JSON で書くと、特設ページと OGP 画像ができる社内用の道具の見本（天狼スタジオ制作）。">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Jost:wght@300;400&display=swap">
-<link id="fm" rel="stylesheet" href="">
+<link id="fm" rel="stylesheet" href="data:text/css,">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -23,7 +23,8 @@
       <label class="f">見本のデータ<select id="preset"></select></label>
     </div>
     <fieldset class="themes"><legend>2. 見た目</legend><div id="themes" class="seg"></div></fieldset>
-    <label class="f grow" for="src">JSON</label>
+    <div class="jhead"><label class="f" for="src">JSON</label><div class="jbtn"><button type="button" id="save-json" class="sub">JSON を保存</button><label class="sub file">JSON を開く<input type="file" id="open-json" accept="application/json,.json"></label></div></div>
+    <p class="restored" id="restored" hidden>前回の下書きを戻しました（この端末にだけ残っています）</p>
     <textarea id="src" spellcheck="false" autocomplete="off" autocapitalize="off" aria-describedby="msgs keys"></textarea>
     <div id="msgs" class="msgs" role="status" aria-live="polite"></div>
     <details class="keys" id="keys"><summary>書ける項目</summary><dl id="keylist"></dl></details>
