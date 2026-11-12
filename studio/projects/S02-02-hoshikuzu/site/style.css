@@ -35,8 +35,11 @@ h1:focus, h2:focus { outline: none; }
 main { position: relative; z-index: 1; }
 .page { min-height: calc(100svh - 56px); display: flex; flex-direction: column; justify-content: flex-end; padding: 0 16px 32px; }
 .page[hidden] { display: none; }
-.page.enter > * { animation: rise .7s cubic-bezier(.2, .7, .2, 1) both; }
-@keyframes rise { from { opacity: 0; transform: translateY(16px); } }
+.page.enter > * > * { animation: rise .8s cubic-bezier(.2, .7, .2, 1) .5s both; }
+.page.enter > * > :nth-child(2) { animation-delay: .56s; } .page.enter > * > :nth-child(3) { animation-delay: .62s; } .page.enter > * > :nth-child(n+4) { animation-delay: .68s; }
+.page.enter > .panel { animation: fade .5s ease-out .4s both; }
+@keyframes fade { from { opacity: 0; } }
+@keyframes rise { from { opacity: 0; transform: translateY(20px); } }
 
 /* トップ */
 .hero { position: relative; padding: 140px 8px 8px; }
@@ -47,6 +50,7 @@ main { position: relative; z-index: 1; }
 .en { margin: 8px 0 0; font: 300 14px/1 var(--num); letter-spacing: .5em; color: var(--amber); }
 .copy { margin: 22px 0 0; font: 500 17px/1.9 var(--mincho); letter-spacing: .1em; max-width: 30em; }
 .when { margin: 20px 0 0; font: 300 clamp(26px, 7vw, 38px)/1.3 var(--num); font-variant-numeric: tabular-nums; letter-spacing: .04em; }
+.when .yr { display: block; font: 300 12px/1 var(--num); letter-spacing: .3em; color: var(--sub); margin-bottom: 8px; }
 .when small { font: 500 14px/1 var(--sans); color: var(--sub); margin: 0 6px 0 3px; }
 .where { margin: 4px 0 0; color: var(--sub); }
 .go { margin: 24px 0 0; display: flex; flex-wrap: wrap; gap: 12px; }
@@ -73,7 +77,8 @@ main { position: relative; z-index: 1; }
 
 /* 出演：ひとりにひとつの灯りのガラスのカード */
 .cast { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(176px, 1fr)); gap: 12px; }
-.card { position: relative; width: 100%; min-height: 168px; padding: 18px 16px 16px; text-align: left; color: var(--ink); font: inherit; cursor: pointer; border-radius: 6px; border: 1px solid rgba(255, 255, 255, .16); background: linear-gradient(160deg, rgba(255, 255, 255, .1), rgba(255, 255, 255, .02)); overflow: hidden; transition: border-color .3s, transform .3s; }
+.cast li { display: flex; }
+.card { position: relative; width: 100%; height: 100%; min-height: 168px; padding: 18px 16px 16px; text-align: left; color: var(--ink); font: inherit; cursor: pointer; border-radius: 6px; border: 1px solid rgba(255, 255, 255, .16); background: linear-gradient(160deg, rgba(255, 255, 255, .1), rgba(255, 255, 255, .02)); overflow: hidden; transition: border-color .3s, transform .3s; }
 .card::before { content: ""; position: absolute; left: 50%; top: -60px; width: 200px; height: 160px; margin-left: -100px; background: radial-gradient(closest-side, hsla(var(--h), 90%, 70%, .55), hsla(var(--h), 90%, 60%, 0)); opacity: .45; transition: opacity .3s; pointer-events: none; }
 .card .bulb { position: absolute; left: 50%; top: 10px; width: 8px; height: 8px; margin-left: -4px; border-radius: 50%; background: hsl(var(--h), 90%, 82%); box-shadow: 0 0 12px 3px hsla(var(--h), 90%, 70%, .8); opacity: .5; transition: opacity .3s; }
 .card .r { position: relative; display: block; margin-top: 24px; font-size: 12px; color: var(--sub); letter-spacing: .1em; }
@@ -113,5 +118,7 @@ main { position: relative; z-index: 1; }
 }
 /* スマホでは板の上にセットの照明が見える余白を残す */
 @media (max-width: 899px) { .p-story, .p-cast, .p-ticket { padding-top: 38svh; } }
-@media (min-width: 900px) { .hero::before { inset: -40px -40px -56px -40px; background: linear-gradient(to right, rgba(7, 8, 12, .85), rgba(7, 8, 12, .5) 45%, rgba(7, 8, 12, 0) 70%), linear-gradient(to top, rgba(7, 8, 12, .8), rgba(7, 8, 12, 0) 60%); } }
-@media (prefers-reduced-motion: reduce) { .page.enter > * { animation: none; } .set canvas { transition: none; } }
+@media (min-width: 900px) { .hero::before { inset: -100svh -40px -56px -40px; background: linear-gradient(to right, rgba(7, 8, 12, .85), rgba(7, 8, 12, .5) 45%, rgba(7, 8, 12, 0) 70%), linear-gradient(to top, rgba(7, 8, 12, .8), rgba(7, 8, 12, 0) 60%); } }
+@media (prefers-reduced-motion: reduce) { .page.enter > *, .page.enter > * > * { animation: none; } .set canvas { transition: none; } }
+@media (min-width: 600px) and (max-width: 899px) { .cast { grid-template-columns: repeat(2, 1fr); } .cast li:last-child:nth-child(odd) { grid-column: 1 / -1; } }
+@media (max-width: 359px) { .logo { letter-spacing: .1em; font-size: 16px; } .top { padding: 0 10px; gap: 6px; } .top nav a { padding: 0 4px; font-size: 12px; min-width: 44px; } }

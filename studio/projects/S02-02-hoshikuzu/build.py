@@ -7,7 +7,7 @@ F = json.loads((H / 'facts.json').read_text())
 (S / 'data.js').write_text('// facts.json から生成（手で書き換えない）\nexport const F = ' + json.dumps(F, ensure_ascii=False) + ';\n')
 html = (S / 'index.html').read_text()
 src = json.dumps(F, ensure_ascii=False) + (S / 'app.js').read_text() + html
-chars = ''.join(sorted(set(re.findall(r'[　-ヿ一-鿿＀-￯]', src)) | set('0123456789')))
+chars = ''.join(sorted(set(re.findall(r'[　-ヿ一-鿿＀-￯]', src)) | set('0123456789') | set('ABCDEFGHIJKLMNOPQRSTUVWXYZ-')))
 url = 'https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600&display=swap&text=' + urllib.parse.quote(chars)
 html = re.sub(r'<link id="fm"[^>]*>', f'<link id="fm" rel="stylesheet" href="{url}">', html)
 (S / 'index.html').write_text(html)

@@ -8,8 +8,8 @@ const md = s => { const [, m, d] = s.split('-').map(Number); return `${m}.${d}`;
 
 // 文字（facts.json から）
 $('genre').textContent = F.genre; $('kana').textContent = F.kana; $('title').textContent = F.title; $('en').textContent = F.en; $('copy').textContent = F.copy;
-$('when').append(md(F.period.from), el('small', null, F.period.from_wd), '— ', md(F.period.to), el('small', null, F.period.to_wd), el('small', null, `${F.period.from.slice(0, 4)}年`));
-$('where').textContent = `${F.venue}（客席${F.seats}席）`;
+$('when').append(el('span', 'yr', F.period.from.slice(0, 4)), md(F.period.from), el('small', null, F.period.from_wd), '— ', md(F.period.to), el('small', null, F.period.to_wd));
+$('where').textContent = `${F.venue}（全${F.seats}席）`;
 for (const p of F.story) $('story').append(el('p', null, p));
 for (const s of F.scenes) { const li = el('li'); li.append(el('span', 'no', s.no), el('span', 't', s.title), el('span', 'x', s.text)); $('scenes').append(li); }
 for (const [k, v] of F.credits) $('credits').append(el('dt', null, k), el('dd', null, v));
@@ -19,8 +19,8 @@ const cards = F.cast.map((c, i) => {
 });
 const sale = $('sale'); sale.append(`${F.sale.date.slice(0, 4)}.${md(F.sale.date)}`, el('small', null, `（${F.sale.wd}）${F.sale.label}`));
 const row = (k, v) => { const d = el('div'); d.append(el('dt', null, k), el('dd', null, v)); $('tinfo').append(d); };
-row('期間', `${F.period.from.replaceAll('-', '.')}（${F.period.from_wd}）〜${md(F.period.to)}（${F.period.to_wd}）`);
-row('開演', F.times.map(([a, b]) => `${a} ${b}`).join('　')); row('上演時間', F.running); row('劇場', `${F.venue}（全${F.seats}席）`);
+row('期間', `${F.period.from.slice(0, 4)}.${md(F.period.from)}（${F.period.from_wd}）— ${md(F.period.to)}（${F.period.to_wd}）`);
+F.times.forEach(([a, b], i) => row(i ? '' : '開演', `${a}　${b}`)); row('上演時間', F.running); row('劇場', `${F.venue}（全${F.seats}席）`);
 for (const [k, v] of F.prices) { const li = el('li', null, k); li.append(el('b', null, v)); $('price').append(li); }
 $('pnote').textContent = F.price_note;
 $('buy').addEventListener('click', () => { $('msg').textContent = '見本のため、チケットの申し込みはできません。'; });
@@ -69,7 +69,10 @@ route(true);
   for (const sx of [-1, 1]) { const curb = new THREE.Mesh(new THREE.BoxGeometry(1.4, .14, 90), stone); curb.position.set(sx * 3.3, .07, -18); scene.add(curb); }
 
   // 両側の店：1階は店の窓（開いている店は灯り、閉じた店はシャッター）、上の階は窓がまばらに灯る
-  const wall = new THREE.MeshStandardMaterial({ color: 0x15161b, roughness: .92 });
+  const grit = canvasTex(256, 256, (g, w, h) => { const im = g.createImageData(w, h); for (let k = 0; k < w * h; k++) { const v = 205 + rnd() * 50; im.data.set([v, v, v, 255], k * 4); } g.putImageData(im, 0, 0); });
+  grit.wrapS = grit.wrapT = THREE.RepeatWrapping; grit.repeat.set(3, 3);
+  const wall = new THREE.MeshStandardMaterial({ color: 0x1a1b21, roughness: 1, map: grit, roughnessMap: grit });
+  const fascia = new THREE.MeshStandardMaterial({ color: 0x221c18, roughness: .7 });
   const shopTex = canvasTex(256, 160, (g, w, h) => { const gr = g.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, '#ffdcae'); gr.addColorStop(1, '#a8673a'); g.fillStyle = gr; g.fillRect(0, 0, w, h); g.fillStyle = 'rgba(40,24,12,.55)'; for (let y = 40; y < h; y += 40) g.fillRect(0, y, w, 5); g.fillStyle = 'rgba(30,18,10,.8)'; g.fillRect(0, 0, w, 10); g.fillRect(w / 2 - 3, 0, 6, h); });
   const shutTex = canvasTex(64, 128, (g, w, h) => { g.fillStyle = '#2a2b30'; g.fillRect(0, 0, w, h); g.fillStyle = '#1a1b1f'; for (let y = 0; y < h; y += 6) g.fillRect(0, y, w, 2); });
   const winTex = canvasTex(32, 48, (g, w, h) => { g.fillStyle = '#ffd9a6'; g.fillRect(0, 0, w, h); g.fillStyle = 'rgba(60,40,20,.5)'; g.fillRect(w / 2 - 1, 0, 2, h); g.fillRect(0, h / 2 - 1, w, 2); });
@@ -81,7 +84,10 @@ route(true);
       const open = rnd() > .45;  // 店の正面（通りに向く面）は x=±4.0
       const m = new THREE.Mesh(new THREE.PlaneGeometry(wdt - .7, 2.3), open ? new THREE.MeshStandardMaterial({ color: 0x000000, emissive: 0xffffff, emissiveMap: shopTex, emissiveIntensity: .5 }) : new THREE.MeshStandardMaterial({ map: shutTex, roughness: .6, metalness: .5 }));
       m.position.set(sx * 3.99, 1.35, cz); m.rotation.y = -sx * Math.PI / 2; scene.add(m);
-      if (open) shops.push(m.material);
+      if (open) shops.push({ m: m.material, sx, z: cz, I: .5, tI: .5, at: 0 });
+      const fb = new THREE.Mesh(new THREE.BoxGeometry(.1, .32, wdt - .3), fascia); fb.position.set(sx * 3.95, 2.62, cz); scene.add(fb);
+      // 袖看板（店名は載せない色の面）。通りの奥へ向けて張り出す
+      if (rnd() > .3) { const sg = new THREE.Mesh(new THREE.PlaneGeometry(.42, 1.3), new THREE.MeshStandardMaterial({ color: 0, emissive: new THREE.Color().setHSL([.02, .08, .55, .95][Math.floor(rnd() * 4)], .6, .42), emissiveIntensity: open ? .22 : .05, side: THREE.DoubleSide })); sg.position.set(sx * 3.62, 3.7, cz + wdt / 2 - .45); scene.add(sg); }
       const aw = new THREE.Mesh(new THREE.BoxGeometry(.7, .06, wdt - .5), new THREE.MeshStandardMaterial({ color: 0x241a16, roughness: .7 })); aw.position.set(sx * 3.65, 2.75, cz); aw.rotation.z = sx * .18; scene.add(aw);
       for (let f = 1; f < hgt / 2.6 - .4; f++) for (let c = -1; c <= 1; c += 2) {
         if (rnd() < .55) continue;
@@ -120,7 +126,7 @@ route(true);
     const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color: WARM.clone(), blending: THREE.AdditiveBlending, depthWrite: false, transparent: true, fog: false })); glow.position.copy(headPos); glow.scale.setScalar(2.2); g.add(glow);
     const light = new THREE.PointLight(WARM.clone(), 0, 11, 1.6); light.position.copy(headPos).add(new THREE.Vector3(0, -.15, 0)); g.add(light);
     const world = headPos.clone().add(g.position);
-    return { light, bulbMat, glow, world, I: 0, col: WARM.clone(), tI: 0, tCol: WARM.clone(), at: 0, off: false };
+    return { light, bulbMat, glow, world, x, z, I: 0, col: WARM.clone(), tI: 0, tCol: WARM.clone(), at: 0, off: false, S: 2.2, tS: 2.2 };
   });
 
   // 空：星と、ゆっくり降る雪
@@ -141,27 +147,31 @@ route(true);
   const V = (x, y, z) => new THREE.Vector3(x, y, z);
   const POSE = {
     top: { p: V(.5, 1.45, 7), t: V(0, 2.4, -22) },
-    story: { p: V(-1.3, 1.7, -22.5), t: V(.4, 3.6, -40) },
+    story: { p: V(1.8, 2.2, 6), t: V(-.5, 2.8, -30) },
     cast: { p: V(1.3, 2.1, 4), t: V(-.4, 1.9, -14) },
     ticket: { p: V(0, 4.6, 3), t: V(0, 2.6, -40) },
   };
   const LOOK = {
     top: { lamps: () => [1, 1, 1, 1, 1, 1].map(v => [v * 16, WARM]), moon: .25, shops: .5, end: 0, marquee: 0 },
     // 物語：店が閉じるたびに街灯がひとつずつ消える。残るのは手前・中ほど・時計店の前の3本
-    story: { lamps: () => [1, 0, 1, 0, 0, 1].map(v => [v * 14, WARM]), moon: 1.1, shops: .22, end: 9, marquee: 0 },
-    cast: { lamps: () => [...F.cast.map((c, i) => [pick < 0 ? 9 : i === pick ? 30 : 2.5, new THREE.Color().setHSL(c.hue / 360, .85, .66)]), [0, WARM]], moon: .3, shops: .16, end: 0, marquee: 0 },
+    story: { lamps: () => [1, 0, 1, 0, 0, 1].map(v => [v * 14, WARM]), moon: .6, shops: .3, end: 9, marquee: 0 },
+    cast: { lamps: () => [...F.cast.map((c, i) => [pick < 0 ? 9 : i === pick ? 40 : .6, new THREE.Color().setHSL(c.hue / 360, .85, .66)]), [0, WARM]], moon: .3, shops: .16, end: 0, marquee: 0 },
     ticket: { lamps: () => [1, 1, 1, 1, 1, 1].map(v => [v * 22, WARM]), moon: .2, shops: .7, end: 18, marquee: 1 },
   };
-  let look = LOOK.top, from = null, to = POSE.top, tw = 1, twStart = 0, moonT = .25, shopT = .5, endT = 0, mq = 0, mqT = 0;
+  let twDur = 1.8, look = LOOK.top, from = null, to = POSE.top, tw = 1, twStart = 0, moonT = .25, shopT = .5, endT = 0, mq = 0, mqT = 0;
   const curP = POSE.top.p.clone(), curT = POSE.top.t.clone();
   function apply(p, first) {
     look = LOOK[p]; moonT = look.moon; shopT = look.shops; endT = look.end; mqT = look.marquee;
     const now = performance.now() / 1000, L = look.lamps();
-    lamps.forEach((l, i) => { const [I, c] = L[i]; l.off = I < l.tI - 1; l.tI = I; l.tCol.copy(c); l.at = now + (first || reduce ? 0 : (p === 'story' ? [0, .5, 0, 1.1, 1.6, 0][i] : i * .12)); });
-    from = { p: curP.clone(), t: curT.clone() }; to = POSE[p]; tw = first || reduce ? 1 : 0; twStart = now;
+    lamps.forEach((l, i) => { const [I, c] = L[i]; l.off = I < l.tI - 1; l.tI = I; l.tCol.copy(c); l.tS = p === 'cast' && i === pick ? 3.6 : 2.2; l.at = now + (first || reduce ? 0 : (p === 'story' ? [0, .6, 0, 1.2, 1.8, 0][i] : i * .12)); });
+    // 物語では、消えた街灯のそばの店も同じ瞬間に灯りを落とす（店が閉じる）
+    for (const sh of shops) { const near = lamps.find(l => Math.sign(l.x) === sh.sx && Math.abs(l.z - sh.z) < 3.4); const dark = p === 'story' && near && near.tI < 1; sh.tI = dark ? 0 : shopT; sh.at = dark ? near.at : now; }
+    from = { p: curP.clone(), t: curT.clone() }; to = POSE[p]; tw = first || reduce ? 1 : 0; twStart = now; twDur = 1.8;
+    // 出演でカードを選んだら、その人の街灯の手前へ寄る
+    if (p === 'cast' && pick >= 0) { const l = lamps[pick]; to = { p: V(-Math.sign(l.x) * .5, 2.1, l.z + 7.5), t: l.world.clone().add(V(Math.sign(l.x) * -.6, -1.7, 0)) }; twDur = 1.2; }
     if (first || reduce) { curP.copy(to.p); curT.copy(to.t); }
   }
-  onPage = apply; onPick = () => { if (page === 'cast') { apply('cast', false); tw = 1; } };
+  onPage = apply; onPick = () => { if (page === 'cast') apply('cast', false); };
   apply(page, true);
 
   function fit() { const w = box.clientWidth, h = box.clientHeight; r.setSize(w, h, false); cam.aspect = w / h; cam.fov = w < h ? 64 : 42; cam.updateProjectionMatrix(); }
@@ -179,10 +189,10 @@ route(true);
       l.I += (l.tI - l.I) * (l.off ? 1 - Math.exp(-dt * 2.5) : k); l.col.lerp(l.tCol, k);
       let I = l.I; if (l.off && now - l.at < .45 && !reduce) I *= (Math.sin((now - l.at) * 70) > 0 ? 1 : .15);
       l.light.intensity = I; l.light.color.copy(l.col);
-      const s = Math.min(1, I / 14); l.bulbMat.color.copy(l.col).multiplyScalar(.08 + s * 1.2); l.glow.material.color.copy(l.col); l.glow.material.opacity = s * .9;
+      const s = Math.min(1, I / 14); l.bulbMat.color.copy(l.col).multiplyScalar(.08 + s * 1.2); l.glow.material.color.copy(l.col); l.glow.material.opacity = s * .9; l.S += (l.tS - l.S) * k; l.glow.scale.setScalar(l.S);
     }
     moon.intensity += (moonT - moon.intensity) * k; endLight.intensity += (endT - endLight.intensity) * k; mq += (mqT - mq) * k;
-    for (const m of shops) m.emissiveIntensity += (shopT - m.emissiveIntensity) * k;
+    for (const sh of shops) { if (now >= sh.at) { sh.I += (sh.tI - sh.I) * (sh.tI < sh.I ? 1 - Math.exp(-dt * 3) : k); sh.m.emissiveIntensity = sh.I; } }
     // 時計店の電飾：3つおきに光が走る
     const ph = Math.floor(now * 6); const c = new THREE.Color();
     for (let i = 0; i < 24; i++) { const on = reduce ? 1 : ((i + ph) % 3 === 0 ? 1 : .25); bulbs.setColorAt(i, c.setRGB(1, .82, .55).multiplyScalar(.04 + mq * on * 1.4)); }
@@ -191,8 +201,8 @@ route(true);
     // 雪
     if (!reduce) { for (let i = 0; i < N; i++) { snow[i * 3 + 1] -= sv[i] * dt; snow[i * 3] += Math.sin(now * .7 + i) * .002; if (snow[i * 3 + 1] < 0) snow[i * 3 + 1] = 9; } ng.attributes.position.needsUpdate = true; }
     // カメラ：ページの移り変わりは 1.8 秒で移動、止まっている間もごくゆっくり揺れる
-    if (tw < 1) { tw = Math.min(1, (now - twStart) / 1.8); const e = ease(tw); curP.lerpVectors(from.p, to.p, e); curT.lerpVectors(from.t, to.t, e); }
-    aim.copy(curT); if (page === 'cast' && pick >= 0) aim.lerp(lamps[pick].world, .55);
+    if (tw < 1) { tw = Math.min(1, (now - twStart) / twDur); const e = ease(tw); curP.lerpVectors(from.p, to.p, e); curT.lerpVectors(from.t, to.t, e); }
+    aim.copy(curT);
     cpos.copy(curP); if (!reduce) { cpos.x += Math.sin(now * .21) * .12; cpos.y += Math.sin(now * .17) * .05; }
     cam.position.copy(cpos); cam.userData.a = cam.userData.a || curT.clone(); cam.userData.a.lerp(aim, k * .6 + (tw < 1 ? .4 : 0)); cam.lookAt(cam.userData.a);
     // 縦長の画面では、物語・出演・チケットの板が下半分を覆うので、絵の中心を上へずらす
