@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>座席からの見え方｜月見坂シアター（架空の見本）</title>
+<meta name="description" content="架空の小劇場・月見坂シアターの座席ビューアの見本。座席表で席を選ぶと、その席の目の高さから見た舞台を 3D で表示する（天狼スタジオ制作）。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500&family=Jost:wght@300;400&display=swap">
+<link rel="stylesheet" href="style.css">
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
+</head>
+<body>
+<header class="top">
+  <p class="th" id="th"></p>
+  <h1 id="title"></h1>
+</header>
+<main class="app">
+  <section class="view" aria-labelledby="seatname">
+    <div class="glbox"><canvas id="gl" aria-hidden="true"></canvas><p class="drag" id="drag">ドラッグで、少し見回せます</p></div>
+    <div class="cap" aria-live="polite">
+      <p class="zone" id="zone"></p>
+      <h2 id="seatname"></h2>
+    </div>
+  </section>
+  <section class="side" aria-label="席を選ぶ">
+    <p class="lead" id="lead"></p>
+    <div class="pick">
+      <label>列<select id="row"></select></label>
+      <label>番号<select id="num"></select></label>
+      <button type="button" id="prev" aria-label="左の席へ">← 左</button>
+      <button type="button" id="next" aria-label="右の席へ">右 →</button>
+    </div>
+    <figure class="map">
+      <svg id="map" role="img" aria-label="座席表。上が舞台。選んでいる席が白い丸です"></svg>
+      <figcaption id="legend" class="legend"></figcaption>
+    </figure>
+    <h3 class="ih">この席から</h3>
+    <dl class="info" id="info"></dl>
+    <button type="button" class="tog" id="heads" aria-pressed="true"><i aria-hidden="true"></i>前の人の頭を表示する</button>
+    <p class="note" id="note"></p>
+  </section>
+</main>
+<footer class="foot"><p id="discl"></p></footer>
+<script type="module" src="app.js"></script>
+</body>
+</html>
