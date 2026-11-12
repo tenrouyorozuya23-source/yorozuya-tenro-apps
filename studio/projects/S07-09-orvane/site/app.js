@@ -5,7 +5,7 @@ const el = (t, c, x) => { const e = document.createElement(t); if (c) e.classNam
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 $('brand').textContent = F.brand; $('kind').textContent = F.kind; $('product').textContent = F.product; $('tag').textContent = F.tagline;
 F.stages.forEach((s, i) => {
-  const sec = el('section', 'sec'); sec.id = s.id; sec.dataset.k = i + 1; sec.setAttribute('aria-labelledby', `h-${s.id}`);
+  const sec = el('section', `sec s-${s.id}`); sec.id = s.id; sec.dataset.k = i + 1; sec.setAttribute('aria-labelledby', `h-${s.id}`);
   const c = el('div', 'copy'), big = el('p', /^[\d°]+$/.test(s.big) ? 'big' : 'big ja', s.big), h = el('h2', null, s.head); h.id = `h-${s.id}`;
   c.append(big, h, el('p', 'body', s.body)); sec.append(c); $('stages').append(sec);
 });
@@ -32,7 +32,12 @@ secs.forEach(s => io.observe(s));
   r.setPixelRatio(Math.min(2, devicePixelRatio)); r.setClearColor(0x050506, 1);
   r.toneMapping = THREE.ACESFilmicToneMapping; r.toneMappingExposure = 1.0;
   const scene = new THREE.Scene(), cam = new THREE.PerspectiveCamera(30, 1, .1, 100);
-  const pm = new THREE.PMREMGenerator(r); scene.environment = pm.fromScene(new RoomEnvironment(), .04).texture;
+  // 映り込み用の環境：暗い部屋の左右に縦長の白いストリップライト（ガラスと金属の縁に縦のハイライトが立つ）
+  const envS = new THREE.Scene(); envS.background = new THREE.Color(0x060606);
+  const stripM = new THREE.MeshBasicMaterial({ color: new THREE.Color(1, 1, 1).multiplyScalar(6) });
+  for (const x of [-5, 5]) { const m = new THREE.Mesh(new THREE.BoxGeometry(.6, 9, .6), stripM); m.position.set(x, 1, 1.5); envS.add(m); }
+  const top = new THREE.Mesh(new THREE.BoxGeometry(4, .3, 4), new THREE.MeshBasicMaterial({ color: new THREE.Color(1, .95, .9).multiplyScalar(1.5) })); top.position.y = 7; envS.add(top);
+  const pm = new THREE.PMREMGenerator(r); scene.environment = pm.fromScene(envS, 0).texture;
 
   // 光：左上のキー、背後の冷たいリム、真上の細いスポット
   const key = new THREE.SpotLight(0xfff1de, 60, 20, .5, .8, 1.6); key.position.set(-3.5, 5, 3); key.target.position.set(0, 1, 0); scene.add(key, key.target);
@@ -63,25 +68,29 @@ secs.forEach(s => io.observe(s));
     const mag = new THREE.Mesh(new THREE.CylinderGeometry(rad * .5, rad * .5, rad * .3, 48), chrome); mag.position.y = -rad * .18; g.add(mag);
     return g;
   };
-  const lens = (rad, h) => { const m = new THREE.Mesh(new THREE.ConeGeometry(rad, h, 72, 1, true), chrome); m.rotation.x = Math.PI; return m; };
-  const base = part(new THREE.Mesh(new THREE.CylinderGeometry(.6, .63, .1, 96), body), .05, -.45);
-  const woofer = part(driver(.46), .22, 0);
+  const lensM = new THREE.MeshStandardMaterial({ color: 0xd8dade, metalness: 1, roughness: .25, side: THREE.DoubleSide });
+  const lens = (rad, h) => { const m = new THREE.Mesh(new THREE.ConeGeometry(rad, h, 72, 1, true), lensM); m.rotation.x = Math.PI; return m; };
+  const base = part(new THREE.Mesh(new THREE.CylinderGeometry(.6, .63, .1, 96), body), .05, 0);
+  const drv = [];
+  const woofer = part(driver(.46), .22, 0); drv.push(woofer);
   part(lens(.42, .2), .56, .3);
   const batt = new THREE.Group();
   batt.add(new THREE.Mesh(new THREE.CylinderGeometry(.3, .3, .3, 48), new THREE.MeshStandardMaterial({ color: 0x1c1d20, metalness: .4, roughness: .5 })));
-  const gaugeM = new THREE.MeshBasicMaterial({ color: 0xffd9a8, transparent: true, opacity: .9 });
-  const gauge = new THREE.Mesh(new THREE.CylinderGeometry(.303, .303, .28, 48, 1, true, 0, Math.PI * 2), gaugeM); gauge.scale.y = .02; batt.add(gauge);
+  // 電池のゲージ：20時間＝20本の細い光の帯。下の段のスクロールで1本ずつ灯る
+  const bars = [...Array(20)].map((_, k) => { const a = k / 20 * Math.PI * 2, m = new THREE.Mesh(new THREE.BoxGeometry(.02, .24, .01), new THREE.MeshBasicMaterial({ color: 0xffd9a8, transparent: true, opacity: 0 })); m.position.set(Math.sin(a) * .305, 0, Math.cos(a) * .305); m.rotation.y = a; batt.add(m); return m; });
   part(batt, .82, .62);
-  part(driver(.27), 1.1, .98);
+  drv.push(part(driver(.27), 1.1, .98));
   part(lens(.25, .13), 1.32, 1.22);
-  part(driver(.11, true), 1.5, 1.45);
+  drv.push(part(driver(.11, true), 1.5, 1.45));
+  const v3 = new THREE.Vector3();
+  const tags = F.specs[0][1].split('／').map(t => { const d = el('div', 'tag3d'); d.append(el('i'), el('span', null, t)); box.append(d); return d; });
   part(lens(.12, .08), 1.66, 1.62);
   const cap = new THREE.Group();
   cap.add(new THREE.Mesh(new THREE.CylinderGeometry(.6, .6, .08, 96), body));
   const ledM = new THREE.MeshBasicMaterial({ color: 0xffd9a8 });
   const led = new THREE.Mesh(new THREE.TorusGeometry(.44, .011, 10, 128), ledM); led.rotation.x = Math.PI / 2; led.position.y = .042; cap.add(led);
   part(cap, 1.84, 2.0);
-  const glass = new THREE.MeshPhysicalMaterial({ color: 0xffffff, metalness: 0, roughness: .04, transmission: 1, thickness: .08, ior: 1.5, transparent: true, side: THREE.DoubleSide, envMapIntensity: 1.2 });
+  const glass = new THREE.MeshPhysicalMaterial({ color: 0xffffff, metalness: 0, roughness: .02, transmission: 1, thickness: .35, ior: 1.5, attenuationColor: new THREE.Color(0xd8dde3), attenuationDistance: 2, iridescence: .15, specularIntensity: 1, transparent: true, side: THREE.DoubleSide, envMapIntensity: 1.6 });
   const shell = new THREE.Mesh(new THREE.CylinderGeometry(.6, .6, 1.7, 96, 1, true), glass); shell.position.y = .95; prod.add(shell);
   const frost = new THREE.Mesh(new THREE.CylinderGeometry(.604, .604, .22, 96, 1, true), new THREE.MeshPhysicalMaterial({ color: 0xffffff, roughness: .4, transmission: .85, thickness: .05, transparent: true, opacity: .45 })); frost.position.y = .21; prod.add(frost);
   const halo = new THREE.PointLight(0xffd9a8, 0, 3, 2); halo.position.y = 1.7; prod.add(halo);
@@ -93,12 +102,14 @@ secs.forEach(s => io.observe(s));
   const K = [
     { elev: 10, dist: 7.2, ex: 0, lift: 0, ring: .55, wave: 0, gauge: 0, yaw: 0 },
     { elev: 58, dist: 7.6, ex: 0, lift: 0, ring: .7, wave: 1, gauge: 0, yaw: .6 },
-    { elev: 12, dist: 12.5, ex: 1, lift: 1, ring: .3, wave: 0, gauge: 0, yaw: 1.4 },
+    { elev: 12, dist: 10.2, ex: 1, lift: 1, ring: .3, wave: 0, gauge: 0, yaw: 1.4 },
     { elev: 6, dist: 4.4, ex: 0, lift: 0, ring: 1, wave: 0, gauge: 0, yaw: 2.2 },
-    { elev: 16, dist: 9.6, ex: .5, lift: .55, ring: .5, wave: 0, gauge: 1, yaw: 3.0 },
-    { elev: 12, dist: 7.0, ex: 0, lift: 0, ring: .7, wave: 0, gauge: 0, yaw: 3.9 },
+    { elev: 16, dist: 8.6, ex: .55, lift: 1, ring: .5, wave: 0, gauge: 1, yaw: 3.0 },
+    { elev: 10, dist: 6.6, ex: 0, lift: 0, ring: .7, wave: 0, gauge: 1, yaw: 3.6 },
+    { elev: 12, dist: 7.0, ex: 0, lift: 0, ring: .7, wave: 0, gauge: 0, yaw: 4.2 },
   ];
-  const lerp = (a, b, t) => a + (b - a) * t, sm = t => t * t * (3 - 2 * t);
+  const lerp = (a, b, t) => a + (b - a) * t, sm = t => t * t * (3 - 2 * t), io3 = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+  const back = t => { const c = 1.2, x = t - 1; return 1 + (c + 1) * x * x * x + c * x * x; };
   let sp = 0;   // 段の位置（小数）
   function stagePos() {
     const mid = scrollY + innerHeight / 2, cs = secs.map(s => { const b = s.getBoundingClientRect(); return b.top + scrollY + Math.min(b.height, innerHeight * 1.2) / 2; });
@@ -108,27 +119,38 @@ secs.forEach(s => io.observe(s));
   onColor = i => { tCol = COL[i]; };
   let tCol = COL[0];
 
-  function fit() { const w = box.clientWidth, h = box.clientHeight; r.setSize(w, h, false); cam.aspect = w / h; cam.fov = w < h ? 44 : 30; cam.updateProjectionMatrix(); }
+  function fit() { const w = box.clientWidth, h = box.clientHeight; r.setSize(w, h, false); cam.aspect = w / h; cam.fov = w < 900 && w < h ? 50 : 30; cam.updateProjectionMatrix(); }
   new ResizeObserver(fit).observe(box); fit();
 
   let shown = false, last = performance.now(), off = null;
   function frame(ms) {
     const dt = Math.min(.05, (ms - last) / 1000); last = ms; const t = ms / 1000;
     const target = stagePos(); sp = reduce ? Math.round(target) : sp + (target - sp) * (1 - Math.exp(-dt * 6));
-    const i = Math.min(K.length - 2, Math.floor(sp)), f = sm(Math.min(1, sp - i)), A = K[i], B = K[i + 1], S = {};
+    const i = Math.min(K.length - 2, Math.floor(sp)), raw = Math.min(1, sp - i), f = io3(raw), A = K[i], B = K[i + 1], S = {};
     for (const k in A) S[k] = lerp(A[k], B[k], f);
     // 分解：部品ごとに少しずつずらして開く（下の部品から）
-    parts.forEach((p, n) => { const e = sm(Math.min(1, Math.max(0, S.ex * 1.25 - n * .03))); p.position.y = p.userData.y + p.userData.ex * 1.15 * e; });
-    shell.position.y = .95 + S.lift * 4.6; glass.opacity = 1 - S.lift * .6; frost.position.y = .21 + S.lift * 4.6;
-    ledM.color.setRGB(1, .85, .66).multiplyScalar(.25 + S.ring * 1.4); halo.intensity = S.ring * 1.2;
-    gauge.scale.y = Math.max(.02, S.gauge); gauge.position.y = -.14 + .14 * gauge.scale.y;
+    // 組み上げ（段4→段5）：上の部品から順に落ちて、着地で少し沈んで戻る。最後に筒が被さり、光の輪が1回脈打つ
+    const build = i === 4 ? raw : -1, N = parts.length;
+    parts.forEach((p, n) => {
+      let e;
+      if (build >= 0) { const d = (N - 1 - n) * .07, u = Math.min(1, Math.max(0, (build - d) / .45)); e = K[4].ex * (1 - back(u)); }
+      else e = sm(Math.min(1, Math.max(0, S.ex * 1.25 - n * .03)));
+      p.position.y = p.userData.y + p.userData.ex * .9 * e;
+    });
+    let lift = S.lift, pulse = 0;
+    if (build >= 0) { const u = Math.min(1, Math.max(0, (build - .62) / .25)); lift = 1 - sm(u); pulse = build > .87 ? Math.exp(-Math.pow((build - .93) / .04, 2)) : 0; }
+    shell.position.y = .95 + lift * 4.6; glass.opacity = 1 - lift * .6; frost.position.y = .21 + lift * 4.6;
+    ledM.color.setRGB(1, .85, .66).multiplyScalar(.25 + (S.ring + pulse * .9) * 1.4); halo.intensity = (S.ring + pulse) * 1.2;
+    bars.forEach((b, k) => { b.material.opacity = S.gauge * .75 * Math.min(1, Math.max(0, (i === 3 ? raw : i === 4 ? 1 : S.gauge) * 22 - k)); });
+    // ドライバーの名前（分解の段だけ、引き出し線つき）
+    tags.forEach((g, k) => { const p = drv[k]; const L = box.clientWidth < 900; v3.set(0, 0, 0); p.localToWorld(v3); v3.x += L ? -.55 : .5; v3.project(cam); g.classList.toggle('l', L); const show = Math.max(0, (S.ex - .75) * 4) * (i <= 2 ? 1 : 0); g.style.opacity = Math.min(1, show * (1.3 - k * .15)).toFixed(3); const px = (v3.x + 1) / 2 * box.clientWidth, X = L ? Math.max(g.offsetWidth + 8, px) : Math.min(box.clientWidth - g.offsetWidth - 8, px); g.style.transform = `translate(${X.toFixed(1)}px, ${((1 - v3.y) / 2 * box.clientHeight).toFixed(1)}px)${L ? ' translateX(-100%)' : ''}`; });
     waves.forEach((w, k) => { const ph = ((reduce ? .5 : t * .35) + k / waves.length) % 1; w.scale.setScalar(.7 + ph * 2.6); w.material.opacity = S.wave * (1 - ph) * .5; });
     body.color.lerp(tCol, .08);
     prod.rotation.y = S.yaw + (reduce ? 0 : t * .08);
-    const el = S.elev * Math.PI / 180, ty = 1.0 + S.ex * .95;
+    const el = S.elev * Math.PI / 180, ty = 1.0 + S.ex * .85;
     cam.position.set(0, ty + Math.sin(el) * S.dist, Math.cos(el) * S.dist); cam.lookAt(0, ty, 0);
     // 製品は文字を避けて置く（PC は右、スマホは下）
-    const W = box.clientWidth, H = box.clientHeight, o = W >= 900 ? [-W * .25, 0] : [0, -H * .17];
+    const W = box.clientWidth, H = box.clientHeight, o = W >= 900 ? [-W * .25, 0] : [0, -H * .24];
     if (!off || off[0] !== o[0] || off[1] !== o[1]) { cam.setViewOffset(W, H, o[0], o[1], W, H); off = o; }
     r.render(scene, cam);
     if (!shown) { shown = true; cv.classList.add('ready'); }
