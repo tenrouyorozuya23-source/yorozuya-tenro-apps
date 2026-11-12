@@ -1,0 +1,174 @@
+{
+ "file": "P019_9x16.mp4",
+ "duration": 30.0,
+ "fps": 30.0,
+ "width": 1080,
+ "height": 1920,
+ "frames": 900,
+ "has_audio": true,
+ "color": {
+  "color_space": "bt709",
+  "color_primaries": "bt709",
+  "color_transfer": "bt709",
+  "color_range": "tv"
+ },
+ "black": [
+  [
+   0.0,
+   1.6
+  ],
+  [
+   8.46667,
+   9.0
+  ],
+  [
+   15.0,
+   16.6
+  ],
+  [
+   17.0667,
+   18.4333
+  ],
+  [
+   23.2667,
+   24.0667
+  ]
+ ],
+ "freeze": [
+  [
+   0.0,
+   1.1
+  ]
+ ],
+ "loudness": {
+  "integrated_lufs": -14.2,
+  "true_peak_dbfs": -2.4,
+  "lra": 5.6
+ },
+ "sync": [
+  {
+   "kind": "beat",
+   "t": 0.0,
+   "audio_ms": 57.7
+  },
+  {
+   "kind": "beat",
+   "t": 3.0,
+   "audio_ms": -5.0
+  },
+  {
+   "kind": "beat",
+   "t": 6.0
+  },
+  {
+   "kind": "beat",
+   "t": 9.0,
+   "audio_ms": -2.7,
+   "visual_f": 0,
+   "visual_diff": 46.52
+  },
+  {
+   "kind": "beat",
+   "t": 12.0,
+   "audio_ms": -1.5
+  },
+  {
+   "kind": "beat",
+   "t": 15.0,
+   "audio_ms": -0.3
+  },
+  {
+   "kind": "beat",
+   "t": 18.0,
+   "audio_ms": 0.9
+  },
+  {
+   "kind": "beat",
+   "t": 21.0,
+   "audio_ms": 2.1
+  },
+  {
+   "kind": "beat",
+   "t": 24.0,
+   "audio_ms": -2.6,
+   "visual_f": 2,
+   "visual_diff": 2.67
+  },
+  {
+   "kind": "beat",
+   "t": 27.0
+  },
+  {
+   "kind": "chime",
+   "t": 0.0,
+   "audio_ms": 57.7
+  },
+  {
+   "kind": "riser",
+   "t": 6.0
+  },
+  {
+   "kind": "impact",
+   "t": 9.0,
+   "audio_ms": -2.7,
+   "visual_f": 0,
+   "visual_diff": 46.52
+  },
+  {
+   "kind": "chime",
+   "t": 9.0,
+   "audio_ms": -2.7,
+   "visual_f": 0,
+   "visual_diff": 46.52
+  },
+  {
+   "kind": "impact",
+   "t": 24.0,
+   "audio_ms": -2.6,
+   "visual_f": 2,
+   "visual_diff": 2.67
+  },
+  {
+   "kind": "chime",
+   "t": 24.0,
+   "audio_ms": -2.6,
+   "visual_f": 2,
+   "visual_diff": 2.67
+  }
+ ],
+ "summary": {
+  "audio_ms_median": -2.6,
+  "audio_ms_absmax": 57.7,
+  "audio_matched": "13/16",
+  "visual_f_median": 1.0,
+  "visual_matched": "6/16",
+  "visual_off": [
+   {
+    "kind": "beat",
+    "t": 24.0,
+    "audio_ms": -2.6,
+    "visual_f": 2,
+    "visual_diff": 2.67
+   },
+   {
+    "kind": "impact",
+    "t": 24.0,
+    "audio_ms": -2.6,
+    "visual_f": 2,
+    "visual_diff": 2.67
+   },
+   {
+    "kind": "chime",
+    "t": 24.0,
+    "audio_ms": -2.6,
+    "visual_f": 2,
+    "visual_diff": 2.67
+   }
+  ]
+ },
+ "warnings": [
+  "絵の変化が拍から 2f 以上ずれている箇所: [('beat', 24.0, 2), ('impact', 24.0, 2), ('chime', 24.0, 2)]",
+  "黒味あり: [[0.0, 1.6], [8.46667, 9.0], [15.0, 16.6], [17.0667, 18.4333], [23.2667, 24.0667]]",
+  "1秒以上の静止: [[0.0, 1.1]]（意図した止めか確認）"
+ ]
+}
