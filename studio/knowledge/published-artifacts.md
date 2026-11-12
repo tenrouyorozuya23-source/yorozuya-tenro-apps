@@ -37,3 +37,4 @@ Artifact の制約（変換の道具で吸収している）:
 - S02-03 劇団 灯守座 公式サイト: https://claude.ai/artifact/PtXv8o4iffAqvS7nWmPCsf
 - S05-03 ダンサー 九条 舞 公式サイト: https://claude.ai/artifact/7ztqo8DF4ZE2BNeXovCpVh
 - S02-08 チケット LP の A/B 見本: https://claude.ai/artifact/D2vbv1xTBvxjjzvBG9mXq6
+- S02-02 ミュージカル『星屑通り』特設サイト: https://claude.ai/artifact/PfDY1GtRBPHLe26E9NzXVi
