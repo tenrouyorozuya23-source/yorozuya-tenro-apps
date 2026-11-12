@@ -24,8 +24,8 @@
   ],
   "floor_first_z": 3.0,
   "row_pitch": 0.9,
-  "rake_from": 3,
-  "rake_step": 0.25,
+  "rake_from": 2,
+  "rake_step": 0.22,
   "blocks": [
    4,
    10,
@@ -41,11 +41,11 @@
   "balcony_blocks": [
    16
   ],
-  "balcony_front_z": 10.0,
-  "balcony_floor": 4.2,
+  "balcony_front_z": 8.6,
+  "balcony_floor": 5.0,
   "balcony_pitch": 0.95,
   "balcony_rake": 0.45,
-  "balcony_soffit": 3.6,
+  "balcony_soffit": 4.4,
   "eye": 1.15,
   "stagger": 0.26
  },
@@ -70,6 +70,6 @@
   ]
  ],
  "default_seat": "G-9",
- "notes": "見え方は模型からの目安です。目の高さは座面から 1.15m。1階は列ごとに席を半席ずつずらしています。前の人の頭は、全員が座った姿勢で置いています。",
+ "notes": "見え方は模型からの目安です。目の高さは座面から 1.15m。1階・2階とも列ごとに席を半席ずつずらしています。前の人（頭・首・肩）は全員が座った姿勢で置き、3列前までの人が視線をさえぎるかを計算しています。",
  "disclosure": "※劇場・座席・寸法・料金はすべて架空の見本です（天狼スタジオ制作）。チケットの販売はありません。"
 }

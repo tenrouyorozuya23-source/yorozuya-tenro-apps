@@ -28,16 +28,16 @@
     <div class="pick">
       <label>列<select id="row"></select></label>
       <label>番号<select id="num"></select></label>
-      <button type="button" id="prev" aria-label="左の席へ">← 左</button>
-      <button type="button" id="next" aria-label="右の席へ">右 →</button>
+      <button type="button" id="prev" aria-label="左の席へ">←</button>
+      <button type="button" id="next" aria-label="右の席へ">→</button>
     </div>
-    <figure class="map">
-      <svg id="map" role="img" aria-label="座席表。上が舞台。選んでいる席が白い丸です"></svg>
-      <figcaption id="legend" class="legend"></figcaption>
-    </figure>
     <h3 class="ih">この席から</h3>
     <dl class="info" id="info"></dl>
     <button type="button" class="tog" id="heads" aria-pressed="true"><i aria-hidden="true"></i>前の人の頭を表示する</button>
+    <figure class="map">
+      <svg id="map"></svg>
+      <figcaption id="legend" class="legend"></figcaption>
+    </figure>
     <p class="note" id="note"></p>
   </section>
 </main>
