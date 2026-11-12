@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>公演 LP ジェネレータ（社内用・見本）</title>
+<meta name="description" content="公演の情報を JSON で書くと、特設ページと OGP 画像ができる社内用の道具の見本（天狼スタジオ制作）。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Jost:wght@300;400&display=swap">
+<link id="fm" rel="stylesheet" href="">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="top">
+  <p class="badge">天狼スタジオ 社内用</p>
+  <h1 id="tool"></h1>
+  <p class="lead" id="lead"></p>
+</header>
+<main class="app">
+  <section class="ed" aria-labelledby="h-ed">
+    <h2 id="h-ed">1. 公演の情報</h2>
+    <div class="row">
+      <label class="f">見本のデータ<select id="preset"></select></label>
+    </div>
+    <fieldset class="themes"><legend>2. 見た目</legend><div id="themes" class="seg"></div></fieldset>
+    <label class="f grow" for="src">JSON</label>
+    <textarea id="src" spellcheck="false" autocomplete="off" autocapitalize="off" aria-describedby="msgs keys"></textarea>
+    <div id="msgs" class="msgs" role="status" aria-live="polite"></div>
+    <details class="keys" id="keys"><summary>書ける項目</summary><dl id="keylist"></dl></details>
+  </section>
+  <section class="pv" aria-labelledby="h-pv">
+    <div class="pvhead">
+      <h2 id="h-pv">3. できあがり</h2>
+      <div class="seg" role="group" aria-label="プレビューの幅"><button type="button" data-w="390" aria-pressed="true">スマホ</button><button type="button" data-w="1280" aria-pressed="false">PC</button></div>
+    </div>
+    <div class="frame" id="frame"><iframe id="lp" title="生成した LP のプレビュー" sandbox="allow-same-origin"></iframe></div>
+    <h3 class="ogh">OGP 画像（1200×630）</h3>
+    <canvas id="og" width="1200" height="630" role="img" aria-label="生成した OGP 画像"></canvas>
+    <div class="out">
+      <button type="button" id="dl-html" class="btn">LP の HTML を保存</button>
+      <button type="button" id="dl-png" class="btn">OGP 画像を保存</button>
+      <p class="hint" id="hint"></p>
+    </div>
+  </section>
+</main>
+<footer class="foot"><p id="discl"></p></footer>
+<script type="module" src="app.js"></script>
+</body>
+</html>
