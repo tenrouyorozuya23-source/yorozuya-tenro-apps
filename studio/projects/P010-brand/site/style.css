@@ -34,16 +34,18 @@ h1:focus { outline: none; }
 body:not([data-page="top"]) .hero { height: 34svh; min-height: 220px; }
 .hero canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; opacity: 0; transition: opacity .8s; }
 .hero canvas.ready { opacity: 1; }
-.clock { position: absolute; right: 16px; bottom: 12px; margin: 0; font: 300 15px/1 var(--num); letter-spacing: .14em; color: rgba(255, 255, 255, .85); font-variant-numeric: tabular-nums; text-shadow: 0 0 8px rgba(0, 0, 0, .6); }
+.clock { position: absolute; right: 16px; bottom: 12px; margin: 0; padding: 6px 10px; border-radius: 14px; background: rgba(20, 18, 16, .55); font: 300 15px/1 var(--num); letter-spacing: .14em; color: rgba(255, 255, 255, .85); font-variant-numeric: tabular-nums; text-shadow: 0 0 8px rgba(0, 0, 0, .6); }
 .clock small { font: 400 11px/1 var(--sans); margin-left: 8px; letter-spacing: .1em; }
 
-main { max-width: 760px; margin: 0 auto; padding: 0 20px 40px; }
+main { max-width: 680px; margin: 0 auto; padding: 0 20px 40px; }
 .page[hidden] { display: none; }
 .page.enter > * { animation: up .6s cubic-bezier(.2, .7, .2, 1) both; }
 .page.enter > :nth-child(2) { animation-delay: .06s; } .page.enter > :nth-child(3) { animation-delay: .12s; }
 @keyframes up { from { opacity: 0; transform: translateY(12px); } }
 .page > h1 { margin: 48px 0 28px; font: 600 clamp(28px, 7vw, 38px)/1.3 var(--mincho); letter-spacing: .16em; }
 .intro { padding: 44px 0 8px; }
+.kind .en { display: block; font: 300 12px/1.6 var(--num); letter-spacing: .16em; }
+.svc { scroll-margin-top: 112px; }
 .kind { margin: 0; font-size: 13px; color: var(--sub); letter-spacing: .2em; }
 .intro h1 { margin: 10px 0 0; font: 600 clamp(32px, 8.6vw, 54px)/1.35 var(--mincho); letter-spacing: .12em; }
 .lead { margin: 18px 0 0; font-size: 17px; line-height: 2.05; max-width: 32em; }
