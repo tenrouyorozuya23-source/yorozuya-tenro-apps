@@ -15,23 +15,22 @@
  "black": [
   [
    0.0,
-   1.63333
+   0.866667
   ],
   [
    8.46667,
    9.0
   ],
   [
+   16.2,
+   16.5333
+  ],
+  [
    23.2667,
    24.0667
   ]
  ],
- "freeze": [
-  [
-   0.0,
-   1.13333
-  ]
- ],
+ "freeze": [],
  "loudness": {
   "integrated_lufs": -14.2,
   "true_peak_dbfs": -2.4,
@@ -52,19 +51,21 @@
    "kind": "beat",
    "t": 6.0,
    "visual_f": -3,
-   "visual_diff": 2.46
+   "visual_diff": 2.52
   },
   {
    "kind": "beat",
    "t": 9.0,
    "audio_ms": -2.7,
    "visual_f": 0,
-   "visual_diff": 9.6
+   "visual_diff": 6.42
   },
   {
    "kind": "beat",
    "t": 12.0,
-   "audio_ms": -1.5
+   "audio_ms": -1.5,
+   "visual_f": 4,
+   "visual_diff": 2.19
   },
   {
    "kind": "beat",
@@ -99,21 +100,21 @@
    "kind": "riser",
    "t": 6.0,
    "visual_f": -3,
-   "visual_diff": 2.46
+   "visual_diff": 2.52
   },
   {
    "kind": "impact",
    "t": 9.0,
    "audio_ms": -2.7,
    "visual_f": 0,
-   "visual_diff": 9.6
+   "visual_diff": 6.42
   },
   {
    "kind": "chime",
    "t": 9.0,
    "audio_ms": -2.7,
    "visual_f": 0,
-   "visual_diff": 9.6
+   "visual_diff": 6.42
   },
   {
    "kind": "impact",
@@ -131,25 +132,31 @@
   "audio_ms_absmax": 57.7,
   "audio_matched": "13/16",
   "visual_f_median": 0.0,
-  "visual_matched": "5/16",
+  "visual_matched": "6/16",
   "visual_off": [
    {
     "kind": "beat",
     "t": 6.0,
     "visual_f": -3,
-    "visual_diff": 2.46
+    "visual_diff": 2.52
+   },
+   {
+    "kind": "beat",
+    "t": 12.0,
+    "audio_ms": -1.5,
+    "visual_f": 4,
+    "visual_diff": 2.19
    },
    {
     "kind": "riser",
     "t": 6.0,
     "visual_f": -3,
-    "visual_diff": 2.46
+    "visual_diff": 2.52
    }
   ]
  },
  "warnings": [
-  "絵の変化が拍から 2f 以上ずれている箇所: [('beat', 6.0, -3), ('riser', 6.0, -3)]",
-  "黒味あり: [[0.0, 1.63333], [8.46667, 9.0], [23.2667, 24.0667]]",
-  "1秒以上の静止: [[0.0, 1.13333]]（意図した止めか確認）"
+  "絵の変化が拍から 2f 以上ずれている箇所: [('beat', 6.0, -3), ('beat', 12.0, 4), ('riser', 6.0, -3)]",
+  "黒味あり: [[0.0, 0.866667], [8.46667, 9.0], [16.2, 16.5333], [23.2667, 24.0667]]"
  ]
 }
