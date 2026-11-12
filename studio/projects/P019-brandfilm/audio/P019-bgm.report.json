@@ -1,0 +1,31 @@
+{
+ "id": "P019-bgm",
+ "title": "澪（ブランドフィルム・合成）",
+ "versions": {
+  "30s": {
+   "sec": 30.0,
+   "bpm": 80,
+   "fps_beat_exact": [
+    24,
+    48,
+    60
+   ],
+   "silence": [
+    [
+     8.4375,
+     9.0
+    ],
+    [
+     23.25,
+     24.0
+    ]
+   ],
+   "lufs": -14.1,
+   "tp": -2.7,
+   "low_minus_mid_db": 3.94,
+   "low_shelf_db": -6.6,
+   "limiter_db": 2.7,
+   "stereo_corr": 0.655
+  }
+ }
+}

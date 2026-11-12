@@ -1,0 +1,96 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><style>html,body{margin:0;background:#000;overflow:hidden}</style>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600&family=Noto+Sans+JP:wght@300;400&family=Jost:wght@300;400&display=block" rel="stylesheet">
+<script type="importmap">{"imports":{"three":"/node_modules/three/build/three.module.js","three/addons/":"/node_modules/three/examples/jsm/"}}</script><style>
+#ov{position:absolute;inset:0;color:#efebe4;pointer-events:none}
+.t{position:absolute;left:0;right:0;text-align:center}
+#t1,#t2{font:500 var(--tf,64px)/1 "Shippori Mincho";letter-spacing:.32em;text-indent:.32em}
+#t1{top:var(--t1y,78%)}#t2{top:var(--t1y,78%)}
+#brand{top:var(--by,70%);font:600 var(--bf,92px)/1 "Shippori Mincho";letter-spacing:.4em;text-indent:.4em}
+#en{top:calc(var(--by,70%) + var(--bf,92px) + 30px);font:300 var(--ef,26px)/1 "Jost";letter-spacing:.6em;text-indent:.6em;color:#cfc8bd}
+#disc{top:calc(var(--by,70%) + var(--bf,92px) + 84px);font:300 var(--df,22px)/1 "Noto Sans JP";letter-spacing:.14em;text-indent:.14em;color:rgba(239,235,228,.75)}
+</style></head><body><div id="ov">
+<div class="t" id="t1"></div><div class="t" id="t2"></div>
+<div class="t" id="brand"></div><div class="t" id="en"></div><div class="t" id="disc"></div></div>
+<script type="module">
+// P019 ブランドフィルム（架空の澪硝）：ガラスの輪と金属の台を舞台照明で立たせ、暗転と間で語る。テロップは3つ。
+// 0〜8.44 秒「待つ」：細い光が台の縁を撫で、ガラスに一瞬だけ光が走る。8.44〜9.0 秒は無音の暗転。
+// 9.0 秒「応える」：3灯が一度に点き、輪と結晶が姿を見せる。23.25〜24.0 秒に2度目の暗転。24 秒から、真上の一灯で名前を出す
+import * as C from '/tools/cine/cine.js';
+const {lerp,prog,ease}=C;
+const W=innerWidth,H=innerHeight,TALL=H>W;
+const S=C.createStage({width:W,height:H,exposure:1.05,fov:TALL?42:26,envIntensity:.08,dof:false});   // 被写界深度を切る（ガラスの細かいハイライトが四角いボケになる）
+const {THREE,scene,camera}=S;
+if(S.bloom){S.bloom.threshold=1.8;S.bloom.strength=.22;S.bloom.radius=.6;}   // 点の鏡面反射が四角く膨らまないよう、ブルームは弱く
+// 映り込みの環境：既定の部屋（四角い照明パネル）はガラスに四角く映るので、暗い部屋に細い縦長のストリップ2本と、上の細い輪だけにする
+{const env=new THREE.Scene();env.background=new THREE.Color(0x000000);const sm=new THREE.MeshBasicMaterial({color:new THREE.Color(1,.97,.92).multiplyScalar(5)});
+ for(const [x,z] of [[-4,1.5],[4.5,-1]]){const m=new THREE.Mesh(new THREE.BoxGeometry(.18,10,.18),sm);m.position.set(x,1,z);env.add(m);}
+ const hal=new THREE.Mesh(new THREE.TorusGeometry(3,.05,8,96),new THREE.MeshBasicMaterial({color:new THREE.Color(.8,.86,1).multiplyScalar(2)}));hal.rotation.x=Math.PI/2;hal.position.y=6;env.add(hal);
+ scene.environment=new THREE.PMREMGenerator(S.renderer).fromScene(env,0).texture;}
+scene.fog=new THREE.FogExp2(0x030304,.09);scene.background=new THREE.Color(0x030304);
+C.stageFloor(scene,{material:new THREE.MeshPhysicalMaterial({color:0x060606,roughness:.3,clearcoat:.6,clearcoatRoughness:.25,envMapIntensity:.05})});
+const F={t1:'光を、待つ。',t2:'形が、応える。',brand:'澪硝',en:'MIOSHO — GLASS & METAL',disc:'※架空のブランドです'};
+for(const k in F)document.getElementById(k==='t1'?'t1':k==='t2'?'t2':k).textContent=F[k];
+// 縦長と横長で文字の位置と大きさを変える（縦長は安全域 y260〜1500 の中）
+const R=document.documentElement.style;
+if(TALL){R.setProperty('--tf','60px');R.setProperty('--t1y','1260px');R.setProperty('--by','1120px');R.setProperty('--bf','104px');R.setProperty('--ef','26px');R.setProperty('--df','26px');}
+else{R.setProperty('--tf','58px');R.setProperty('--t1y','952px');R.setProperty('--by','780px');R.setProperty('--bf','88px');R.setProperty('--ef','24px');R.setProperty('--df','22px');}
+await document.fonts.load('500 64px "Shippori Mincho"',F.t1+F.t2);await document.fonts.load('600 92px "Shippori Mincho"',F.brand);await document.fonts.load('300 26px Jost',F.en);await document.fonts.load('300 22px "Noto Sans JP"',F.disc);
+// オブジェ：艶消しの金属の台、縁にクロームの細い輪、宙に浮くガラスの輪、その中で回る小さな結晶
+const OBJ=new THREE.Group();scene.add(OBJ);
+const add=(g,m,x,y,z,p=OBJ)=>{const o=new THREE.Mesh(g,m);o.position.set(x,y,z);o.castShadow=o.receiveShadow=true;p.add(o);return o;};
+add(new THREE.CylinderGeometry(.56,.6,.52,128),C.brushedMetal(0x232428,.34),0,.26,0);
+add(new THREE.TorusGeometry(.56,.008,12,160),C.chrome(.12),0,.52,0).rotation.x=Math.PI/2;
+add(new THREE.CylinderGeometry(.5,.5,.004,96),new THREE.MeshPhysicalMaterial({color:0x0b0b0c,roughness:.12,metalness:.9}),0,.522,0);
+const glass=new THREE.MeshPhysicalMaterial({color:0x07090c,metalness:0,roughness:.12,transparent:true,opacity:.32,depthWrite:false,side:THREE.DoubleSide,envMapIntensity:3.2,clearcoat:1,clearcoatRoughness:.08,specularIntensity:.7,iridescence:.35,iridescenceIOR:1.3});   // 透過（transmission）は四角いにじみが出るので使わず、暗いガラスの映り込みで見せる
+const RING=new THREE.Group();RING.position.set(0,1.18,0);OBJ.add(RING);
+const ring=add(new THREE.TorusGeometry(.42,.075,96,320),glass,0,0,0,RING);
+const gem=add(new THREE.OctahedronGeometry(.15,0),glass,0,0,0,RING);gem.scale.set(1,1.5,1);
+// 光：細い上の一灯（待つ）、横から走る光、ヒーローの3灯（キー・リム・トップ）、結びの真上の一灯
+const slit=C.spot(scene,{pos:[0,5.2,.3],target:[0,.52,0],color:0xfff1de,intensity:0,angle:.06,penumbra:.5});
+const sweep=C.spot(scene,{pos:[3,1.4,2],target:[0,1.18,0],color:0xe8f0ff,intensity:0,angle:.09,penumbra:.4,shadow:false});
+const key=C.spot(scene,{pos:[2.6,3.4,3.0],target:[0,.9,0],color:0xfff0de,intensity:0,angle:.17,penumbra:.8});   // 床に強い光だまりを作らないよう、オブジェだけに絞る
+const rim=C.spot(scene,{pos:[-2.4,2.6,-2.8],target:[0,1.1,0],color:0xa9c4ff,intensity:0,angle:.3,penumbra:.7,shadow:false});
+const top=C.spot(scene,{pos:[0,5.5,0],target:[0,0,0],color:0xfff4e4,intensity:0,angle:.2,penumbra:.6});
+const beamS=C.beam(scene,{from:[0,5.2,.3],to:[0,.52,0],radius:.3,color:0xfff1de,density:.28});
+const beamT=C.beam(scene,{from:[0,5.5,0],to:[0,0,0],radius:1.1,color:0xfff4e4,density:.2});
+const dust=C.dust(scene,{center:[0,1.6,0],radius:.8,height:3,count:70,seed:19});
+// 塵は丸く小さく（PointsMaterial のままだと、手前の粒が四角く大きく光る）
+{const c=document.createElement('canvas');c.width=c.height=64;const g=c.getContext('2d'),gr=g.createRadialGradient(32,32,0,32,32,32);gr.addColorStop(0,'rgba(255,255,255,1)');gr.addColorStop(.4,'rgba(255,255,255,.35)');gr.addColorStop(1,'rgba(255,255,255,0)');g.fillStyle=gr;g.fillRect(0,0,64,64);
+ const m=dust.points.material;m.map=new THREE.CanvasTexture(c);m.size=.008;m.needsUpdate=true;}
+window.__ready=Promise.resolve();
+const $=id=>document.getElementById(id);
+const HIT=9,B1=8.4375,B2=23.25,END=24;
+const V=(x,y,z)=>new THREE.Vector3(x,y,z),ringW=V(0,1.18,0);
+// テロップの出方は3つとも変える：1つ目は左から幕が開く、2つ目は字間が詰まって着地、名前は光と同じフレームで点く
+function tel(t){
+  const a1=prog(t,4.5,.9),o1=t<7.6?1:1-prog(t,7.6,.5);$('t1').style.clipPath=`inset(0 ${(1-ease.inOutCubic(a1))*100}% 0 0)`;$('t1').style.opacity=t>=4.5&&t<B1?o1:0;
+  const a2=ease.outCubic(prog(t,12,1.2)),o2=t<15.6?a2:1-prog(t,15.6,.6);$('t2').style.opacity=t>=12&&t<B2?o2:0;$('t2').style.letterSpacing=`${lerp(.7,.32,a2)}em`;
+  const on=t>=END;for(const id of ['brand','en'])$(id).style.opacity=on?1:0;$('disc').style.opacity=on?(t>=END+1?1:0):0;
+}
+window.renderAt=t=>{
+  const dark=(t>=B1&&t<HIT)||(t>=B2&&t<END);
+  // オブジェの動き：輪はゆっくり傾いて回り、結晶は逆に回る
+  RING.rotation.set(.38+Math.sin(t*.21)*.06,t*.18,Math.sin(t*.13)*.05);gem.rotation.set(0,-t*.5,0);
+  // 1幕：細い光が台の縁から立ち上がり、横の光がガラスを一度だけ走る
+  let k=0,r=0,tp=0,sl=0,sw=0,bs=0,bt=0;
+  if(t<B1){sl=lerp(0,140,ease.inOutSine(prog(t,.3,2.6)));bs=lerp(0,.9,ease.inOutSine(prog(t,.3,2.6)));
+    const u=prog(t,4.2,3.2);sw=Math.sin(Math.PI*u)*260;sweep.position.set(lerp(3.2,-3.2,ease.inOutSine(u)),1.5,lerp(1.6,2.4,u));}
+  else if(t>=HIT&&t<B2){const u=t-HIT;k=(u<1/30?560:lerp(560,420,prog(t,HIT,2)))*(t>=21?lerp(1,.75,prog(t,21,2.2)):1);r=180;tp=lerp(90,40,prog(t,HIT,3));bt=lerp(.55,.25,prog(t,HIT,3));
+    // 15〜21 秒：キーの光の色温度を暖から冷へ、リムを冷から暖へ入れ替えながら、光源を回す
+    const w=ease.inOutSine(prog(t,15,6));key.color.setHSL(lerp(.09,.6,w),lerp(.5,.25,w),.82);rim.color.setHSL(lerp(.6,.08,w),lerp(.6,.55,w),.72);
+    const a=lerp(.85,-.6,w);key.position.set(Math.sin(a)*4,3.4,Math.cos(a)*4);}
+  else if(t>=END){tp=lerp(0,520,ease.outCubic(prog(t,END,.12)));bt=lerp(0,.85,ease.outCubic(prog(t,END,.12)));r=lerp(0,60,prog(t,END+.5,1.5));}
+  if(dark){k=r=tp=sl=sw=bs=bt=0;}
+  scene.environmentIntensity=dark?0:t<B1?lerp(0,.6,prog(t,.3,2.6)):t>=END?lerp(0,.5,prog(t,END,.3)):.7;   // 暗転は本当の黒（映り込みも消す）
+  key.intensity=k;rim.intensity=r;top.intensity=tp;slit.intensity=sl;sweep.intensity=sw;beamS.set(t,bs);beamT.set(t,bt);dust.update(t,dark?0:t<B1?.3:t>=END?.32:.12);
+  // カメラ：1幕は台の縁とガラスの寄り（ゆっくり回り込む）。2幕は中景で回り込み、終盤に寄る。3幕は正面で止まる（最後の2秒は静止）
+  let P,L;
+  if(t<B1){const u=ease.inOutSine(prog(t,0,B1)),a=lerp(-.55,.25,u);const d=TALL?lerp(2.1,2.6,u):lerp(1.5,2.0,u);P=V(Math.sin(a)*d,lerp(.62,1.2,u),Math.cos(a)*d);L=V(0,lerp(.5,1.1,u),0);}
+  else if(t<B2){const u=ease.inOutSine(prog(t,HIT,B2-HIT)),a=lerp(.55,-.75,u),d=(TALL?lerp(6.2,4.4,u):lerp(5.0,3.4,u))-(t>21?ease.inOutCubic(prog(t,21,2.25))*.9:0);P=V(Math.sin(a)*d,lerp(1.6,1.35,u),Math.cos(a)*d);L=V(0,TALL?.95:.9,0);}   // 横長は輪と台を画面の中に収め、テロップは下の帯に置く
+  else{const u=ease.outCubic(prog(t,END,4));P=V(0,lerp(1.5,1.62,u),(TALL?lerp(6.4,6.1,u):lerp(5.6,5.3,u)));L=V(0,TALL?.55:.55,0);}   // 名前の上にオブジェを置く
+  camera.position.copy(P);camera.lookAt(L);
+  if(S.bokeh){const d=camera.position.distanceTo(ringW);S.bokeh.uniforms.focus.value=t<B1?camera.position.distanceTo(V(0,.52,0))*lerp(1,0,0)+lerp(0,d-camera.position.distanceTo(V(0,.52,0)),ease.inOutSine(prog(t,3,4))):d;S.bokeh.uniforms.aperture.value=t<B1?.003:.0012;}
+  tel(t);
+  S.render();
+};
+</script></body></html>
