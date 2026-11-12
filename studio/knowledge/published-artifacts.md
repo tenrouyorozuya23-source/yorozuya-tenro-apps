@@ -42,3 +42,4 @@ Artifact の制約（変換の道具で吸収している）:
 - S02-04 座席ビューア（月見坂シアター・架空）: https://claude.ai/artifact/PpJyepLKPNiSknHsonDEsP
 - S02-10 公演 LP ジェネレータ（社内用の見本）: https://claude.ai/artifact/UUBh4PFZgNu5aCEPW5NhFi
 - P008 俳優のポートフォリオ（汐見 蓮司・架空）: https://claude.ai/artifact/UtJfNsiwwkWt269LfyJhzJ
+- P010 企業ブランドサイト（灯景設計・架空）: https://claude.ai/artifact/B5rnHM5AuBdkBRDXJhp3RP
