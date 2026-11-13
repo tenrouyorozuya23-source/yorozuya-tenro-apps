@@ -32,8 +32,8 @@ const F={t1:'光を、待つ。',t2:'形が、応える。',brand:'澪硝',en:'M
 for(const k in F)document.getElementById(k==='t1'?'t1':k==='t2'?'t2':k).textContent=F[k];
 // 縦長と横長で文字の位置と大きさを変える（縦長は安全域 y260〜1500 の中）
 const R=document.documentElement.style;
-if(TALL){R.setProperty('--tf','60px');R.setProperty('--t1y','1260px');R.setProperty('--by','1120px');R.setProperty('--bf','104px');R.setProperty('--ef','26px');R.setProperty('--df','26px');}
-else{R.setProperty('--tf','58px');R.setProperty('--t1y','952px');R.setProperty('--by','780px');R.setProperty('--bf','88px');R.setProperty('--ef','24px');R.setProperty('--df','22px');}
+if(TALL){R.setProperty('--tf','60px');R.setProperty('--t1y','1180px');R.setProperty('--by','1260px');R.setProperty('--bf','104px');R.setProperty('--ef','26px');R.setProperty('--df','30px');}
+else{R.setProperty('--tf','58px');R.setProperty('--t1y','870px');R.setProperty('--by','780px');R.setProperty('--bf','88px');R.setProperty('--ef','24px');R.setProperty('--df','26px');}
 await document.fonts.load('500 64px "Shippori Mincho"',F.t1+F.t2);await document.fonts.load('600 92px "Shippori Mincho"',F.brand);await document.fonts.load('300 26px Jost',F.en);await document.fonts.load('300 22px "Noto Sans JP"',F.disc);
 // オブジェ：艶消しの金属の台、縁にクロームの細い輪、宙に浮くガラスの輪、その中で回る小さな結晶
 const OBJ=new THREE.Group();scene.add(OBJ);
@@ -41,13 +41,14 @@ const add=(g,m,x,y,z,p=OBJ)=>{const o=new THREE.Mesh(g,m);o.position.set(x,y,z);
 add(new THREE.CylinderGeometry(.56,.6,.52,128),C.brushedMetal(0x232428,.34),0,.26,0);
 add(new THREE.TorusGeometry(.56,.008,12,160),C.chrome(.12),0,.52,0).rotation.x=Math.PI/2;
 add(new THREE.CylinderGeometry(.5,.5,.004,96),new THREE.MeshPhysicalMaterial({color:0x0b0b0c,roughness:.12,metalness:.9}),0,.522,0);
-const glass=new THREE.MeshPhysicalMaterial({color:0x07090c,metalness:0,roughness:.18,transparent:true,opacity:.32,depthWrite:false,side:THREE.DoubleSide,envMapIntensity:3.2,clearcoat:.6,clearcoatRoughness:.15,specularIntensity:.55,iridescence:.35,iridescenceIOR:1.3});   // 透過（transmission）は四角いにじみが出るので使わず、暗いガラスの映り込みで見せる
+const glass=new THREE.MeshPhysicalMaterial({color:0x1d232b,metalness:0,roughness:.08,transparent:true,opacity:.26,depthWrite:false,side:THREE.DoubleSide,envMapIntensity:4.0,clearcoat:.8,clearcoatRoughness:.15,specularIntensity:.55,iridescence:.35,iridescenceIOR:1.3});   // 透過（transmission）は四角いにじみが出るので使わず、暗いガラスの映り込みで見せる
 const RING=new THREE.Group();RING.position.set(0,1.18,0);OBJ.add(RING);
 const ring=add(new THREE.TorusGeometry(.42,.075,96,320),glass,0,0,0,RING);
-const gem=add(new THREE.OctahedronGeometry(.15,0),glass,0,0,0,RING);gem.scale.set(1,1.5,1);
+const gemM=new THREE.MeshPhysicalMaterial({color:0x6f7a88,metalness:.1,roughness:.06,transparent:true,opacity:.45,flatShading:true,clearcoat:1,envMapIntensity:2.4,emissive:0xffb070,emissiveIntensity:0,iridescence:.4});
+const gem=add(new THREE.OctahedronGeometry(.15,1),gemM,0,0,0,RING);gem.scale.set(1,1.5,1);
 // 光：細い上の一灯（待つ）、横から走る光、ヒーローの3灯（キー・リム・トップ）、結びの真上の一灯
 const slit=C.spot(scene,{pos:[0,5.2,.3],target:[0,.52,0],color:0xfff1de,intensity:0,angle:.06,penumbra:.5});
-const sweep=C.spot(scene,{pos:[3,1.4,2],target:[0,1.18,0],color:0xe8f0ff,intensity:0,angle:.09,penumbra:.4,shadow:false});
+const sweep=C.spot(scene,{pos:[3,1.4,2],target:[0,1.18,0],color:0xe8f0ff,intensity:0,angle:.09,penumbra:.4,shadow:false,distance:4.2});   /* 奥の壁まで届かせない（壁に灰色の円ができる） */
 const key=C.spot(scene,{pos:[1.7,4.6,2.1],target:[0,.7,0],color:0xfff0de,intensity:0,angle:.2,penumbra:.85});   // 高い位置から、輪と台を一緒に照らす（光だまりは台の足もとだけ）   // 床に強い光だまりを作らないよう、オブジェだけに絞る
 const rim=C.spot(scene,{pos:[-2.4,1.35,-2.8],target:[0,1.18,0],color:0xa9c4ff,intensity:0,angle:.2,penumbra:.7,shadow:false});   // ほぼ水平に当てる（下向きだと手前の床に光だまりができる）
 const top=C.spot(scene,{pos:[0,5.5,0],target:[0,0,0],color:0xfff4e4,intensity:0,angle:.2,penumbra:.6});
@@ -62,7 +63,7 @@ const dust=C.dust(scene,{center:[0,1.6,0],radius:.8,height:3,count:70,seed:19});
  const m=dust.points.material;m.map=new THREE.CanvasTexture(c);m.size=.008;m.needsUpdate=true;}
 window.__ready=Promise.resolve();
 const $=id=>document.getElementById(id);
-const HIT=9,B1=8.4375,B2=23.25,END=24;
+const HIT=9,B1=8.30,B2=23.25,END=24;   /* 絵は 8.30 で暗転し、上昇音の尾だけが 8.44 まで黒に残る（Lカット） */
 const V=(x,y,z)=>new THREE.Vector3(x,y,z),ringW=V(0,1.18,0);
 // テロップの出方は3つとも変える：1つ目は左から幕が開く、2つ目は字間が詰まって着地、名前は光と同じフレームで点く
 function tel(t){
@@ -80,18 +81,19 @@ window.renderAt=t=>{
     const u=prog(t,4.2,3.2);sw=Math.sin(Math.PI*u)*260;sweep.position.set(lerp(3.2,-3.2,ease.inOutSine(u)),1.5,lerp(1.6,2.4,u));}
   else if(t>=HIT&&t<B2){const u=t-HIT;k=(u<1/30?900:lerp(900,700,prog(t,HIT,2)))*(t>=21?lerp(1,.75,prog(t,21,2.2)):1);r=180;tp=lerp(30,12,prog(t,HIT,3));bt=lerp(.55,.25,prog(t,HIT,3));
     // 15〜21 秒：キーの光の色温度を暖から冷へ、リムを冷から暖へ入れ替えながら、光源を回す
-    const w=ease.inOutSine(prog(t,15,6));key.color.setHSL(lerp(.09,.6,w),lerp(.5,.25,w),.82);rim.color.setHSL(lerp(.6,.08,w),lerp(.6,.55,w),.72);
+    const w=t<19.375?ease.inOutSine(prog(t,15,4.375))*.5:.5+.5*ease.outCubic(prog(t,19.375,.25));   /* 19.5 秒（ベースの刻み）で色温度の入れ替えを一気に終える */key.color.setHSL(lerp(.09,.6,w),lerp(.5,.25,w),.82);rim.color.setHSL(lerp(.6,.08,w),lerp(.6,.55,w),.72);
     const a=lerp(.7,-.6,w);key.position.set(Math.sin(a)*2.7,4.6,Math.cos(a)*2.7);}
-  else if(t>=END){tp=lerp(0,520,ease.outCubic(prog(t,END,.12)));bt=lerp(0,.85,ease.outCubic(prog(t,END,.12)));r=lerp(0,60,prog(t,END+.5,1.5));}
+  else if(t>=END){tp=520;bt=.85;r=lerp(0,60,prog(t,END+.5,1.5));}
   if(dark){k=r=tp=sl=sw=bs=bt=0;}
   scene.environmentIntensity=dark?0:t<B1?lerp(.25,.6,prog(t,0,2.6)):t>=END?lerp(0,.5,prog(t,END,.3)):.7;   // 暗転は本当の黒（映り込みも消す）
   wash.intensity=dark?0:t<B1?lerp(120,260,prog(t,0,B1)):t>=END?lerp(0,260,prog(t,END,.5)):lerp(620,460,prog(t,HIT,B2-HIT));   /* 奥の壁の淡い光 */
+  gemM.emissiveIntensity=t>=19.5&&t<B2?1.6*Math.exp(-(t-19.5)*2.2):0;   /* 19.5 秒、結晶が一度だけ琥珀に光る */
   key.intensity=k;rim.intensity=r;top.intensity=tp;slit.intensity=sl;sweep.intensity=sw;beamS.set(t,bs);beamT.set(t,bt);dust.update(t,dark?0:t<B1?.3:t>=END?.32:.12);
   // カメラ：1幕は台の縁とガラスの寄り（ゆっくり回り込む）。2幕は中景で回り込み、終盤に寄る。3幕は正面で止まる（最後の2秒は静止）
   let P,L;
   if(t<B1){const u=.25*prog(t,0,B1)+.75*ease.inOutSine(prog(t,0,B1)),a=lerp(-.55,.25,u);   /* 頭から動いている（等速を少し混ぜる） */const d=TALL?lerp(2.1,2.6,u):lerp(1.5,2.0,u);P=V(Math.sin(a)*d,lerp(.62,1.2,u),Math.cos(a)*d);L=V(0,lerp(.5,1.1,u),0);}
-  else if(t<B2){const u=ease.inOutSine(prog(t,HIT,B2-HIT)),a=lerp(.55,-.75,u),d=(TALL?lerp(4.9,3.6,u):lerp(5.0,3.4,u))-(t>21?ease.inOutCubic(prog(t,21,2.25))*.9:0);P=V(Math.sin(a)*d,lerp(1.6,1.35,u),Math.cos(a)*d);L=V(0,TALL?.95:.9,0);}   // 横長は輪と台を画面の中に収め、テロップは下の帯に置く
-  else{const u=ease.outCubic(prog(t,END,4));P=V(0,lerp(1.5,1.62,u),(TALL?lerp(6.4,6.1,u):lerp(5.6,5.3,u)));L=V(0,TALL?.55:.55,0);}   // 名前の上にオブジェを置く
+  else if(t<B2){const raw=prog(t,HIT,B2-HIT),u=t<19.5?ease.outCubic(prog(t,HIT,10.5))*.62:t<20.4?.62:.62+.38*ease.inOutSine(prog(t,20.4,B2-20.4)),a=lerp(.55,-.75,u),d=(TALL?lerp(3.6,2.9,u):lerp(5.0,3.4,u))-(t>21?ease.inOutCubic(prog(t,21,2.25))*.9:0);P=V(Math.sin(a)*d,lerp(1.6,1.35,u),Math.cos(a)*d);L=V(0,TALL?.95:.9,0);}   // 横長は輪と台を画面の中に収め、テロップは下の帯に置く
+  else{const u=ease.outCubic(prog(t,END,4));P=V(0,lerp(1.5,1.62,u),(TALL?lerp(6.4,6.1,u):lerp(5.6,5.3,u)));L=V(0,TALL?.35:.55,0);}   // 名前の上にオブジェを置く
   camera.position.copy(P);camera.lookAt(L);
   if(S.bokeh){const d=camera.position.distanceTo(ringW);S.bokeh.uniforms.focus.value=t<B1?camera.position.distanceTo(V(0,.52,0))*lerp(1,0,0)+lerp(0,d-camera.position.distanceTo(V(0,.52,0)),ease.inOutSine(prog(t,3,4))):d;S.bokeh.uniforms.aperture.value=t<B1?.003:.0012;}
   tel(t);

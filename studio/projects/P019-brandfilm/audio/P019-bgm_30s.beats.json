@@ -79,6 +79,10 @@
    "type": "chime"
   },
   {
+   "t": 19.5,
+   "type": "stab"
+  },
+  {
    "t": 24.0,
    "type": "impact"
   },

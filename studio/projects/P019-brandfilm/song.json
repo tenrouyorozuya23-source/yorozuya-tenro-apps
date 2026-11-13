@@ -3,31 +3,171 @@
  "title": "澪（ブランドフィルム・合成）",
  "genre": "Cinematic ambient (instrumental)",
  "base": {
-  "bpm": 80, "key": "D", "seed": 19, "brightness": 0.5, "reverb": 0.55, "drive": 0.02,
-  "progression": ["Dmaj9", "Bm11", "Gmaj7", "Aadd9"],
-  "mix": {"pad": 0.42, "sub": 0.3, "bass": 0.24, "pluck": 0.26, "chime": 0.4, "impact": 0.5, "riser": 0.28, "swell": 0.3, "ostinato": 0.2, "bell": 0.3},
-  "end_chord": "Dmaj9", "pre_end_chord": "Aadd9", "chime_intervals": [0, 7, 12, 19]
+  "bpm": 80,
+  "key": "D",
+  "seed": 19,
+  "brightness": 0.5,
+  "reverb": 0.55,
+  "drive": 0.02,
+  "progression": [
+   "Dmaj9",
+   "Bm11",
+   "Gmaj7",
+   "Aadd9"
+  ],
+  "mix": {
+   "pad": 0.42,
+   "sub": 0.3,
+   "bass": 0.24,
+   "pluck": 0.26,
+   "chime": 0.4,
+   "impact": 0.5,
+   "riser": 0.28,
+   "swell": 0.3,
+   "ostinato": 0.2,
+   "bell": 0.3,
+   "stab": 0.22
+  },
+  "end_chord": "Dmaj9",
+  "pre_end_chord": "Aadd9",
+  "chime_intervals": [
+   0,
+   7,
+   12,
+   19
+  ]
  },
  "versions": {
   "30s": {
-   "length": 30.0, "bars": 10, "tail_sec": 2.0,
+   "length": 30.0,
+   "bars": 10,
+   "tail_sec": 2.0,
    "sections": [
-    {"from": 0, "to": 1, "layers": ["pad"]},
-    {"from": 1, "to": 3, "layers": ["pad", "sub", "swell"]},
-    {"from": 3, "to": 6, "layers": ["pad", "sub", "bass", "pluck"]},
-    {"from": 6, "to": 8, "layers": ["pad", "sub", "bass", "pluck", "ostinato"]},
-    {"from": 8, "to": 10, "layers": ["pad", "sub"]}
+    {
+     "from": 0,
+     "to": 1,
+     "layers": [
+      "pad"
+     ]
+    },
+    {
+     "from": 1,
+     "to": 3,
+     "layers": [
+      "pad",
+      "sub",
+      "swell"
+     ]
+    },
+    {
+     "from": 3,
+     "to": 6,
+     "layers": [
+      "pad",
+      "sub",
+      "bass",
+      "pluck"
+     ]
+    },
+    {
+     "from": 6,
+     "to": 8,
+     "layers": [
+      "pad",
+      "sub",
+      "bass",
+      "pluck",
+      "ostinato"
+     ]
+    },
+    {
+     "from": 8,
+     "to": 10,
+     "layers": [
+      "pad",
+      "sub"
+     ]
+    }
    ],
    "cues": [
-    {"bar": 0, "beat": 0, "type": "chime", "note": 86},
-    {"bar": 2, "beat": 0, "type": "riser", "len_beats": 3},
-    {"bar": 3, "beat": 0, "type": "impact"},
-    {"bar": 3, "beat": 0, "type": "chime", "note": 93},
-    {"bar": 8, "beat": 0, "type": "impact"},
-    {"bar": 8, "beat": 0, "type": "chime", "note": 86}
+    {
+     "bar": 0,
+     "beat": 0,
+     "type": "chime",
+     "note": 86
+    },
+    {
+     "bar": 2,
+     "beat": 0,
+     "type": "riser",
+     "len_beats": 3
+    },
+    {
+     "bar": 3,
+     "beat": 0,
+     "type": "impact"
+    },
+    {
+     "bar": 3,
+     "beat": 0,
+     "type": "chime",
+     "note": 93
+    },
+    {
+     "bar": 6,
+     "beat": 2,
+     "type": "stab"
+    },
+    {
+     "bar": 8,
+     "beat": 0,
+     "type": "impact"
+    },
+    {
+     "bar": 8,
+     "beat": 0,
+     "type": "chime",
+     "note": 86
+    }
    ],
-   "silence": [[2, 3.25, 0.75], [7, 3, 1]],
-   "automation": [[0, -4], [6, -2], [9, 1], [21, 0], [24, 0], [30, -3]]
+   "silence": [
+    [
+     2,
+     3.25,
+     0.75
+    ],
+    [
+     7,
+     3,
+     1
+    ]
+   ],
+   "automation": [
+    [
+     0,
+     -4
+    ],
+    [
+     6,
+     -2
+    ],
+    [
+     9,
+     1
+    ],
+    [
+     21,
+     0
+    ],
+    [
+     24,
+     0
+    ],
+    [
+     30,
+     -3
+    ]
+   ]
   }
  },
  "spec_version": "30s",
