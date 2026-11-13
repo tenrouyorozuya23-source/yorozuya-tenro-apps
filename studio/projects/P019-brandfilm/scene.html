@@ -26,7 +26,7 @@ if(S.bloom){S.bloom.enabled=false;}   // ブルームは切る（ガラスの点
  for(const [x,z] of [[-4,1.5],[4.5,-1]]){const m=new THREE.Mesh(new THREE.BoxGeometry(.18,10,.18),sm);m.position.set(x,1,z);env.add(m);}
  const hal=new THREE.Mesh(new THREE.TorusGeometry(3,.05,8,96),new THREE.MeshBasicMaterial({color:new THREE.Color(.8,.86,1).multiplyScalar(2)}));hal.rotation.x=Math.PI/2;hal.position.y=6;env.add(hal);
  scene.environment=new THREE.PMREMGenerator(S.renderer).fromScene(env,0).texture;}
-scene.fog=new THREE.FogExp2(0x030304,.09);scene.background=new THREE.Color(0x030304);
+scene.fog=new THREE.FogExp2(0x030304,.035);scene.background=new THREE.Color(0x030304);
 C.stageFloor(scene,{material:new THREE.MeshPhysicalMaterial({color:0x060606,roughness:.3,clearcoat:.6,clearcoatRoughness:.25,envMapIntensity:.05})});
 const F={t1:'光を、待つ。',t2:'形が、応える。',brand:'澪硝',en:'MIOSHO — GLASS & METAL',disc:'※架空のブランドです'};
 for(const k in F)document.getElementById(k==='t1'?'t1':k==='t2'?'t2':k).textContent=F[k];
@@ -53,6 +53,9 @@ const rim=C.spot(scene,{pos:[-2.4,1.35,-2.8],target:[0,1.18,0],color:0xa9c4ff,in
 const top=C.spot(scene,{pos:[0,5.5,0],target:[0,0,0],color:0xfff4e4,intensity:0,angle:.2,penumbra:.6});
 const beamS=C.beam(scene,{from:[0,5.2,.3],to:[0,.52,0],radius:.3,color:0xfff1de,density:.28});
 const beamT=C.beam(scene,{from:[0,5.5,0],to:[0,0,0],radius:1.1,color:0xfff4e4,density:.2});
+// 奥の壁（ホリゾント）：薄く光を当て、暗い画面の中にもグラデーションの面を残す（真っ黒な画面＝黒味にしない）
+const cyc=new THREE.Mesh(new THREE.CylinderGeometry(5.2,5.2,9,96,1,true,Math.PI*.55,Math.PI*.9),new THREE.MeshStandardMaterial({color:0x2a2c31,roughness:.95,side:THREE.BackSide}));cyc.position.set(0,4,0);cyc.receiveShadow=true;scene.add(cyc);
+const wash=C.spot(scene,{pos:[0,3.2,4.5],target:[0,1.6,-6.5],color:0xb8c6dc,intensity:0,angle:.42,penumbra:1,shadow:false});
 const dust=C.dust(scene,{center:[0,1.6,0],radius:.8,height:3,count:70,seed:19});
 // 塵は丸く小さく（PointsMaterial のままだと、手前の粒が四角く大きく光る）
 {const c=document.createElement('canvas');c.width=c.height=64;const g=c.getContext('2d'),gr=g.createRadialGradient(32,32,0,32,32,32);gr.addColorStop(0,'rgba(255,255,255,1)');gr.addColorStop(.4,'rgba(255,255,255,.35)');gr.addColorStop(1,'rgba(255,255,255,0)');g.fillStyle=gr;g.fillRect(0,0,64,64);
@@ -82,6 +85,7 @@ window.renderAt=t=>{
   else if(t>=END){tp=lerp(0,520,ease.outCubic(prog(t,END,.12)));bt=lerp(0,.85,ease.outCubic(prog(t,END,.12)));r=lerp(0,60,prog(t,END+.5,1.5));}
   if(dark){k=r=tp=sl=sw=bs=bt=0;}
   scene.environmentIntensity=dark?0:t<B1?lerp(.25,.6,prog(t,0,2.6)):t>=END?lerp(0,.5,prog(t,END,.3)):.7;   // 暗転は本当の黒（映り込みも消す）
+  wash.intensity=dark?0:t<B1?lerp(120,260,prog(t,0,B1)):t>=END?lerp(0,260,prog(t,END,.5)):lerp(620,460,prog(t,HIT,B2-HIT));   /* 奥の壁の淡い光 */
   key.intensity=k;rim.intensity=r;top.intensity=tp;slit.intensity=sl;sweep.intensity=sw;beamS.set(t,bs);beamT.set(t,bt);dust.update(t,dark?0:t<B1?.3:t>=END?.32:.12);
   // カメラ：1幕は台の縁とガラスの寄り（ゆっくり回り込む）。2幕は中景で回り込み、終盤に寄る。3幕は正面で止まる（最後の2秒は静止）
   let P,L;
