@@ -1,112 +1,110 @@
 <!DOCTYPE html>
 <html lang="ja"><head><meta charset="utf-8"><title>家族の絆 当日パンフレット</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Noto+Serif+JP:wght@500;600;700&family=Shippori+Mincho+B1:wght@500;700;800&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=block">
 <style>
+@font-face{font-family:"Kouzan";src:url("fonts/KouzanMouhituFontOTF.otf")}
+@font-face{font-family:"Shippori";src:url("fonts/ShipporiMinchoB1-ExtraBold.ttf");font-weight:800}
+@font-face{font-family:"Shippori";src:url("fonts/ShipporiMinchoB1-Medium.ttf");font-weight:500}
+@font-face{font-family:"Corm";src:url("fonts/CormorantGaramond.ttf")}
 @page{size:420mm 297mm;margin:0}
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{background:#555}
-:root{--navy:#08122a;--navy2:#0f1f45;--gold:#c9a96a;--gold-l:#e6cd95;--gold-d:#8f7443;--paper:#f6f0e3;--ink:#1b2340;
-  --serif:"Shippori Mincho B1","Noto Serif JP",serif;--num:"Noto Serif JP",serif;--latin:"Cormorant Garamond",serif;--sans:"Zen Kaku Gothic New",sans-serif}
-.sheet{width:420mm;height:297mm;position:relative;overflow:hidden;display:flex;page-break-after:always;break-after:page;background:#fff}
+.title h1,.title h2,.gh h3,.p4 h2,.p4 .thanks b,.next h4,.p4 .foot p b{letter-spacing:-.08em!important}
+:root{--gold:#d8b76a;--gold-l:#f3dc9c;--gold-d:#8f7443;--ink:#f6efe0;--brush:"Kouzan",serif;--serif:"Shippori",serif;--latin:"Corm",serif}
+.sheet{width:420mm;height:297mm;position:relative;overflow:hidden;display:flex;page-break-after:always;break-after:page;background:#0d0c10}
 .sheet:last-child{page-break-after:auto;break-after:auto}
 .pg{width:210mm;height:297mm;position:relative;overflow:hidden}
-.pno{position:absolute;bottom:7mm;font:500 8pt var(--latin);letter-spacing:.2em;color:var(--gold-d)}
-.pg.l .pno{left:12mm} .pg.r .pno{right:12mm}
-
-/* ---- 1ページ：表紙（フライヤー表面） ---- */
-.p1{background:var(--navy)}
+/* 和紙調の暗い地 */
+.paper{background:
+  radial-gradient(70% 55% at 30% 35%,rgba(120,105,90,.28),transparent 70%),
+  radial-gradient(60% 60% at 75% 70%,rgba(110,95,85,.22),transparent 70%),
+  radial-gradient(100% 100% at 50% 50%,#2a2622 0%,#121014 75%);}
+.paper::before{content:"";position:absolute;inset:0;opacity:.35;mix-blend-mode:overlay;pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)'/%3E%3C/svg%3E")}
+.frame{position:absolute;inset:5mm;border:.5mm solid var(--gold);box-shadow:0 0 0 .8mm rgba(216,183,106,.25),inset 0 0 0 1.2mm rgba(0,0,0,.4),inset 0 0 0 1.5mm rgba(216,183,106,.55);pointer-events:none;z-index:3}
+.deco{position:absolute;z-index:4;filter:drop-shadow(0 .4mm .6mm rgba(0,0,0,.6))}
+.deco svg{width:100%;height:100%;display:block}
+.waves{position:absolute;width:120mm;height:48mm;z-index:1;opacity:.8}
+.waves path{fill:none;stroke:url(#gg);stroke:var(--gold);stroke-width:.9;opacity:.75}
+.waves.l{left:-8mm;bottom:2mm} .waves.r{right:-6mm;top:30mm}
+/* ---- 1ページ：表紙 ---- */
 .p1 img{width:100%;height:100%;object-fit:cover;display:block}
-
-/* ---- 4ページ：裏表紙（スタッフ・次回公演） ---- */
-.p4{background:radial-gradient(120% 80% at 50% 0%,#132657 0%,var(--navy) 60%);color:#f3ede1;padding:14mm 14mm 12mm}
-.p4::before{content:"";position:absolute;inset:6mm;border:.35mm solid rgba(201,169,106,.5);pointer-events:none}
-.p4::after{content:"";position:absolute;inset:7.4mm;border:.15mm solid rgba(201,169,106,.3);pointer-events:none}
-.h{font:700 15pt var(--serif);letter-spacing:.3em;color:var(--gold-l);display:flex;align-items:center;gap:4mm;margin-bottom:5mm}
-.h small{font:italic 500 10pt var(--latin);letter-spacing:.25em;color:var(--gold)}
-.h::after{content:"";flex:1;height:.25mm;background:linear-gradient(90deg,var(--gold),transparent)}
-.thanks{text-align:center;font:500 10pt/1.9 var(--serif);color:#e9e1cf;margin:3mm 0 7mm;letter-spacing:.1em}
-.thanks b{display:block;font:700 13pt var(--serif);color:var(--gold-l);letter-spacing:.25em;margin-bottom:1mm}
-.staff{display:grid;grid-template-columns:1fr 1fr;gap:1.6mm 8mm;margin-bottom:5mm}
-.staff div{display:flex;align-items:baseline;gap:3mm;border-bottom:.15mm dotted rgba(201,169,106,.45);padding-bottom:1.2mm}
-.staff dt{font:500 8pt var(--sans);color:var(--gold);width:20mm;letter-spacing:.1em}
-.staff dd{font:700 10.5pt var(--serif);letter-spacing:.08em}
-.castlist{list-style:none;display:flex;flex-wrap:wrap;gap:1.2mm 4.5mm;font:700 9.5pt var(--serif);margin-bottom:8mm}
-.castlist small{font:500 6.5pt var(--sans);color:#a3aecb;margin-left:.5mm}
-.nexts{display:grid;grid-template-columns:1fr 1fr;gap:4mm}
-.next{display:grid;grid-template-columns:24mm 1fr;grid-template-rows:1fr auto;gap:0 3.5mm;background:rgba(15,31,69,.85);border:.25mm solid rgba(201,169,106,.45);padding:3mm;height:48mm}
-.next .ph{grid-row:1/3;background:repeating-linear-gradient(45deg,#1a2b55 0 2mm,#15244a 2mm 4mm);border:.2mm solid rgba(201,169,106,.35);display:flex;align-items:center;justify-content:center;font:500 6.5pt var(--sans);color:#a3aecb;writing-mode:vertical-rl}
+/* ---- 4ページ：次回公演 ---- */
+.p4{padding:22mm 18mm 16mm;color:var(--ink)}
+.p4 .thanks{position:relative;z-index:2;text-align:center;font:500 10.5pt/2 var(--serif);letter-spacing:.12em;color:#e9e1cf;margin-bottom:12mm}
+.p4 .thanks b{display:block;font:400 22pt/1.4 var(--brush);color:var(--gold-l);letter-spacing:.12em;margin-bottom:2mm;text-shadow:0 .6mm 1.5mm #000}
+.p4 h2{position:relative;z-index:2;display:flex;align-items:center;gap:4mm;font:400 20pt var(--brush);color:#fff;letter-spacing:.2em;margin-bottom:7mm}
+.p4 h2 small{font:italic 500 11pt var(--latin);letter-spacing:.3em;color:var(--gold)}
+.p4 h2::after{content:"";flex:1;height:.3mm;background:linear-gradient(90deg,var(--gold),transparent)}
+.nexts{position:relative;z-index:2;display:grid;grid-template-columns:1fr 1fr;gap:6mm}
+.next{display:grid;grid-template-columns:30mm 1fr;grid-template-rows:1fr auto;gap:0 4mm;padding:4mm;height:64mm;
+  background:linear-gradient(160deg,rgba(60,40,30,.55),rgba(10,10,14,.75));border:.4mm solid rgba(216,183,106,.7);box-shadow:inset 0 0 0 .8mm rgba(0,0,0,.5),inset 0 0 0 1mm rgba(216,183,106,.3)}
+.next .ph{grid-row:1/3;background:repeating-linear-gradient(45deg,#2a2420 0 2mm,#221d1a 2mm 4mm);border:.3mm solid rgba(216,183,106,.4);display:flex;align-items:center;justify-content:center;font:500 7pt var(--serif);color:#a99f8c;writing-mode:vertical-rl}
 .next .no{font:600 8pt var(--latin);letter-spacing:.25em;color:var(--gold)}
-.next h4{font:800 12pt var(--serif);color:var(--gold-l);margin:.6mm 0 1.2mm;letter-spacing:.06em}
-.next p{font:500 7.6pt/1.55 var(--num);color:#e9e1cf}
-.next p.org{color:#a3aecb;font-size:7pt}
-.next .qr{justify-self:end;align-self:end;width:13mm;height:13mm;background:#fff;color:#8a8a8a;font:600 6pt var(--sans);display:flex;align-items:center;justify-content:center;grid-column:2}
-.foot{position:absolute;left:14mm;right:14mm;bottom:12mm;display:flex;align-items:flex-end;justify-content:space-between}
-.foot img{height:17mm}
-.foot p{font:500 7.2pt/1.7 var(--sans);color:#c9cfdf;text-align:right}
-.foot p b{font:700 8.5pt var(--serif);color:var(--gold-l);letter-spacing:.1em}
-
-/* ---- 中面（2・3ページ）：あらすじ＋人物相関図 ---- */
-.inner{background:var(--paper);color:var(--ink)}
-.inner::before{content:"";position:absolute;inset:0;background:
-  radial-gradient(60% 50% at 75% 20%,rgba(201,169,106,.16),transparent 70%),
-  radial-gradient(50% 60% at 15% 80%,rgba(143,116,67,.10),transparent 70%);pointer-events:none}
-.inner .frame{position:absolute;inset:6mm;border:.35mm solid var(--gold);pointer-events:none}
-.inner .fold{position:absolute;left:210mm;top:0;bottom:0;border-left:.2mm dashed rgba(143,116,67,.25)}
-.story{position:absolute;left:222mm;top:14mm;width:188mm;height:100mm;writing-mode:vertical-rl}
-.story h2{font:800 20pt var(--serif);letter-spacing:.5em;color:var(--navy);padding-left:4mm;margin-left:5mm;border-left:.3mm solid var(--gold)}
-.story h2 small{display:block;font:italic 500 10pt var(--latin);letter-spacing:.3em;color:var(--gold-d);margin-top:4mm}
-.story .tx{font:500 9.6pt/1.95 var(--serif);text-align:justify;letter-spacing:.04em}
-.story .tx p{text-indent:1em}
-.story .tx p.last{font-weight:800;color:#a8322c;text-indent:0;margin-right:3mm;font-size:11pt}
-.chart-h{position:absolute;left:14mm;top:13mm;display:flex;align-items:baseline;gap:4mm}
-.chart-h h2{font:800 20pt var(--serif);letter-spacing:.35em;color:var(--navy)}
-.chart-h small{font:italic 500 11pt var(--latin);letter-spacing:.3em;color:var(--gold-d)}
-.legend{position:absolute;left:150mm;top:16mm;list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:1mm 4mm;font:700 7.5pt var(--sans)}
-.legend li{display:flex;align-items:center;gap:1.5mm}
-.legend li::before{content:"";width:3.2mm;height:3.2mm;border-radius:.6mm;background:var(--c)}
-.zone{position:absolute;border:.45mm solid var(--c);border-radius:3mm;background:color-mix(in srgb,var(--c) 9%,transparent)}
-.zname{position:absolute;left:-.45mm;top:-.45mm;background:var(--c);color:#fff;border-radius:3mm 0 3mm 0;padding:1mm 3mm;display:flex;align-items:baseline;gap:2mm}
-.zname b{font:800 10pt var(--serif);letter-spacing:.2em}
-.zname span{font:500 6.5pt var(--sans);opacity:.9}
-.links{position:absolute;left:0;top:0;overflow:visible}
-.links text{font:700 3.3px var(--sans);text-anchor:middle;letter-spacing:.1px}
-.card{position:absolute;width:26mm}
-.card img{display:block;width:26mm;height:34mm;object-fit:cover;border:.5mm solid var(--c);border-radius:1.2mm;background:#ddd;box-shadow:0 .6mm 1.6mm rgba(0,0,0,.18)}
-.card figcaption{text-align:center;margin-top:1mm;line-height:1.25}
-.card b{display:block;font:800 9pt var(--serif);color:var(--c);letter-spacing:.04em;white-space:nowrap}
-.card span{display:block;font:700 6.6pt var(--sans);color:var(--ink);white-space:nowrap}
-.card i{display:block;font:500 5.6pt var(--sans);font-style:normal;color:#6b6b67;white-space:nowrap}
-.note{position:absolute;left:14mm;bottom:8.5mm;font:500 6.5pt var(--sans);color:#a8322c}
+.next h4{font:400 15pt var(--brush);color:#fff;margin:1mm 0 2mm;letter-spacing:.06em}
+.next p{font:500 8pt/1.6 var(--serif);color:#e9e1cf}
+.next p.org{color:#b9ad95;font-size:7.4pt}
+.next .qr{justify-self:end;align-self:end;width:16mm;height:16mm;background:#fff;color:#8a8a8a;font:600 6pt sans-serif;display:flex;align-items:center;justify-content:center;grid-column:2}
+.p4 .foot{position:absolute;left:18mm;right:18mm;bottom:15mm;z-index:2;display:flex;align-items:flex-end;justify-content:space-between}
+.p4 .foot img{height:20mm}
+.p4 .foot p{font:500 8pt/1.7 var(--serif);color:#cfc6b3;text-align:right}
+.p4 .foot p b{font:400 11pt var(--brush);color:var(--gold-l);letter-spacing:.1em}
+/* ---- 中面：人物相関図 ---- */
+.moon{position:absolute;left:126mm;top:9mm;width:40mm;height:40mm;border-radius:50%;z-index:2;
+  background:radial-gradient(circle at 40% 38%,#fffdf2 0%,#fbefcc 40%,#e9d29a 75%,#cfae6a 100%);
+  box-shadow:0 0 8mm 3mm rgba(255,236,180,.35),0 0 22mm 10mm rgba(255,220,150,.12)}
+.moon::after{content:"";position:absolute;inset:0;border-radius:50%;opacity:.35;
+  background:radial-gradient(circle at 30% 60%,rgba(170,140,90,.6) 0 9%,transparent 10%),radial-gradient(circle at 62% 35%,rgba(170,140,90,.5) 0 7%,transparent 8%),radial-gradient(circle at 58% 70%,rgba(170,140,90,.45) 0 12%,transparent 13%)}
+.title{position:absolute;left:222mm;right:12mm;top:11mm;z-index:5;text-align:center}
+.title .pre{font:500 9.5pt var(--serif);letter-spacing:.25em;color:#efe6d0}
+.title h1{font:400 36pt/1.15 var(--brush);letter-spacing:0;margin-top:1mm;
+  background:linear-gradient(180deg,#fff6d8 0%,#f0d58c 45%,#b88a3a 100%);-webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 .5mm .8mm rgba(0,0,0,.9))}
+.title h2{display:inline-block;margin-top:1.5mm;padding:1.2mm 14mm;font:400 17pt var(--brush);letter-spacing:.2em;color:#fff;
+  background:linear-gradient(90deg,transparent 0,#8f1f1a 9%,#b8322a 50%,#8f1f1a 91%,transparent 100%);text-shadow:0 .4mm .8mm #000}
+.grp{position:absolute;z-index:5;padding:3mm 3mm 2.5mm;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--c) 32%,rgba(20,16,18,.85)) 0%,rgba(18,15,18,.88) 55%);
+  border:.5mm solid color-mix(in srgb,var(--c) 55%,#f3dc9c);border-radius:1.2mm;
+  box-shadow:0 0 3.5mm color-mix(in srgb,var(--c) 70%,transparent),inset 0 0 0 .9mm rgba(0,0,0,.45),inset 0 0 0 1.2mm color-mix(in srgb,var(--c) 40%,#d8b76a)}
+.gh{margin:-7mm 0 2mm -1mm}
+.gh h3{display:inline-block;font:400 16pt var(--brush);color:#fff;letter-spacing:.1em;padding:.8mm 9mm .8mm 4mm;white-space:nowrap;
+  background:linear-gradient(90deg,color-mix(in srgb,var(--c) 85%,#000) 0%,var(--c) 70%,transparent 100%);text-shadow:0 .4mm .8mm #000;
+  clip-path:polygon(0 8%,96% 0,100% 50%,94% 100%,2% 92%)}
+.gh p{font:800 8.6pt var(--serif);color:var(--gold-l);letter-spacing:.05em;margin:1.2mm 0 0 3mm;white-space:nowrap;text-shadow:0 .3mm .6mm #000}
+.cards{display:flex;flex-wrap:wrap;justify-content:center;gap:2mm 3mm;margin:0 auto}
+.card{text-align:center}
+.card .ph{aspect-ratio:3/4;border:.45mm solid color-mix(in srgb,var(--c) 45%,#f3dc9c);box-shadow:0 0 2mm color-mix(in srgb,var(--c) 70%,transparent);background:#222;overflow:hidden}
+.card img{width:100%;height:100%;object-fit:cover;display:block}
+.card figcaption{margin-top:1mm;line-height:1.25}
+.card .yomi{display:block;font:500 6.6pt var(--serif);color:#d9cfb8;letter-spacing:.05em}
+.card b{display:block;font:800 8.8pt var(--serif);color:#fff;letter-spacing:.06em;white-space:nowrap}
+.card i{display:inline-block;margin-top:.6mm;font:800 6.6pt var(--serif);font-style:normal;color:#2a1a0e;background:linear-gradient(180deg,#f6e2a8,#d8b76a);padding:.2mm 2mm;border-radius:.5mm}
+.card[data-main] .ph{border-width:.7mm;box-shadow:0 0 4mm #e0503f}
+.card[data-main] b{font-size:9.4pt}
+.pno{position:absolute;bottom:7.5mm;z-index:6;font:500 8pt var(--latin);letter-spacing:.25em;color:var(--gold)}
 @media screen{body{padding:10mm;display:grid;gap:10mm;justify-content:center} .sheet{box-shadow:0 2mm 8mm rgba(0,0,0,.4)}}
 @media print{html,body{background:none}}
 </style></head><body>
 
-<!-- 外面：左＝4ページ（裏表紙）／右＝1ページ（表紙） -->
-<section class="sheet outer">
-  <div class="pg l p4">
+<!-- 外面：左＝4ページ（裏表紙・次回公演）／右＝1ページ（表紙・チラシ表面） -->
+<section class="sheet">
+  <div class="pg p4 paper">
+    <div class="frame"></div><svg class="waves l" viewBox="0 0 200 80"><g><path d="M0,40 C30,20 50,60 90,35 S150,10 200,30" /><path d="M0,44 C30,24 50,64 90,39 S150,14 200,34" /><path d="M0,48 C30,28 50,68 90,43 S150,18 200,38" /><path d="M0,52 C30,32 50,72 90,47 S150,22 200,42" /><path d="M0,56 C30,36 50,76 90,51 S150,26 200,46" /></g></svg>
     <p class="thanks"><b>本日はご来場いただき<br>誠にありがとうございます</b>最後までごゆっくりお楽しみください。</p>
-    <h3 class="h">出演 <small>CAST</small></h3>
-    <ul class="castlist"><li>菜乃華れみ</li><li>鶴田葵<small>（株式会社ブルーフコーポレーション）</small></li><li>三吉織乃<small>（仮面女子）</small></li><li>光藤隆馬</li><li>磐城信治</li><li>屋冨祖弦貴</li><li>岡本莉瑚</li><li>桑野結女凜</li><li>崎本詩織<small>（株式会社グローアップ）</small></li><li>五味川竜馬<small>（ユニットばんぶるびい）</small></li><li>石山将隆</li><li>柳瀬佑太</li><li>藤野めいり</li><li>尾ケ井思織</li><li>天咲ヒカル</li><li>森本真由</li><li>泉谷アキヒロ</li><li>幸村宥弐</li></ul>
-    <h3 class="h">スタッフ <small>STAFF</small></h3>
-    <dl class="staff"><div><dt>脚本・演出</dt><dd>幸村宥弐</dd></div><div><dt>音響</dt><dd>村上隆二</dd></div><div><dt>照明</dt><dd>建部雅代</dd></div><div><dt>小道具</dt><dd>高津装飾美術</dd></div><div><dt>衣装</dt><dd>BSD</dd></div><div><dt>制作</dt><dd>萬屋天狼</dd></div><div><dt>主催</dt><dd>BSD</dd></div></dl>
-    <h3 class="h">次回公演のご案内 <small>NEXT STAGE</small></h3>
-    <div class="nexts"><article class="next"><div class="ph">フライヤー画像</div><div class="tx"><span class="no">NEXT 1</span><h4>公演タイトル</h4><p>2027年○月○日（○）〜○日（○）</p><p>劇場名</p><p class="org">主催団体名</p></div><div class="qr">QR</div></article><article class="next"><div class="ph">フライヤー画像</div><div class="tx"><span class="no">NEXT 2</span><h4>公演タイトル</h4><p>2027年○月○日（○）〜○日（○）</p><p>劇場名</p><p class="org">主催団体名</p></div><div class="qr">QR</div></article><article class="next"><div class="ph">フライヤー画像</div><div class="tx"><span class="no">NEXT 3</span><h4>公演タイトル</h4><p>2027年○月○日（○）〜○日（○）</p><p>劇場名</p><p class="org">主催団体名</p></div><div class="qr">QR</div></article><article class="next"><div class="ph">フライヤー画像</div><div class="tx"><span class="no">NEXT 4</span><h4>公演タイトル</h4><p>2027年○月○日（○）〜○日（○）</p><p>劇場名</p><p class="org">主催団体名</p></div><div class="qr">QR</div></article></div>
+    <h2>次回公演のご案内 <small>NEXT STAGE</small></h2>
+    <div class="nexts"><article class="next"><div class="ph">フライヤー画像</div><div class="tx"><span class="no">NEXT STAGE 1</span><h4>公演タイトル</h4><p>2027年○月○日（○）〜○日（○）</p><p>劇場名</p><p class="org">主催団体名</p></div><div class="qr">QR</div></article><article class="next"><div class="ph">フライヤー画像</div><div class="tx"><span class="no">NEXT STAGE 2</span><h4>公演タイトル</h4><p>2027年○月○日（○）〜○日（○）</p><p>劇場名</p><p class="org">主催団体名</p></div><div class="qr">QR</div></article><article class="next"><div class="ph">フライヤー画像</div><div class="tx"><span class="no">NEXT STAGE 3</span><h4>公演タイトル</h4><p>2027年○月○日（○）〜○日（○）</p><p>劇場名</p><p class="org">主催団体名</p></div><div class="qr">QR</div></article><article class="next"><div class="ph">フライヤー画像</div><div class="tx"><span class="no">NEXT STAGE 4</span><h4>公演タイトル</h4><p>2027年○月○日（○）〜○日（○）</p><p>劇場名</p><p class="org">主催団体名</p></div><div class="qr">QR</div></article></div>
     <div class="foot"><img src="../../kizuna-site/assets/logo.webp" alt="宵牙狼">
-      <p><b>BSD presents 公演 宵牙狼「家族の絆」</b><br>制作：(同)萬屋天狼 イベント事業部<br>お問い合わせ：info.tenrou.event@gmail.com</p></div>
+      <p><b>BSD presents 宵牙狼公演「家族の絆」</b><br>制作：(同)萬屋天狼 イベント事業部</p></div>
   </div>
-  <div class="pg r p1"><img src="../../kizuna-site/assets/flyer-front-l.webp" alt="家族の絆"></div>
+  <div class="pg p1"><img src="../../kizuna-site/assets/flyer-front-l.webp" alt="家族の絆"></div>
 </section>
 
-<!-- 中面：左＝3ページ／右＝2ページ（見開き：あらすじ＋人物相関図） -->
-<section class="sheet inner">
-  <div class="frame"></div><div class="fold"></div>
-  <div class="story"><h2>あらすじ<small>STORY</small></h2><div class="tx"><p>難攻不落と言われた小田原城が豊臣により滅ぼされた。北条家の滅亡……そんな戦の爪痕の中でも人は生きる。元北条家家臣『梶原景宗』は護衛団を名乗りその日暮らしとなっていた。又同じく北条家家臣であった『成田長泰』も関ヶ原の爪痕を生きていた。そんな中付近の山中ではひっそりと暮らす山民の家族がいた。娘の紅葉。父の左衛門。母の奈々。戦をしない者達の物語が始まる。</p><p>紅葉は帰りの道中に何者かに襲われるが、護衛団達に救われる。その日暮らしの護衛団達はお助け代金をもらおうとするが山小屋暮らしの者達に支払える余裕はない。変わりに宿と食事。一宿一飯の恩義で返す。そんな時ある盗賊団が紅葉を襲う。守る護衛団達。何故紅葉を襲うのか……謎が謎を呼びそれは次第に一つの真実に辿り着く。</p><p class="last">紅葉が狙われる訳……それは……</p></div></div>
-  <div class="chart-h"><h2>人物相関図</h2><small>CHARACTERS</small></div>
-  <ul class="legend"><li style="--c:#5f8f4e">山民の家族</li><li style="--c:#2f5fa8">護衛団</li><li style="--c:#6d4c9c">成田家</li><li style="--c:#a8322c">盗賊団</li></ul>
-  <div class="zone" style="left:256mm;top:124mm;width:118mm;height:64mm;--c:#5f8f4e"><div class="zname"><b>山民の家族</b><span>戦をしない者達</span></div></div><div class="zone" style="left:222mm;top:206mm;width:186mm;height:79mm;--c:#2f5fa8"><div class="zname"><b>護衛団</b><span>元・北条家家臣</span></div></div><div class="zone" style="left:14mm;top:44mm;width:132mm;height:64mm;--c:#6d4c9c"><div class="zname"><b>成田家</b><span>関ヶ原の爪痕を生きる</span></div></div><div class="zone" style="left:12mm;top:206mm;width:186mm;height:79mm;--c:#a8322c"><div class="zname"><b>盗賊団</b><span>紅葉を狙う者達</span></div></div>
-  <svg class="links" viewBox="0 0 420 297" width="420mm" height="297mm"><marker id="m0" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4.2" markerHeight="4.2" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#a8322c"/></marker><path d="M188.9,205.0 Q213.9,159.6 265.0,168.2" fill="none" stroke="#a8322c" stroke-width=".9" marker-end="url(#m0)"/><g class="lbl"><rect x="210.7" y="169.5" width="19.4" height="7.2" rx="3.6" fill="#fffaf0" stroke="#a8322c" stroke-width=".5"/><text x="220.4" y="174.5" fill="#a8322c">命を狙う</text></g><marker id="m1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4.2" markerHeight="4.2" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2f5fa8"/></marker><path d="M251.2,224.0 Q259.9,205.5 268.6,187.0" fill="none" stroke="#2f5fa8" stroke-width=".9" marker-end="url(#m1)"/><g class="lbl"><rect x="253.8" y="201.9" width="12.2" height="7.2" rx="3.6" fill="#fffaf0" stroke="#2f5fa8" stroke-width=".5"/><text x="259.9" y="206.8" fill="#2f5fa8">守る</text></g><marker id="m2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4.2" markerHeight="4.2" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#5f8f4e"/></marker><path d="M315.0,189.0 Q315.0,196.8 315.0,204.5" fill="none" stroke="#5f8f4e" stroke-width=".9" marker-end="url(#m2)"/><g class="lbl"><rect x="299.9" y="193.2" width="30.2" height="7.2" rx="3.6" fill="#fffaf0" stroke="#5f8f4e" stroke-width=".5"/><text x="315.0" y="198.1" fill="#5f8f4e">一宿一飯の恩義</text></g><marker id="m3" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4.2" markerHeight="4.2" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#8f7443"/></marker><path d="M223.5,237.4 Q151.0,146.1 47.0,93.5" fill="none" stroke="#8f7443" stroke-width=".9" marker-end="url(#m3)" marker-start="url(#m3)"/><g class="lbl"><rect x="126.2" y="152.2" width="33.8" height="7.2" rx="3.6" fill="#fffaf0" stroke="#8f7443" stroke-width=".5"/><text x="143.1" y="157.1" fill="#8f7443">元・北条家の同志</text></g><marker id="m4" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4.2" markerHeight="4.2" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#a8322c"/></marker><path d="M199.0,245.5 Q209.8,245.5 220.5,245.5" fill="none" stroke="#a8322c" stroke-width=".9" marker-end="url(#m4)" marker-start="url(#m4)"/><g class="lbl"><rect x="203.7" y="241.9" width="12.2" height="7.2" rx="3.6" fill="#fffaf0" stroke="#a8322c" stroke-width=".5"/><text x="209.8" y="246.8" fill="#a8322c">対立</text></g><marker id="m5" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4.2" markerHeight="4.2" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#6d4c9c"/></marker><path d="M84.9,109.0 Q91.9,156.8 99.0,204.5" fill="none" stroke="#6d4c9c" stroke-width=".9" marker-end="url(#m5)"/><g class="lbl"><rect x="87.6" y="153.2" width="8.6" height="7.2" rx="3.6" fill="#fffaf0" stroke="#6d4c9c" stroke-width=".5"/><text x="91.9" y="158.1" fill="#6d4c9c">？</text></g></svg>
-  <figure class="card" style="left:268.0mm;top:137.0mm;--c:#5f8f4e"><img src="../../kizuna-site/assets/cast/01.webp" alt=""><figcaption><b>紅葉</b><span>菜乃華れみ</span><i>山民の娘</i></figcaption></figure><figure class="card" style="left:302.0mm;top:137.0mm;--c:#5f8f4e"><img src="../../kizuna-site/assets/cast/04.webp" alt=""><figcaption><b>左衛門</b><span>光藤隆馬</span><i>紅葉の父</i></figcaption></figure><figure class="card" style="left:336.0mm;top:137.0mm;--c:#5f8f4e"><img src="../../kizuna-site/assets/cast/03.webp" alt=""><figcaption><b>奈々</b><span>三吉織乃</span><i>紅葉の母</i></figcaption></figure><figure class="card" style="left:226.0mm;top:226.5mm;--c:#2f5fa8"><img src="../../kizuna-site/assets/cast/05.webp" alt=""><figcaption><b>梶原景宗</b><span>磐城信治</span><i>護衛団の長</i></figcaption></figure><figure class="card" style="left:256.4mm;top:226.5mm;--c:#2f5fa8"><img src="../../kizuna-site/assets/cast/06.webp" alt=""><figcaption><b>役名</b><span>屋冨祖弦貴</span></figcaption></figure><figure class="card" style="left:286.8mm;top:226.5mm;--c:#2f5fa8"><img src="../../kizuna-site/assets/cast/08.webp" alt=""><figcaption><b>役名</b><span>岡本莉瑚</span></figcaption></figure><figure class="card" style="left:317.2mm;top:226.5mm;--c:#2f5fa8"><img src="../../kizuna-site/assets/cast/07.webp" alt=""><figcaption><b>役名</b><span>桑野結女凜</span></figcaption></figure><figure class="card" style="left:347.6mm;top:226.5mm;--c:#2f5fa8"><img src="../../kizuna-site/assets/cast/09.webp" alt=""><figcaption><b>役名</b><span>崎本詩織</span></figcaption></figure><figure class="card" style="left:378.0mm;top:226.5mm;--c:#2f5fa8"><img src="../../kizuna-site/assets/cast/13.webp" alt=""><figcaption><b>役名</b><span>五味川竜馬</span></figcaption></figure><figure class="card" style="left:18.0mm;top:57.0mm;--c:#6d4c9c"><img src="../../kizuna-site/assets/cast/11.webp" alt=""><figcaption><b>成田長泰</b><span>石山将隆</span><i>元・北条家家臣</i></figcaption></figure><figure class="card" style="left:50.7mm;top:57.0mm;--c:#6d4c9c"><img src="../../kizuna-site/assets/cast/12.webp" alt=""><figcaption><b>役名</b><span>柳瀬佑太</span></figcaption></figure><figure class="card" style="left:83.3mm;top:57.0mm;--c:#6d4c9c"><img src="../../kizuna-site/assets/cast/10.webp" alt=""><figcaption><b>役名</b><span>藤野めいり</span></figcaption></figure><figure class="card" style="left:116.0mm;top:57.0mm;--c:#6d4c9c"><img src="../../kizuna-site/assets/cast/14.webp" alt=""><figcaption><b>役名</b><span>尾ケ井思織</span></figcaption></figure><figure class="card" style="left:24.0mm;top:226.5mm;--c:#a8322c"><img src="../../kizuna-site/assets/cast/15.webp" alt=""><figcaption><b>役名</b><span>天咲ヒカル</span><i>盗賊団の頭</i></figcaption></figure><figure class="card" style="left:58.0mm;top:226.5mm;--c:#a8322c"><img src="../../kizuna-site/assets/cast/16.webp" alt=""><figcaption><b>役名</b><span>森本真由</span></figcaption></figure><figure class="card" style="left:92.0mm;top:226.5mm;--c:#a8322c"><img src="../../kizuna-site/assets/cast/17.webp" alt=""><figcaption><b>役名</b><span>泉谷アキヒロ</span></figcaption></figure><figure class="card" style="left:126.0mm;top:226.5mm;--c:#a8322c"><img src="../../kizuna-site/assets/cast/18.webp" alt=""><figcaption><b>役名</b><span>幸村宥弐</span></figcaption></figure><figure class="card" style="left:160.0mm;top:226.5mm;--c:#a8322c"><img src="../../kizuna-site/assets/cast/02.webp" alt=""><figcaption><b>役名</b><span>鶴田葵</span></figcaption></figure>
-  <p class="note">※サンプル：役名・配役・グループ・相関・次回公演は仮の内容です</p>
-  <span class="pno" style="left:100mm">— 3 —</span><span class="pno" style="left:310mm">— 2 —</span>
+<!-- 中面：左＝3ページ／右＝2ページ（見開き：人物相関図） -->
+<section class="sheet paper">
+  <div class="frame"></div>
+  <div class="moon"></div><svg class="waves l" viewBox="0 0 200 80"><g><path d="M0,40 C30,20 50,60 90,35 S150,10 200,30" /><path d="M0,44 C30,24 50,64 90,39 S150,14 200,34" /><path d="M0,48 C30,28 50,68 90,43 S150,18 200,38" /><path d="M0,52 C30,32 50,72 90,47 S150,22 200,42" /><path d="M0,56 C30,36 50,76 90,51 S150,26 200,46" /></g></svg><svg class="waves r" viewBox="0 0 200 80"><g transform="scale(-1,1) translate(-200,0)"><path d="M0,40 C30,20 50,60 90,35 S150,10 200,30" /><path d="M0,44 C30,24 50,64 90,39 S150,14 200,34" /><path d="M0,48 C30,28 50,68 90,43 S150,18 200,38" /><path d="M0,52 C30,32 50,72 90,47 S150,22 200,42" /><path d="M0,56 C30,36 50,76 90,51 S150,26 200,46" /></g></svg>
+  <div class="title"><p class="pre">BSD Presents 宵牙狼公演</p><h1>舞台『家族の絆』</h1><h2>人物相関図</h2></div>
+  <section class="grp" style="left:226mm;top:56mm;width:182mm;height:85mm;--c:#b8322a;--cols:3"><div class="gh"><h3>山小屋</h3><p>関ヶ原の爪痕の中ひっそり暮らす山小屋の家族</p></div><div class="cards" style="max-width:125mm"><figure class="card" style="width:37mm"><div class="ph"><img src="cards/幸村宥弐.jpg" alt=""></div><figcaption><span class="yomi">（さえもん）</span><b>幸村宥弐</b><i>父親</i></figcaption></figure><figure class="card" data-main style="width:41mm"><div class="ph"><img src="cards/菜乃華れみ.jpg" alt=""></div><figcaption><span class="yomi">（もみじ）</span><b>菜乃華れみ</b></figcaption></figure><figure class="card" style="width:37mm"><div class="ph"><img src="cards/鶴田葵.jpg" alt=""></div><figcaption><span class="yomi">（なな）</span><b>鶴田葵</b><i>母親</i></figcaption></figure></div></section><section class="grp" style="left:226mm;top:150mm;width:182mm;height:136mm;--c:#2f5fb0;--cols:3"><div class="gh"><h3>護衛団</h3><p>流浪の旅人達</p></div><div class="cards" style="max-width:116mm"><figure class="card" style="width:34mm"><div class="ph"><img src="cards/光藤隆馬.jpg" alt=""></div><figcaption><span class="yomi">（かじわら）</span><b>光藤隆馬</b></figcaption></figure><figure class="card" style="width:34mm"><div class="ph"><img src="cards/岡本莉瑚.jpg" alt=""></div><figcaption><span class="yomi">（さや）</span><b>岡本莉瑚</b></figcaption></figure><figure class="card" style="width:34mm"><div class="ph"><img src="cards/屋冨祖絃貴.jpg" alt=""></div><figcaption><span class="yomi">（じん）</span><b>屋冨祖絃貴</b></figcaption></figure><figure class="card" style="width:34mm"><div class="ph"><img src="cards/藤野めいり.jpg" alt=""></div><figcaption><span class="yomi">（おこい）</span><b>藤野めいり</b></figcaption></figure><figure class="card" style="width:34mm"><div class="ph"><img src="cards/森本真由.jpg" alt=""></div><figcaption><span class="yomi">（おきく）</span><b>森本真由</b></figcaption></figure><figure class="card" style="width:34mm"><div class="ph"><img src="cards/磐城信治.jpg" alt=""></div><figcaption><span class="yomi">（がんてつ）</span><b>磐城信治</b><i>※所属確認中</i></figcaption></figure></div></section><section class="grp" style="left:12mm;top:56mm;width:56mm;height:85mm;--c:#7a3fa0;--cols:1"><div class="gh"><h3>神無月</h3><p>成り上がりを目論む元側室</p></div><div class="cards" style="max-width:46mm"><figure class="card" style="width:38mm"><div class="ph"><img src="cards/三吉織乃.jpg" alt=""></div><figcaption><span class="yomi">（かんなづき）</span><b>三吉織乃</b></figcaption></figure></div></section><section class="grp" style="left:74mm;top:56mm;width:124mm;height:85mm;--c:#2e7d6b;--cols:3"><div class="gh"><h3>風魔忍軍</h3><p>抜け忍</p></div><div class="cards" style="max-width:119mm"><figure class="card" style="width:35mm"><div class="ph"><img src="cards/桑野結女凜.jpg" alt=""></div><figcaption><span class="yomi">（かれん）</span><b>桑野結女凜</b></figcaption></figure><figure class="card" style="width:35mm"><div class="ph"><img src="cards/崎本詩織.jpg" alt=""></div><figcaption><span class="yomi">（ぼたん）</span><b>崎本詩織</b></figcaption></figure><figure class="card" style="width:35mm"><div class="ph"><img src="cards/泉谷アキヒロ.jpg" alt=""></div><figcaption><span class="yomi">（おくむら）</span><b>泉谷アキヒロ</b></figcaption></figure></div></section><section class="grp" style="left:12mm;top:150mm;width:186mm;height:136mm;--c:#a8742a;--cols:3"><div class="gh"><h3>盗賊団</h3><p>依頼の元に動く盗賊！</p></div><div class="cards" style="max-width:116mm"><figure class="card" style="width:34mm"><div class="ph"><img src="cards/柳瀬佑太.jpg" alt=""></div><figcaption><span class="yomi">（かげやま）</span><b>柳瀬佑太</b></figcaption></figure><figure class="card" style="width:34mm"><div class="ph"><img src="cards/五味川竜馬.jpg" alt=""></div><figcaption><span class="yomi">（すいげつ）</span><b>五味川竜馬</b></figcaption></figure><figure class="card" style="width:34mm"><div class="ph"><img src="cards/石山将隆.jpg" alt=""></div><figcaption><span class="yomi">（おにび）</span><b>石山将隆</b></figcaption></figure><figure class="card" style="width:34mm"><div class="ph"><img src="cards/天咲ヒカル.jpg" alt=""></div><figcaption><span class="yomi">（しょうじ）</span><b>天咲ヒカル</b></figcaption></figure><figure class="card" style="width:34mm"><div class="ph"><img src="cards/尾ケ井思織.jpg" alt=""></div><figcaption><span class="yomi">（しずく）</span><b>尾ケ井思織</b></figcaption></figure></div></section>
+  <div class="deco" style="left:4mm;top:6mm;width:12mm;height:12mm;transform:rotate(10deg)"><svg viewBox="-12 -12 24 24"><g fill="#f4b8c8" stroke="#7a2b3a" stroke-width=".35"><path transform="rotate(0)" d="M0,0 C-3.6,-3 -3.4,-8.6 -1.1,-10.6 L0,-9.2 L1.1,-10.6 C3.4,-8.6 3.6,-3 0,0 Z"/><path transform="rotate(72)" d="M0,0 C-3.6,-3 -3.4,-8.6 -1.1,-10.6 L0,-9.2 L1.1,-10.6 C3.4,-8.6 3.6,-3 0,0 Z"/><path transform="rotate(144)" d="M0,0 C-3.6,-3 -3.4,-8.6 -1.1,-10.6 L0,-9.2 L1.1,-10.6 C3.4,-8.6 3.6,-3 0,0 Z"/><path transform="rotate(216)" d="M0,0 C-3.6,-3 -3.4,-8.6 -1.1,-10.6 L0,-9.2 L1.1,-10.6 C3.4,-8.6 3.6,-3 0,0 Z"/><path transform="rotate(288)" d="M0,0 C-3.6,-3 -3.4,-8.6 -1.1,-10.6 L0,-9.2 L1.1,-10.6 C3.4,-8.6 3.6,-3 0,0 Z"/></g><circle r="1.6" fill="#f7d36b"/></svg></div><div class="deco" style="left:15mm;top:3mm;width:8mm;height:8mm;transform:rotate(40deg)"><svg viewBox="-12 -12 24 24"><g fill="#f4b8c8" stroke="#7a2b3a" stroke-width=".35"><path transform="rotate(0)" d="M0,0 C-3.6,-3 -3.4,-8.6 -1.1,-10.6 L0,-9.2 L1.1,-10.6 C3.4,-8.6 3.6,-3 0,0 Z"/><path transform="rotate(72)" d="M0,0 C-3.6,-3 -3.4,-8.6 -1.1,-10.6 L0,-9.2 L1.1,-10.6 C3.4,-8.6 3.6,-3 0,0 Z"/><path transform="rotate(144)" d="M0,0 C-3.6,-3 -3.4,-8.6 -1.1,-10.6 L0,-9.2 L1.1,-10.6 C3.4,-8.6 3.6,-3 0,0 Z"/><path transform="rotate(216)" d="M0,0 C-3.6,-3 -3.4,-8.6 -1.1,-10.6 L0,-9.2 L1.1,-10.6 C3.4,-8.6 3.6,-3 0,0 Z"/><path transform="rotate(288)" d="M0,0 C-3.6,-3 -3.4,-8.6 -1.1,-10.6 L0,-9.2 L1.1,-10.6 C3.4,-8.6 3.6,-3 0,0 Z"/></g><circle r="1.6" fill="#f7d36b"/></svg></div><div class="deco" style="left:9mm;top:17mm;width:7mm;height:7mm;transform:rotate(70deg)"><svg viewBox="-12 -12 24 24"><g fill="#f4b8c8" stroke="#7a2b3a" stroke-width=".35"><path transform="rotate(0)" d="M0,0 C-3.6,-3 -3.4,-8.6 -1.1,-10.6 L0,-9.2 L1.1,-10.6 C3.4,-8.6 3.6,-3 0,0 Z"/><path transform="rotate(72)" d="M0,0 C-3.6,-3 -3.4,-8.6 -1.1,-10.6 L0,-9.2 L1.1,-10.6 C3.4,-8.6 3.6,-3 0,0 Z"/><path transform="rotate(144)" d="M0,0 C-3.6,-3 -3.4,-8.6 -1.1,-10.6 L0,-9.2 L1.1,-10.6 C3.4,-8.6 3.6,-3 0,0 Z"/><path transform="rotate(216)" d="M0,0 C-3.6,-3 -3.4,-8.6 -1.1,-10.6 L0,-9.2 L1.1,-10.6 C3.4,-8.6 3.6,-3 0,0 Z"/><path transform="rotate(288)" d="M0,0 C-3.6,-3 -3.4,-8.6 -1.1,-10.6 L0,-9.2 L1.1,-10.6 C3.4,-8.6 3.6,-3 0,0 Z"/></g><circle r="1.6" fill="#f7d36b"/></svg></div><div class="deco" style="left:24mm;top:9mm;width:5mm;height:5mm;transform:rotate(15deg)"><svg viewBox="-12 -12 24 24"><g fill="#f4b8c8" stroke="#7a2b3a" stroke-width=".35"><path transform="rotate(0)" d="M0,0 C-3.6,-3 -3.4,-8.6 -1.1,-10.6 L0,-9.2 L1.1,-10.6 C3.4,-8.6 3.6,-3 0,0 Z"/><path transform="rotate(72)" d="M0,0 C-3.6,-3 -3.4,-8.6 -1.1,-10.6 L0,-9.2 L1.1,-10.6 C3.4,-8.6 3.6,-3 0,0 Z"/><path transform="rotate(144)" d="M0,0 C-3.6,-3 -3.4,-8.6 -1.1,-10.6 L0,-9.2 L1.1,-10.6 C3.4,-8.6 3.6,-3 0,0 Z"/><path transform="rotate(216)" d="M0,0 C-3.6,-3 -3.4,-8.6 -1.1,-10.6 L0,-9.2 L1.1,-10.6 C3.4,-8.6 3.6,-3 0,0 Z"/><path transform="rotate(288)" d="M0,0 C-3.6,-3 -3.4,-8.6 -1.1,-10.6 L0,-9.2 L1.1,-10.6 C3.4,-8.6 3.6,-3 0,0 Z"/></g><circle r="1.6" fill="#f7d36b"/></svg></div><div class="deco" style="left:30mm;top:4mm;width:7mm;height:7mm;transform:rotate(-20deg)"><svg viewBox="-12 -12 24 24"><path fill="#c8361f" d="M0,-11 L2,-5 L6,-8 L5,-3 L11,-3 L7,0 L9,4 L3,2 L1,6 L0,11 L-1,6 L-3,2 L-9,4 L-7,0 L-11,-3 L-5,-3 L-6,-8 L-2,-5 Z"/></svg></div><div class="deco" style="left:3mm;top:26mm;width:6mm;height:6mm;transform:rotate(25deg)"><svg viewBox="-12 -12 24 24"><path fill="#c8361f" d="M0,-11 L2,-5 L6,-8 L5,-3 L11,-3 L7,0 L9,4 L3,2 L1,6 L0,11 L-1,6 L-3,2 L-9,4 L-7,0 L-11,-3 L-5,-3 L-6,-8 L-2,-5 Z"/></svg></div><div class="deco" style="left:404mm;top:278mm;width:12mm;height:12mm;transform:rotate(20deg)"><svg viewBox="-12 -12 24 24"><g fill="#f4b8c8" stroke="#7a2b3a" stroke-width=".35"><path transform="rotate(0)" d="M0,0 C-3.6,-3 -3.4,-8.6 -1.1,-10.6 L0,-9.2 L1.1,-10.6 C3.4,-8.6 3.6,-3 0,0 Z"/><path transform="rotate(72)" d="M0,0 C-3.6,-3 -3.4,-8.6 -1.1,-10.6 L0,-9.2 L1.1,-10.6 C3.4,-8.6 3.6,-3 0,0 Z"/><path transform="rotate(144)" d="M0,0 C-3.6,-3 -3.4,-8.6 -1.1,-10.6 L0,-9.2 L1.1,-10.6 C3.4,-8.6 3.6,-3 0,0 Z"/><path transform="rotate(216)" d="M0,0 C-3.6,-3 -3.4,-8.6 -1.1,-10.6 L0,-9.2 L1.1,-10.6 C3.4,-8.6 3.6,-3 0,0 Z"/><path transform="rotate(288)" d="M0,0 C-3.6,-3 -3.4,-8.6 -1.1,-10.6 L0,-9.2 L1.1,-10.6 C3.4,-8.6 3.6,-3 0,0 Z"/></g><circle r="1.6" fill="#f7d36b"/></svg></div><div class="deco" style="left:395mm;top:287mm;width:8mm;height:8mm;transform:rotate(50deg)"><svg viewBox="-12 -12 24 24"><g fill="#f4b8c8" stroke="#7a2b3a" stroke-width=".35"><path transform="rotate(0)" d="M0,0 C-3.6,-3 -3.4,-8.6 -1.1,-10.6 L0,-9.2 L1.1,-10.6 C3.4,-8.6 3.6,-3 0,0 Z"/><path transform="rotate(72)" d="M0,0 C-3.6,-3 -3.4,-8.6 -1.1,-10.6 L0,-9.2 L1.1,-10.6 C3.4,-8.6 3.6,-3 0,0 Z"/><path transform="rotate(144)" d="M0,0 C-3.6,-3 -3.4,-8.6 -1.1,-10.6 L0,-9.2 L1.1,-10.6 C3.4,-8.6 3.6,-3 0,0 Z"/><path transform="rotate(216)" d="M0,0 C-3.6,-3 -3.4,-8.6 -1.1,-10.6 L0,-9.2 L1.1,-10.6 C3.4,-8.6 3.6,-3 0,0 Z"/><path transform="rotate(288)" d="M0,0 C-3.6,-3 -3.4,-8.6 -1.1,-10.6 L0,-9.2 L1.1,-10.6 C3.4,-8.6 3.6,-3 0,0 Z"/></g><circle r="1.6" fill="#f7d36b"/></svg></div><div class="deco" style="left:410mm;top:266mm;width:6mm;height:6mm;transform:rotate(5deg)"><svg viewBox="-12 -12 24 24"><g fill="#f4b8c8" stroke="#7a2b3a" stroke-width=".35"><path transform="rotate(0)" d="M0,0 C-3.6,-3 -3.4,-8.6 -1.1,-10.6 L0,-9.2 L1.1,-10.6 C3.4,-8.6 3.6,-3 0,0 Z"/><path transform="rotate(72)" d="M0,0 C-3.6,-3 -3.4,-8.6 -1.1,-10.6 L0,-9.2 L1.1,-10.6 C3.4,-8.6 3.6,-3 0,0 Z"/><path transform="rotate(144)" d="M0,0 C-3.6,-3 -3.4,-8.6 -1.1,-10.6 L0,-9.2 L1.1,-10.6 C3.4,-8.6 3.6,-3 0,0 Z"/><path transform="rotate(216)" d="M0,0 C-3.6,-3 -3.4,-8.6 -1.1,-10.6 L0,-9.2 L1.1,-10.6 C3.4,-8.6 3.6,-3 0,0 Z"/><path transform="rotate(288)" d="M0,0 C-3.6,-3 -3.4,-8.6 -1.1,-10.6 L0,-9.2 L1.1,-10.6 C3.4,-8.6 3.6,-3 0,0 Z"/></g><circle r="1.6" fill="#f7d36b"/></svg></div><div class="deco" style="left:388mm;top:279mm;width:7mm;height:7mm;transform:rotate(30deg)"><svg viewBox="-12 -12 24 24"><path fill="#c8361f" d="M0,-11 L2,-5 L6,-8 L5,-3 L11,-3 L7,0 L9,4 L3,2 L1,6 L0,11 L-1,6 L-3,2 L-9,4 L-7,0 L-11,-3 L-5,-3 L-6,-8 L-2,-5 Z"/></svg></div><div class="deco" style="left:412mm;top:255mm;width:5mm;height:5mm;transform:rotate(-15deg)"><svg viewBox="-12 -12 24 24"><path fill="#c8361f" d="M0,-11 L2,-5 L6,-8 L5,-3 L11,-3 L7,0 L9,4 L3,2 L1,6 L0,11 L-1,6 L-3,2 L-9,4 L-7,0 L-11,-3 L-5,-3 L-6,-8 L-2,-5 Z"/></svg></div><div class="deco" style="left:357mm;top:33mm;width:7mm;height:7mm;transform:rotate(10deg)"><svg viewBox="-12 -12 24 24"><path fill="#c8361f" d="M0,-11 L2,-5 L6,-8 L5,-3 L11,-3 L7,0 L9,4 L3,2 L1,6 L0,11 L-1,6 L-3,2 L-9,4 L-7,0 L-11,-3 L-5,-3 L-6,-8 L-2,-5 Z"/></svg></div><div class="deco" style="left:365mm;top:28mm;width:5mm;height:5mm;transform:rotate(-30deg)"><svg viewBox="-12 -12 24 24"><path fill="#c8361f" d="M0,-11 L2,-5 L6,-8 L5,-3 L11,-3 L7,0 L9,4 L3,2 L1,6 L0,11 L-1,6 L-3,2 L-9,4 L-7,0 L-11,-3 L-5,-3 L-6,-8 L-2,-5 Z"/></svg></div><div class="deco" style="left:352mm;top:26mm;width:4mm;height:4mm;transform:rotate(40deg)"><svg viewBox="-12 -12 24 24"><path fill="#c8361f" d="M0,-11 L2,-5 L6,-8 L5,-3 L11,-3 L7,0 L9,4 L3,2 L1,6 L0,11 L-1,6 L-3,2 L-9,4 L-7,0 L-11,-3 L-5,-3 L-6,-8 L-2,-5 Z"/></svg></div>
+  <span class="pno" style="left:101mm">— 3 —</span><span class="pno" style="left:311mm">— 2 —</span>
 </section>
 </body></html>
