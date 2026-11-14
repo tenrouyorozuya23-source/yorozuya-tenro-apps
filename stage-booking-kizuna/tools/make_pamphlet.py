@@ -107,7 +107,12 @@ def main():
     story = (f'<section class="story" style="left:{sx}mm;top:{sy}mm;width:{sw}mm;height:{sh}mm">'
              f'<h3>あらすじ</h3><div class="tx">'
              + "".join(f"<p>{e(t)}</p>" for t in STORY) + f'<p class="last">{e(STORY_LAST)}</p></div></section>')
-    page = TEMPLATE.format(assets=ASSETS, groups=groups + story, decos=decos, nexts=nexts,
+    # 中面：完成した人物相関図の画像（pamphlet/sohkanzu.jpg）があれば、それを見開き全面に使う
+    if os.path.exists(os.path.join(OUT, "sohkanzu.jpg")):
+        inner = '<section class="sheet"><img src="sohkanzu.jpg" alt="人物相関図" style="width:100%;height:100%;object-fit:cover;display:block"></section>'
+    else:
+        inner = INNER_HTML.format(groups=groups + story)
+    page = TEMPLATE.format(inner=inner, assets=ASSETS, groups=groups + story, decos=decos, nexts=nexts,
                            waves_l=gold_waves("l"), waves_r=gold_waves("r"))
     os.makedirs(OUT, exist_ok=True)
     open(os.path.join(OUT, "pamphlet.html"), "w", encoding="utf-8").write(page)
@@ -254,13 +259,16 @@ html,body{{background:#555}}
 </section>
 
 <!-- 中面：左＝3ページ／右＝2ページ（見開き：人物相関図） -->
-<section class="sheet bgimg" style="background-image:url('bg/spread_x4.jpg')">
+{inner}
+</body></html>
+"""
+
+INNER_HTML = """<section class="sheet bgimg" style="background-image:url('bg/spread_x4.jpg')">
   <div class="frame"></div>
   <div class="title"><p class="pre">BSD Presents 宵牙狼公演</p><h1><span>舞台</span><img src="bg/title_kizuna.png" alt="家族の絆"></h1><h2>人物相関図</h2></div>
   {groups}
   <span class="pno" style="left:101mm">— 3 —</span><span class="pno" style="left:311mm">— 2 —</span>
 </section>
-</body></html>
 """
 
 if __name__ == "__main__":
