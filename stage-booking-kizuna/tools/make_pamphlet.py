@@ -24,25 +24,25 @@ e = html.escape
 
 # ---- グループ：名前・目的（クライアントの言葉どおり）・色・メンバー（キャスト名, 役名, よみ, ひとこと） ----
 GROUPS = {
-    "family": {"name": "山小屋", "aim": "関ヶ原の爪痕の中ひっそり暮らす山小屋の家族", "color": "#b8322a",
+    "family": {"name": "山小屋", "aim": "関ヶ原の爪痕の中ひっそり暮らす山小屋の家族", "color": "#b8322a", "brush": "深紅",
                "members": [("幸村宥弐", "左衛門", "さえもん", "父親"), ("菜乃華れみ", "紅葉", "もみじ", ""),
                            ("鶴田葵", "奈々", "なな", "母親")]},
-    "guard": {"name": "護衛団", "aim": "流浪の旅人達", "color": "#2f5fb0",
+    "guard": {"name": "護衛団", "aim": "流浪の旅人達", "color": "#2f5fb0", "brush": "藍色",
               "members": [("光藤隆馬", "梶原", "かじわら", ""), ("岡本莉瑚", "鞘", "さや", ""), ("屋冨祖絃貴", "陣", "じん", ""),
                           ("藤野めいり", "お鯉", "おこい", ""), ("森本真由", "お菊", "おきく", ""),
                           ("磐城信治", "巌鉄", "がんてつ", "※所属確認中")]},
-    "fuma": {"name": "風魔忍軍", "aim": "抜け忍", "color": "#6d3f9a",
+    "fuma": {"name": "風魔忍軍", "aim": "抜け忍", "color": "#6d3f9a", "brush": "紫",
              "members": [("三吉織乃", "神無月", "かんなづき", "成り上がりを目論む元側室"), ("桑野結女凜", "花蓮", "かれん", ""), ("崎本詩織", "牡丹", "ぼたん", ""), ("泉谷アキヒロ", "奥村", "おくむら", "")]},
-    "bandit": {"name": "盗賊団", "aim": "依頼の元に動く盗賊！", "color": "#a8742a",
+    "bandit": {"name": "盗賊団", "aim": "依頼の元に動く盗賊！", "color": "#a8742a", "brush": "金茶",
                "members": [("柳瀬佑太", "影山", "かげやま", ""), ("五味川竜馬", "水月", "すいげつ", ""), ("石山将隆", "鬼火", "おにび", ""),
                            ("天咲ヒカル", "庄司", "しょうじ", ""), ("尾ケ井思織", "雫", "しずく", "")]},
 }
 # 中面（420×297mm）上の配置：x, y, w, h, 1行のカード数, カード幅(mm)
 LAYOUT = {
-    "family": (226, 56, 182, 85, 3, 37),
-    "guard":  (226, 150, 182, 136, 3, 34),
-    "fuma":   (12, 56, 186, 85, 4, 36),
-    "bandit": (12, 150, 186, 136, 3, 34),
+    "family": (226, 58, 182, 84, 3, 37),
+    "guard":  (222, 152, 114, 134, 3, 32),
+    "fuma":   (12, 84, 186, 82, 4, 36),
+    "bandit": (12, 186, 186, 78, 5, 33),
 }
 # ---- 次回公演（4件・仮） ----
 NEXT_SHOWS = [
@@ -74,7 +74,7 @@ def group_html(key):
         '</figcaption></figure>'
         for cast, role, yomi, note in ms)
     return (f'<section class="grp" style="left:{x}mm;top:{y}mm;width:{w}mm;height:{h}mm;--c:{g["color"]};--cols:{per_row}">'
-            f'<div class="gh"><h3>{e(g["name"])}</h3><p>{e(g["aim"])}</p></div>'
+            f'<div class="gh"><h3 style="background-image:url(\'bg/brush_{g["brush"]}.png\')">{e(g["name"])}</h3><p>{e(g["aim"])}</p></div>'
             f'<div class="cards" style="max-width:{per_row * cw + (per_row - 1) * 3 + 8}mm">{cards}</div></section>')
 
 
@@ -124,6 +124,7 @@ html,body{{background:#555}}
 .sheet:last-child{{page-break-after:auto;break-after:auto}}
 .pg{{width:210mm;height:297mm;position:relative;overflow:hidden}}
 /* 和紙調の暗い地 */
+.bgimg{{background-size:cover;background-position:center}}
 .paper{{background:
   radial-gradient(70% 55% at 30% 35%,rgba(120,105,90,.28),transparent 70%),
   radial-gradient(60% 60% at 75% 70%,rgba(110,95,85,.22),transparent 70%),
@@ -169,16 +170,15 @@ html,body{{background:#555}}
 .title h1{{font:400 36pt/1.15 var(--brush);letter-spacing:0;margin-top:1mm;
   background:linear-gradient(180deg,#fff6d8 0%,#f0d58c 45%,#b88a3a 100%);-webkit-background-clip:text;background-clip:text;color:transparent;
   filter:drop-shadow(0 .5mm .8mm rgba(0,0,0,.9))}}
-.title h2{{display:inline-block;margin-top:1.5mm;padding:1.2mm 14mm;font:400 17pt var(--brush);letter-spacing:.2em;color:#fff;
-  background:linear-gradient(90deg,transparent 0,#8f1f1a 9%,#b8322a 50%,#8f1f1a 91%,transparent 100%);text-shadow:0 .4mm .8mm #000}}
+.title h2{{display:inline-block;margin-top:1mm;padding:3mm 16mm 3.2mm;font:400 18pt var(--brush);color:#fff;
+  background:url("bg/brush_深紅.png") center/100% 100% no-repeat;text-shadow:0 .4mm 1mm #000,0 0 2mm rgba(0,0,0,.6)}}
 .grp{{position:absolute;z-index:5;padding:3mm 3mm 2.5mm;
-  background:linear-gradient(180deg,color-mix(in srgb,var(--c) 32%,rgba(20,16,18,.85)) 0%,rgba(18,15,18,.88) 55%);
+  background:linear-gradient(180deg,color-mix(in srgb,var(--c) 26%,rgba(18,12,10,.55)) 0%,rgba(14,10,9,.62) 60%);
   border:.5mm solid color-mix(in srgb,var(--c) 55%,#f3dc9c);border-radius:1.2mm;
   box-shadow:0 0 3.5mm color-mix(in srgb,var(--c) 70%,transparent),inset 0 0 0 .9mm rgba(0,0,0,.45),inset 0 0 0 1.2mm color-mix(in srgb,var(--c) 40%,#d8b76a)}}
-.gh{{margin:-7mm 0 2mm -1mm}}
-.gh h3{{display:inline-block;font:400 16pt var(--brush);color:#fff;letter-spacing:.1em;padding:.8mm 9mm .8mm 4mm;white-space:nowrap;
-  background:linear-gradient(90deg,color-mix(in srgb,var(--c) 85%,#000) 0%,var(--c) 70%,transparent 100%);text-shadow:0 .4mm .8mm #000;
-  clip-path:polygon(0 8%,96% 0,100% 50%,94% 100%,2% 92%)}}
+.gh{{margin:-9mm 0 1.5mm -3mm}}
+.gh h3{{display:inline-block;font:400 17pt var(--brush);color:#fff;padding:2.6mm 12mm 3mm 7mm;white-space:nowrap;
+  background:center/100% 100% no-repeat;text-shadow:0 .4mm 1mm #000,0 0 2mm rgba(0,0,0,.6)}}
 .gh p{{font:800 8.6pt var(--serif);color:var(--gold-l);letter-spacing:.05em;margin:1.2mm 0 0 3mm;white-space:nowrap;text-shadow:0 .3mm .6mm #000}}
 .cards{{display:flex;flex-wrap:wrap;justify-content:center;gap:2mm 3mm;margin:0 auto}}
 .card{{text-align:center}}
@@ -197,8 +197,8 @@ html,body{{background:#555}}
 
 <!-- 外面：左＝4ページ（裏表紙・次回公演）／右＝1ページ（表紙・チラシ表面） -->
 <section class="sheet">
-  <div class="pg p4 paper">
-    <div class="frame"></div>{waves_l}
+  <div class="pg p4 bgimg" style="background-image:url('bg/back.webp')">
+    <div class="frame"></div>
     <p class="thanks"><b>本日はご来場いただき<br>誠にありがとうございます</b>最後までごゆっくりお楽しみください。</p>
     <h2>次回公演のご案内 <small>NEXT STAGE</small></h2>
     <div class="nexts">{nexts}</div>
@@ -209,12 +209,10 @@ html,body{{background:#555}}
 </section>
 
 <!-- 中面：左＝3ページ／右＝2ページ（見開き：人物相関図） -->
-<section class="sheet paper">
+<section class="sheet bgimg" style="background-image:url('bg/spread.webp')">
   <div class="frame"></div>
-  <div class="moon"></div>{waves_l}{waves_r}
   <div class="title"><p class="pre">BSD Presents 宵牙狼公演</p><h1>舞台『家族の絆』</h1><h2>人物相関図</h2></div>
   {groups}
-  {decos}
   <span class="pno" style="left:101mm">— 3 —</span><span class="pno" style="left:311mm">— 2 —</span>
 </section>
 </body></html>
