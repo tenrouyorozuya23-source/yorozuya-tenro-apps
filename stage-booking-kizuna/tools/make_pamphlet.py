@@ -46,12 +46,11 @@ PAGES = [
     ((222, 122, 186, 166), [("family", 3, 37), ("guard", 5, 31)]),
 ]
 STORY_BOX = (314, 14, 94, 96)   # あらすじ（右ページ右上・タイトルの右）x, y, w, h
-# ---- 次回公演（4件・仮） ----
+# ---- 次回公演（3公演） ----
 NEXT_SHOWS = [
-    {"title": "公演タイトル", "date": "2027年○月○日（○）〜○日（○）", "venue": "劇場名", "org": "主催団体名"},
-    {"title": "公演タイトル", "date": "2027年○月○日（○）〜○日（○）", "venue": "劇場名", "org": "主催団体名"},
-    {"title": "公演タイトル", "date": "2027年○月○日（○）〜○日（○）", "venue": "劇場名", "org": "主催団体名"},
-    {"title": "公演タイトル", "date": "2027年○月○日（○）〜○日（○）", "venue": "劇場名", "org": "主催団体名"},
+    {"org": "宵牙狼", "title": "『大奥（下剋上）』", "date": "2027年3月31日（水）〜4月4日（日）", "venue": "アトリエファンファーレ東池袋"},
+    {"org": "BSD Presents 本公演", "title": "『さぶらひ〜侍と人斬り』", "date": "2027年9月4日（土）〜9月7日（火）", "venue": "シアター風姿花伝"},
+    {"org": "BSD Presents 特別公演", "title": "『真田家の復讐』", "date": "2028年1月12日（水）〜1月16日（日）", "venue": "シアター風姿花伝"},
 ]
 
 SAKURA = ('<svg viewBox="-12 -12 24 24"><g fill="{c}" stroke="#7a2b3a" stroke-width=".35">' +
@@ -101,9 +100,8 @@ def main():
         deco("m", 357, 33, 7, 10), deco("m", 365, 28, 5, -30), deco("m", 352, 26, 4, 40),
     ])
     nexts = "".join(
-        f'<article class="next"><div class="ph">フライヤー画像</div><div class="tx">'
-        f'<span class="no">NEXT STAGE {i}</span><h4>{e(s["title"])}</h4><p>{e(s["date"])}</p><p>{e(s["venue"])}</p><p class="org">{e(s["org"])}</p>'
-        f'</div><div class="qr">QR</div></article>'
+        f'<article class="next"><span class="no">NEXT STAGE {i}</span><p class="org">{e(s["org"])}</p><h4>{e(s["title"])}</h4>'
+        f'<dl><dt>日程</dt><dd>{e(s["date"])}</dd><dt>劇場</dt><dd>{e(s["venue"])}</dd></dl></article>'
         for i, s in enumerate(NEXT_SHOWS, 1))
     sx, sy, sw, sh = STORY_BOX
     story = (f'<section class="story" style="left:{sx}mm;top:{sy}mm;width:{sw}mm;height:{sh}mm">'
@@ -229,6 +227,15 @@ html,body{{background:#555}}
 .story h3{{position:static!important;align-self:flex-end;background:#2e5e46!important;background-image:none!important;border:.45mm solid #ecd28f;border-radius:.6mm;
   padding:.7mm 4mm!important;margin-bottom:2.2mm;font:800 12pt var(--serif)!important;letter-spacing:.3em!important;color:#fff!important;text-shadow:none!important}}
 .story .tx{{flex:1;height:auto!important;font:800 8.7pt/1.75 var(--serif)!important;color:#fbf5e8!important;letter-spacing:.02em!important;text-shadow:0 .3mm .8mm #000!important}}
+/* ---- 次回公演（3公演・画像なし） ---- */
+.nexts{{grid-template-columns:1fr!important;gap:6mm!important}}
+.next{{display:block!important;height:auto!important;padding:5mm 7mm 5.5mm!important;text-align:center;background:linear-gradient(160deg,rgba(40,26,18,.72),rgba(8,8,12,.82))!important}}
+.next .no{{display:block;font:600 9pt var(--latin)!important;letter-spacing:.35em!important;color:var(--gold)!important}}
+.next .org{{margin-top:1.5mm;font:800 11.5pt var(--serif)!important;color:#f3dc9c!important;letter-spacing:.12em}}
+.next h4{{margin:1.5mm 0 3mm!important;font:800 20pt var(--serif)!important;color:#fff!important;letter-spacing:.04em!important;text-shadow:0 .4mm 1mm #000}}
+.next dl{{display:inline-grid;grid-template-columns:auto auto;gap:1.4mm 3mm;text-align:left;align-items:center}}
+.next dt{{font:800 8.5pt var(--serif);color:#1b120a;background:linear-gradient(180deg,#f6e2a8,#d8b76a);padding:.4mm 2.5mm;border-radius:.5mm;letter-spacing:.2em}}
+.next dd{{font:800 11.5pt var(--serif);color:#f6efe0;letter-spacing:.05em}}
 @media screen{{body{{padding:10mm;display:grid;gap:10mm;justify-content:center}} .sheet{{box-shadow:0 2mm 8mm rgba(0,0,0,.4)}}}}
 @media print{{html,body{{background:none}}}}
 </style></head><body>
