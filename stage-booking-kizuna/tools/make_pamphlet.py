@@ -42,10 +42,10 @@ GROUPS = {
 #   枠の大きさは中身に合わせて自動。グループの間隔は領域の中で均等に割り付ける
 #   左ページ上部は背景の満月と城を見せるため空けておく
 PAGES = [
-    ((12, 80, 186, 204), [("fuma", 4, 32), ("bandit", 3, 31)]),
-    ((222, 120, 186, 168), [("family", 3, 34), ("guard", 5, 30)]),
+    ((12, 84, 186, 204), [("fuma", 4, 32), ("bandit", 3, 30)]),
+    ((222, 122, 186, 166), [("family", 3, 37), ("guard", 5, 31)]),
 ]
-STORY_BOX = (226, 53, 178, 62)   # あらすじ（右ページ・タイトルの下）x, y, w, h
+STORY_BOX = (314, 14, 94, 96)   # あらすじ（右ページ右上・タイトルの右）x, y, w, h
 # ---- 次回公演（4件・仮） ----
 NEXT_SHOWS = [
     {"title": "公演タイトル", "date": "2027年○月○日（○）〜○日（○）", "venue": "劇場名", "org": "主催団体名"},
@@ -107,7 +107,7 @@ def main():
         for i, s in enumerate(NEXT_SHOWS, 1))
     sx, sy, sw, sh = STORY_BOX
     story = (f'<section class="story" style="left:{sx}mm;top:{sy}mm;width:{sw}mm;height:{sh}mm">'
-             f'<h3 style="background-image:url(\'bg/brush_深緑.png\')">あらすじ</h3><div class="tx">'
+             f'<h3>あらすじ</h3><div class="tx">'
              + "".join(f"<p>{e(t)}</p>" for t in STORY) + f'<p class="last">{e(STORY_LAST)}</p></div></section>')
     page = TEMPLATE.format(assets=ASSETS, groups=groups + story, decos=decos, nexts=nexts,
                            waves_l=gold_waves("l"), waves_r=gold_waves("r"))
@@ -207,6 +207,28 @@ html,body{{background:#555}}
 .card[data-main] .ph{{border-width:.7mm;box-shadow:0 0 4mm #e0503f}}
 .card[data-main] b{{font-size:9.4pt}}
 .pno{{position:absolute;bottom:7.5mm;z-index:6;font:500 8pt var(--latin);letter-spacing:.25em;color:var(--gold)}}
+/* ===== 見やすさ・統一のための上書き ===== */
+.title{{top:22mm!important;left:216mm!important;right:auto!important;width:96mm}}
+.title .pre{{font:800 10.5pt var(--serif)!important;letter-spacing:.3em!important;color:#fff3d6!important;text-shadow:0 .3mm 1mm #000}}
+.title h1{{display:flex;align-items:center;justify-content:center;gap:3mm;margin-top:1mm;background:none!important;-webkit-background-clip:border-box!important;background-clip:border-box!important;filter:none!important}}
+.title h1 span{{font:800 15pt var(--serif);color:#fff3d6;letter-spacing:.2em;writing-mode:vertical-rl;text-shadow:0 .3mm 1mm #000}}
+.title h1 img{{height:25mm;filter:drop-shadow(0 .6mm 1.2mm rgba(0,0,0,.9))}}
+.title h2{{background:rgba(10,6,6,.72)!important;border:.5mm solid #e2c27a;outline:.25mm solid rgba(226,194,122,.45);outline-offset:.8mm;
+  padding:1.3mm 10mm!important;margin-top:1.5mm!important;font:800 15pt var(--serif)!important;letter-spacing:.35em!important;color:#fff!important;text-shadow:none!important}}
+.grp{{padding:3mm 4.5mm 3.5mm!important;background:linear-gradient(180deg,color-mix(in srgb,var(--c) 22%,rgba(10,7,6,.72)) 0%,rgba(10,7,6,.74) 70%)!important}}
+.gh{{display:flex;align-items:center;gap:3.5mm;margin:0 0 2.6mm!important}}
+.gh h3{{background:var(--c)!important;background-image:none!important;border:.45mm solid #ecd28f;border-radius:.6mm;clip-path:none!important;
+  padding:.9mm 4.5mm!important;font:800 13.5pt var(--serif)!important;letter-spacing:.15em!important;color:#fff!important;text-shadow:0 .3mm .6mm rgba(0,0,0,.6)!important}}
+.gh p{{margin:0!important;font:800 10.5pt var(--serif)!important;color:#ffe7a8!important;letter-spacing:.05em!important;white-space:nowrap;text-shadow:0 .3mm .8mm #000!important}}
+.card figcaption{{margin-top:1.2mm!important;line-height:1.3!important}}
+.card .yomi{{font:800 7.6pt var(--serif)!important;color:#efe4cb!important}}
+.card b{{font:800 10.6pt var(--serif)!important;color:#fff!important;text-shadow:0 .3mm .8mm #000}}
+.card[data-main] b{{font-size:11.6pt!important}}
+.card i{{font:800 7.8pt var(--serif)!important;padding:.3mm 2.4mm!important;white-space:nowrap}}
+.story{{background:rgba(8,6,6,.68)!important;border:none!important;box-shadow:0 0 6mm 2mm rgba(8,6,6,.55)!important;border-radius:1mm;padding:3.5mm 4mm 3mm!important;display:flex;flex-direction:column}}
+.story h3{{position:static!important;align-self:flex-end;background:#2e5e46!important;background-image:none!important;border:.45mm solid #ecd28f;border-radius:.6mm;
+  padding:.7mm 4mm!important;margin-bottom:2.2mm;font:800 12pt var(--serif)!important;letter-spacing:.3em!important;color:#fff!important;text-shadow:none!important}}
+.story .tx{{flex:1;height:auto!important;font:800 8.7pt/1.75 var(--serif)!important;color:#fbf5e8!important;letter-spacing:.02em!important;text-shadow:0 .3mm .8mm #000!important}}
 @media screen{{body{{padding:10mm;display:grid;gap:10mm;justify-content:center}} .sheet{{box-shadow:0 2mm 8mm rgba(0,0,0,.4)}}}}
 @media print{{html,body{{background:none}}}}
 </style></head><body>
@@ -227,7 +249,7 @@ html,body{{background:#555}}
 <!-- 中面：左＝3ページ／右＝2ページ（見開き：人物相関図） -->
 <section class="sheet bgimg" style="background-image:url('bg/spread_x4.jpg')">
   <div class="frame"></div>
-  <div class="title"><p class="pre">BSD Presents 宵牙狼公演</p><h1>舞台『家族の絆』</h1><h2>人物相関図</h2></div>
+  <div class="title"><p class="pre">BSD Presents 宵牙狼公演</p><h1><span>舞台</span><img src="bg/title_kizuna.png" alt="家族の絆"></h1><h2>人物相関図</h2></div>
   {groups}
   <span class="pno" style="left:101mm">— 3 —</span><span class="pno" style="left:311mm">— 2 —</span>
 </section>
