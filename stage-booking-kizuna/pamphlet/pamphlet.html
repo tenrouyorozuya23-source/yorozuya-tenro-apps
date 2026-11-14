@@ -28,7 +28,7 @@ html,body{background:#555}
 .waves path{fill:none;stroke:url(#gg);stroke:var(--gold);stroke-width:.9;opacity:.75}
 .waves.l{left:-8mm;bottom:2mm} .waves.r{right:-6mm;top:30mm}
 /* ---- 1ページ：表紙 ---- */
-.p1 img{width:100%;height:100%;object-fit:cover;display:block}
+.p1 img,img.full{position:absolute;left:0;top:0;width:100%;height:100%;object-fit:cover;display:block;transform:scale(1.01);transform-origin:center}
 /* ---- 4ページ：次回公演 ---- */
 .p4{padding:22mm 18mm 16mm;color:var(--ink)}
 .p4 .thanks{position:relative;z-index:2;text-align:center;font:500 10.5pt/2 var(--serif);letter-spacing:.12em;color:#e9e1cf;margin-bottom:12mm}
@@ -126,17 +126,10 @@ html,body{background:#555}
 
 <!-- 外面：左＝4ページ（裏表紙・次回公演）／右＝1ページ（表紙・チラシ表面） -->
 <section class="sheet">
-  <div class="pg p4 bgimg" style="background-image:url('bg/back_x4.jpg')">
-    <div class="frame"></div>
-    <p class="thanks"><b>本日はご来場いただき<br>誠にありがとうございます</b>最後までごゆっくりお楽しみください。</p>
-    <h2>次回公演のご案内 <small>NEXT STAGE</small></h2>
-    <div class="nexts"><article class="next"><span class="no">NEXT STAGE 1</span><p class="org">宵牙狼</p><h4>『大奥（下剋上）』</h4><dl><dt>日程</dt><dd>2027年3月31日（水）〜4月4日（日）</dd><dt>劇場</dt><dd>アトリエファンファーレ東池袋</dd></dl></article><article class="next"><span class="no">NEXT STAGE 2</span><p class="org">BSD Presents 本公演</p><h4>『さぶらひ〜侍と人斬り』</h4><dl><dt>日程</dt><dd>2027年9月4日（土）〜9月7日（火）</dd><dt>劇場</dt><dd>シアター風姿花伝</dd></dl></article><article class="next"><span class="no">NEXT STAGE 3</span><p class="org">BSD Presents 特別公演</p><h4>『真田家の復讐』</h4><dl><dt>日程</dt><dd>2028年1月12日（水）〜1月16日（日）</dd><dt>劇場</dt><dd>シアター風姿花伝</dd></dl></article></div>
-    <div class="foot"><img src="../../kizuna-site/assets/logo.webp" alt="宵牙狼">
-      <p><b>BSD presents 宵牙狼公演「家族の絆」</b><br>制作：(同)萬屋天狼 イベント事業部</p></div>
-  </div>
+  <div class="pg"><img class="full" src="bg/back_next.jpg" alt="次回公演のご案内"></div>
   <div class="pg p1"><img src="../../kizuna-site/assets/flyer-front-l.webp" alt="家族の絆"></div>
 </section>
 
 <!-- 中面：左＝3ページ／右＝2ページ（見開き：人物相関図） -->
-<section class="sheet"><img src="sohkanzu.jpg" alt="人物相関図" style="width:100%;height:100%;object-fit:cover;display:block"></section>
+<section class="sheet"><img class="full" src="sohkanzu.jpg" alt="人物相関図"></section>
 </body></html>
