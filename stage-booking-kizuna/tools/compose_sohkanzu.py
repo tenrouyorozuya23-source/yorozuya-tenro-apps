@@ -8,11 +8,11 @@ FONT = S + "/fonts/ShipporiMinchoB1-ExtraBold.ttf"
 C = S + "/sohkan/"
 # グループの中身を置く範囲（元画像 1448×1086 の座標）と、並べる（カード, キャスト名）
 GROUPS = [
-    ((52, 500, 666, 684),  [(C+"16.jpg","幸村 宥弐"),(C+"1.jpg","菜乃華 れみ"),(C+"2.jpg","鶴田 葵")]),
-    ((704, 500, 1400, 684), [(C+"10.jpg","柳瀬 佑太"),(C+"8.jpg","五味川 竜馬"),(C+"9.jpg","石山 将隆"),(C+"13.jpg","天咲 ヒカル"),(C+"12.jpg","尾ケ井 思織"),(None,"磐城 信治")]),
-    ((52, 800, 282, 976),  [(C+"3.jpg","三吉 織乃")]),
-    ((310, 774, 708, 976), [(C+"17.jpg","桑野 結女凜"),(C+"7.jpg","崎本 詩織"),(C+"15.jpg","泉谷 アキヒロ")]),
-    ((742, 774, 1400, 976), [(C+"4.jpg","光藤 隆馬"),(S+"/sk/cards/saya.jpg","岡本 莉瑚"),(C+"5.jpg","屋冨祖 絃貴"),(C+"11.jpg","藤野 めいり"),(C+"14.jpg","森本 真由")]),
+    ((52, 498, 574, 684),  [(C+"16.jpg","幸村 宥弐"),(C+"1.jpg","菜乃華 れみ"),(C+"2.jpg","鶴田 葵")]),
+    ((606, 498, 1400, 684), [(C+"10.jpg","柳瀬 佑太"),(C+"8.jpg","五味川 竜馬"),(C+"9.jpg","石山 将隆"),(C+"13.jpg","天咲 ヒカル"),(C+"12.jpg","尾ケ井 思織"),(None,"磐城 信治")]),
+    ((52, 800, 282, 968),  [(C+"3.jpg","三吉 織乃")]),
+    ((314, 772, 708, 968), [(C+"17.jpg","桑野 結女凜"),(C+"7.jpg","崎本 詩織"),(C+"15.jpg","泉谷 アキヒロ")]),
+    ((742, 772, 1398, 968), [(S+"/sk/cards/kajiwara_v.jpg","光藤 隆馬"),(S+"/sk/cards/saya.jpg","岡本 莉瑚"),(C+"5.jpg","屋冨祖 絃貴"),(S+"/sk/cards/okoi_v.jpg","藤野 めいり"),(C+"14.jpg","森本 真由")]),
 ]
 PLATE_H, GAP_V, GAP_H = 25, 5, 10
 d = ImageDraw.Draw(base)
@@ -43,27 +43,29 @@ for (ax0, ay0, ax1, ay1), items in GROUPS:
             d.rectangle(box, fill=(18, 20, 34), outline=(214, 182, 112), width=max(1, int(.8 * K)))
         plate(x + w / 2, top + h + GAP_V, min(max(w, 100), w + gap - 3), name)
         x += w + gap
-# あらすじ
-ax0, ay0, ax1, ay1 = 128 * K, 254 * K, 1332 * K, 400 * K
-text = "　" + STORY[0] + "\n　" + STORY[1] + "\n" + STORY_LAST
-def layout(fs):
-    f = ImageFont.truetype(FONT, int(fs)); lines = []
-    for para in text.split("\n"):
-        cur = ""
-        for ch in para:
-            if d.textlength(cur + ch, font=f) > ax1 - ax0 and ch not in "。、」』…":
-                lines.append(cur); cur = ch
-            else: cur += ch
-        lines.append(cur)
-    return f, lines
-fs = 22 * K
-while True:
-    f, lines = layout(fs); lh = fs * 1.5
-    if len(lines) * lh <= ay1 - ay0: break
-    fs *= 0.97
+# あらすじ（「あらすじ」の右の空き。句点・読点などの区切りで改行）
+ax0, ay0, ax1, ay1 = 352 * K, 186 * K, 1336 * K, 398 * K
+import re
+def tokens(t):
+    return [x for x in re.split(r"(?<=[。、』])|(?<=……)", t) if x]
+paras = [STORY[0], STORY[1], STORY_LAST]
+best = None
+for fs_ in [v * K for v in (18, 17.5, 17, 16.5, 16, 15.5, 15, 14.5, 14)]:
+    f_ = ImageFont.truetype(FONT, int(fs_)); maxw = ax1 - ax0; L = []
+    for k, ptxt in enumerate(paras):
+        cur = "　" if k < 2 else ""
+        for tk in tokens(ptxt):
+            if d.textlength(cur + tk, font=f_) > maxw and cur.strip():
+                L.append(cur); cur = tk
+            else: cur += tk
+        L.append(cur)
+    if any(d.textlength(x, font=f_) > maxw for x in L): continue
+    if len(L) * fs_ * 1.55 <= ay1 - ay0: best = (fs_, f_, L); break
+fs, f, lines = best; lh = fs * 1.55
 lay = Image.new("L", base.size, 0); ld = ImageDraw.Draw(lay); gold = Image.new("L", base.size, 0); gd = ImageDraw.Draw(gold)
 y = ay0 + ((ay1 - ay0) - len(lines) * lh) / 2
 for i, ln in enumerate(lines):
+    if i == len(lines) - 1: y += lh * 0.15
     (gd if i == len(lines) - 1 else ld).text((ax0, y), ln, font=f, fill=255); y += lh
 both = Image.fromarray(__import__("numpy").maximum(__import__("numpy").array(lay), __import__("numpy").array(gold)))
 base.paste((0, 0, 0), (0, 0) + base.size, both.filter(ImageFilter.MaxFilter(3)).filter(ImageFilter.GaussianBlur(2 * K)).point(lambda p: int(p * .85)))
