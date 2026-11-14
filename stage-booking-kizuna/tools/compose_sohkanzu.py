@@ -11,7 +11,7 @@ GROUPS = [
     ((72, 466, 578, 634),  [(C+"16.jpg","幸村 宥弐"),(C+"1.jpg","菜乃華 れみ"),(C+"2.jpg","鶴田 葵")]),
     ((612, 466, 1372, 634), [(C+"10.jpg","柳瀬 佑太"),(C+"8.jpg","五味川 竜馬"),(C+"9.jpg","石山 将隆"),(C+"13.jpg","天咲 ヒカル"),(C+"12.jpg","尾ケ井 思織"),(S+"/sk/cards/gantetsu_v.jpg","磐城 信治")]),
     ((70, 738, 314, 896),  [(C+"3.jpg","三吉 織乃")]),
-    ((348, 714, 714, 896), [(C+"17.jpg","桑野 結女凜"),(C+"7.jpg","崎本 詩織"),(C+"15.jpg","泉谷 アキヒロ")]),
+    ((348, 714, 750, 896), [(C+"17.jpg","桑野 結女凜"),(C+"7.jpg","崎本 詩織"),(C+"15.jpg","泉谷 アキヒロ")]),
     ((786, 714, 1378, 896), [(S+"/sk/cards/kajiwara_v.jpg","光藤 隆馬"),(S+"/sk/cards/saya.jpg","岡本 莉瑚"),(C+"5.jpg","屋冨祖 絃貴"),(S+"/sk/cards/okoi_v.jpg","藤野 めいり"),(C+"14.jpg","森本 真由")]),
 ]
 PLATE_H, GAP_V, GAP_H = 25, 5, 10
@@ -31,10 +31,10 @@ for (ax0, ay0, ax1, ay1), items in GROUPS:
     h = min(hmax, ((ax1 - ax0) - GAP_H * (len(items) + 1)) / sum(ratios))
     widths = [h * r for r in ratios]
     gap = ((ax1 - ax0) - sum(widths)) / (len(items) + 1)
-    gap = min(gap, 26); total = sum(widths) + gap * (len(items) - 1)
+    gap = min(gap, 34); total = sum(widths) + gap * (len(items) - 1)
     x = ax0 + ((ax1 - ax0) - total) / 2
     # 折り目（ページの中央 x=724）が画像や名前の札にかからないよう、すき間の真ん中に来るまで行をずらす
-    FOLD = 724
+    FOLD = -1   # 折り目は気にせず、各枠の中央にそろえる
     if ax0 < FOLD < ax1:
         plw = [min(max(w_, 100), w_ + gap - 3) for w_ in widths]
         def spans(x0_):
