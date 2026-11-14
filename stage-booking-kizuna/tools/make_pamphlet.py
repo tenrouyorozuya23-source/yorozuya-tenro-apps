@@ -109,10 +109,15 @@ def main():
              + "".join(f"<p>{e(t)}</p>" for t in STORY) + f'<p class="last">{e(STORY_LAST)}</p></div></section>')
     # 中面：完成した人物相関図の画像（pamphlet/sohkanzu.jpg）があれば、それを見開き全面に使う
     if os.path.exists(os.path.join(OUT, "sohkanzu.jpg")):
-        inner = '<section class="sheet"><img src="sohkanzu.jpg" alt="人物相関図" style="width:100%;height:100%;object-fit:cover;display:block"></section>'
+        inner = '<section class="sheet"><img class="full" src="sohkanzu.jpg" alt="人物相関図"></section>'
     else:
         inner = INNER_HTML.format(groups=groups + story)
-    page = TEMPLATE.format(inner=inner, assets=ASSETS, groups=groups + story, decos=decos, nexts=nexts,
+    # 裏表紙：完成した次回公演の画像（pamphlet/bg/back_next.jpg）があれば、それをページ全面に使う
+    if os.path.exists(os.path.join(OUT, "bg", "back_next.jpg")):
+        back = '  <div class="pg"><img class="full" src="bg/back_next.jpg" alt="次回公演のご案内"></div>'
+    else:
+        back = BACK_HTML.format(assets=ASSETS, nexts=nexts)
+    page = TEMPLATE.format(inner=inner, back=back, assets=ASSETS, groups=groups + story, decos=decos, nexts=nexts,
                            waves_l=gold_waves("l"), waves_r=gold_waves("r"))
     os.makedirs(OUT, exist_ok=True)
     open(os.path.join(OUT, "pamphlet.html"), "w", encoding="utf-8").write(page)
@@ -149,7 +154,7 @@ html,body{{background:#555}}
 .waves path{{fill:none;stroke:url(#gg);stroke:var(--gold);stroke-width:.9;opacity:.75}}
 .waves.l{{left:-8mm;bottom:2mm}} .waves.r{{right:-6mm;top:30mm}}
 /* ---- 1ページ：表紙 ---- */
-.p1 img{{width:100%;height:100%;object-fit:cover;display:block}}
+.p1 img,img.full{{position:absolute;left:0;top:0;width:100%;height:100%;object-fit:cover;display:block;transform:scale(1.01);transform-origin:center}}
 /* ---- 4ページ：次回公演 ---- */
 .p4{{padding:22mm 18mm 16mm;color:var(--ink)}}
 .p4 .thanks{{position:relative;z-index:2;text-align:center;font:500 10.5pt/2 var(--serif);letter-spacing:.12em;color:#e9e1cf;margin-bottom:12mm}}
@@ -247,7 +252,16 @@ html,body{{background:#555}}
 
 <!-- 外面：左＝4ページ（裏表紙・次回公演）／右＝1ページ（表紙・チラシ表面） -->
 <section class="sheet">
-  <div class="pg p4 bgimg" style="background-image:url('bg/back_x4.jpg')">
+{back}
+  <div class="pg p1"><img src="{assets}/flyer-front-l.webp" alt="家族の絆"></div>
+</section>
+
+<!-- 中面：左＝3ページ／右＝2ページ（見開き：人物相関図） -->
+{inner}
+</body></html>
+"""
+
+BACK_HTML = """  <div class="pg p4 bgimg" style="background-image:url('bg/back_x4.jpg')">
     <div class="frame"></div>
     <p class="thanks"><b>本日はご来場いただき<br>誠にありがとうございます</b>最後までごゆっくりお楽しみください。</p>
     <h2>次回公演のご案内 <small>NEXT STAGE</small></h2>
@@ -255,12 +269,6 @@ html,body{{background:#555}}
     <div class="foot"><img src="{assets}/logo.webp" alt="宵牙狼">
       <p><b>BSD presents 宵牙狼公演「家族の絆」</b><br>制作：(同)萬屋天狼 イベント事業部</p></div>
   </div>
-  <div class="pg p1"><img src="{assets}/flyer-front-l.webp" alt="家族の絆"></div>
-</section>
-
-<!-- 中面：左＝3ページ／右＝2ページ（見開き：人物相関図） -->
-{inner}
-</body></html>
 """
 
 INNER_HTML = """<section class="sheet bgimg" style="background-image:url('bg/spread_x4.jpg')">

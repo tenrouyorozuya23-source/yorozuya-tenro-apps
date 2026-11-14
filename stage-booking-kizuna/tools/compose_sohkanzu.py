@@ -9,7 +9,7 @@ C = S + "/sohkan/"
 # グループの中身を置く範囲（元画像 1448×1086 の座標）と、並べる（カード, キャスト名）
 GROUPS = [
     ((52, 498, 574, 684),  [(C+"16.jpg","幸村 宥弐"),(C+"1.jpg","菜乃華 れみ"),(C+"2.jpg","鶴田 葵")]),
-    ((606, 498, 1400, 684), [(C+"10.jpg","柳瀬 佑太"),(C+"8.jpg","五味川 竜馬"),(C+"9.jpg","石山 将隆"),(C+"13.jpg","天咲 ヒカル"),(C+"12.jpg","尾ケ井 思織"),(None,"磐城 信治")]),
+    ((606, 498, 1400, 684), [(C+"10.jpg","柳瀬 佑太"),(C+"8.jpg","五味川 竜馬"),(C+"9.jpg","石山 将隆"),(C+"13.jpg","天咲 ヒカル"),(C+"12.jpg","尾ケ井 思織"),(S+"/sk/cards/gantetsu_v.jpg","磐城 信治")]),
     ((52, 800, 282, 968),  [(C+"3.jpg","三吉 織乃")]),
     ((314, 772, 708, 968), [(C+"17.jpg","桑野 結女凜"),(C+"7.jpg","崎本 詩織"),(C+"15.jpg","泉谷 アキヒロ")]),
     ((742, 772, 1398, 968), [(S+"/sk/cards/kajiwara_v.jpg","光藤 隆馬"),(S+"/sk/cards/saya.jpg","岡本 莉瑚"),(C+"5.jpg","屋冨祖 絃貴"),(S+"/sk/cards/okoi_v.jpg","藤野 めいり"),(C+"14.jpg","森本 真由")]),
@@ -33,6 +33,20 @@ for (ax0, ay0, ax1, ay1), items in GROUPS:
     gap = ((ax1 - ax0) - sum(widths)) / (len(items) + 1)
     gap = min(gap, 26); total = sum(widths) + gap * (len(items) - 1)
     x = ax0 + ((ax1 - ax0) - total) / 2
+    # 折り目（ページの中央 x=724）が画像や名前の札にかからないよう、すき間の真ん中に来るまで行をずらす
+    FOLD = 724
+    if ax0 < FOLD < ax1:
+        plw = [min(max(w_, 100), w_ + gap - 3) for w_ in widths]
+        def spans(x0_):
+            xx = x0_; out_ = []
+            for w_, pw_ in zip(widths, plw):
+                c = xx + w_ / 2; out_.append((min(xx, c - pw_ / 2), max(xx + w_, c + pw_ / 2))); xx += w_ + gap
+            return out_
+        sp = spans(x)
+        if any(l - 3 < FOLD < r + 3 for l, r in sp):
+            gaps = [(sp[i][1] + sp[i + 1][0]) / 2 for i in range(len(sp) - 1)]
+            g = min(gaps, key=lambda v: abs(v - FOLD)); nx = x + (FOLD - g)
+            if nx >= ax0 and nx + total <= ax1: x = nx
     top = ay0 + ((ay1 - ay0) - (h + GAP_V + PLATE_H)) / 2
     for im, w, (_, name) in zip(ims, widths, items):
         box = (int(x * K), int(top * K), int((x + w) * K), int((top + h) * K))
