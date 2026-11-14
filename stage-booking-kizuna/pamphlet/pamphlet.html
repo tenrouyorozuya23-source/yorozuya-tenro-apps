@@ -5,14 +5,14 @@
 @font-face{font-family:"Shippori";src:url("fonts/ShipporiMinchoB1-ExtraBold.ttf");font-weight:800}
 @font-face{font-family:"Shippori";src:url("fonts/ShipporiMinchoB1-Medium.ttf");font-weight:500}
 @font-face{font-family:"Corm";src:url("fonts/CormorantGaramond.ttf")}
-@page{size:420mm 297mm;margin:0}
+@page{size:1588px 1123px;margin:0}
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{background:#555}
 .title h1,.title h2,.gh h3,.p4 h2,.p4 .thanks b,.next h4,.p4 .foot p b{letter-spacing:-.08em!important}
 :root{--gold:#d8b76a;--gold-l:#f3dc9c;--gold-d:#8f7443;--ink:#f6efe0;--brush:"Kouzan",serif;--serif:"Shippori",serif;--latin:"Corm",serif}
-.sheet{width:420mm;height:297mm;position:relative;overflow:hidden;display:flex;page-break-after:always;break-after:page;background:#0d0c10}
+.sheet{width:1588px;height:1123px;position:relative;overflow:hidden;display:flex;page-break-after:always;break-after:page;background:#0d0c10}
 .sheet:last-child{page-break-after:auto;break-after:auto}
-.pg{width:210mm;height:297mm;position:relative;overflow:hidden}
+.pg{width:794px;height:1123px;position:relative;overflow:hidden}
 /* 和紙調の暗い地 */
 .bgimg{background-size:cover;background-position:center}
 .paper{background:
@@ -121,7 +121,7 @@ html,body{background:#555}
 .next dt{font:800 8.5pt var(--serif);color:#1b120a;background:linear-gradient(180deg,#f6e2a8,#d8b76a);padding:.4mm 2.5mm;border-radius:.5mm;letter-spacing:.2em}
 .next dd{font:800 11.5pt var(--serif);color:#f6efe0;letter-spacing:.05em}
 @media screen{body{padding:10mm;display:grid;gap:10mm;justify-content:center} .sheet{box-shadow:0 2mm 8mm rgba(0,0,0,.4)}}
-@media print{html,body{background:none}}
+@media print{html,body{background:#0d0c10}}
 </style></head><body>
 
 <!-- 外面：左＝4ページ（裏表紙・次回公演）／右＝1ページ（表紙・チラシ表面） -->
