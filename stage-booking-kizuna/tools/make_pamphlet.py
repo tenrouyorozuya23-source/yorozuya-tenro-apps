@@ -213,7 +213,7 @@ html,body{{background:#555}}
 
 <!-- 外面：左＝4ページ（裏表紙・次回公演）／右＝1ページ（表紙・チラシ表面） -->
 <section class="sheet">
-  <div class="pg p4 bgimg" style="background-image:url('bg/back.webp')">
+  <div class="pg p4 bgimg" style="background-image:url('bg/back_x4.jpg')">
     <div class="frame"></div>
     <p class="thanks"><b>本日はご来場いただき<br>誠にありがとうございます</b>最後までごゆっくりお楽しみください。</p>
     <h2>次回公演のご案内 <small>NEXT STAGE</small></h2>
@@ -225,7 +225,7 @@ html,body{{background:#555}}
 </section>
 
 <!-- 中面：左＝3ページ／右＝2ページ（見開き：人物相関図） -->
-<section class="sheet bgimg" style="background-image:url('bg/spread.webp')">
+<section class="sheet bgimg" style="background-image:url('bg/spread_x4.jpg')">
   <div class="frame"></div>
   <div class="title"><p class="pre">BSD Presents 宵牙狼公演</p><h1>舞台『家族の絆』</h1><h2>人物相関図</h2></div>
   {groups}
