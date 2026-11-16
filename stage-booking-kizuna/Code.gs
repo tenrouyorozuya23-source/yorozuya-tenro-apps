@@ -1754,6 +1754,8 @@ function availabilityText() {
 
 // 予約フォームの「ご希望の公演日時」の説明欄に残席を表示する
 function updateFormAvailability() {
+  // キャンセルの取りこぼしを拾う（1時間ごとの実行時）
+  try { reconcileCancellations(); } catch (err) { Logger.log("キャンセル取りこぼし確認エラー: " + err.message); }
   // 売上管理シートの「席種別の残席」表も一緒に更新（失敗してもフォームの更新は止めない）
   try { writeSeatSummary(); } catch (err) { Logger.log("席種別の残席表の更新エラー: " + err.message); }
   var form = FormApp.openById(PropertiesService.getScriptProperties().getProperty("FORM_ID"));
@@ -1782,7 +1784,7 @@ function setup_availability() {
 //   初回：appsscript.json に oauthScopes（script.projects・script.deployments ほか）を入れ、setup_selfDeploy() を1回実行
 // ============================================================
 // コードの目印（変更のたびに更新すると、?api=version で反映を確認できる）
-var CODE_REVISION = "2026-11-08-remove-photo-upload";
+var CODE_REVISION = "2026-11-16-reconcile-cancel";
 
 var SELF_DEPLOY = {
   repo:   "tenrouyorozuya23-source/yorozuya-tenro-apps",
@@ -1895,7 +1897,8 @@ var MIGRATIONS = [
   { id: "2026-11-06-fix-T002-and-pending-moves",   run: function(){ fixShowTextT002(); updateRemainingSeats(); } },
   { id: "2026-11-06-apply-ss-seat-changes",        run: function(){ applySsOverflowSeatChanges(); } },
   { id: "2026-11-06-R048-back-to-SS",              run: function(){ returnToSsSeat("R-048"); } },
-  { id: "2026-11-06-seat-summary-table",           run: function(){ writeSeatSummary(); } }
+  { id: "2026-11-06-seat-summary-table",           run: function(){ writeSeatSummary(); } },
+  { id: "2026-11-16-reconcile-cancellations",      run: function(){ reconcileCancellations(); } }
 ];
 
 // SS席にキャンセルが出たので、上限超過で S席にご案内した予約を SS席に戻し、お詫びとご案内のメールを「下書き」で作る（送信はしない）
@@ -3887,6 +3890,62 @@ function buildControlPanel() {
 }
 
 // チェックボックスのONで対応する関数を実行するトリガー
+// 予約一覧の1行をキャンセルにする（ステータス変更・グレーアウト・受付表と残席の更新・キャストとお客様への通知・繰り上げ）
+//   すでにキャンセル済みの行は何もしない。戻り値：処理したら true
+function processCancelRow(ss, sheet, row) {
+  var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  var c = {};
+  headers.forEach(function(h, i){
+    h = String(h);
+    if (h === "メールアドレス") c.mail = i + 1;
+    if (h === "席種") c.seat = i + 1;
+    if (h === "枚数") c.count = i + 1;
+    if (h === "ステータス") c.status = i + 1;
+    if (h.indexOf("キャスト") !== -1) c.cast = i + 1;
+    if (h === "予約番号") c.resNo = i + 1;
+    if (h === "お名前") c.name = i + 1;
+    if (h.indexOf("公演") !== -1) c.show = i + 1;
+  });
+  if (!c.status) return false;
+  var v = sheet.getRange(row, 1, 1, sheet.getLastColumn()).getValues()[0];
+  var get = function(k){ return c[k] ? v[c[k] - 1] : ""; };
+  if (String(get("status")) === "キャンセル") return false;
+  sheet.getRange(row, c.status).setValue("キャンセル");
+  sheet.getRange(row, 1, 1, sheet.getLastColumn()).setBackground("#E0E0E0").setFontColor("#888888");
+  var showDt = get("show");
+  if (showDt) {
+    try { updateSingleAttendanceSheet(ss, showDt); } catch (err) {}
+    try { updateRemainingSeats(); } catch (err) {}
+  }
+  var castLabel = get("cast"), guestName = get("name"), resNo = get("resNo");
+  if (castLabel) {
+    try { notifyCancelTocast(castLabel, guestName, resNo, showDt); } catch (err) { Logger.log("キャスト通知エラー: " + err.message); }
+  }
+  try { sendCancelMail(get("mail"), guestName, resNo, showDt, get("seat"), get("count")); }
+  catch (err) { Logger.log("キャンセルメール送信エラー: " + err.message); }
+  if (showDt) { try { promoteWaitlist(showDt); } catch (err) { Logger.log("繰り上げエラー: " + err.message); } }
+  Logger.log("✅ " + resNo + " をキャンセルにしました");
+  return true;
+}
+
+// キャンセル欄にチェックが入っているのにステータスがキャンセルになっていない行を探して、キャンセル処理をやり直す
+//   （編集時の自動処理がまれに動かなかったときの取りこぼし対策。1時間ごとの処理からも呼ぶ）
+function reconcileCancellations() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName("予約一覧");
+  var data = sheet.getDataRange().getValues();
+  var hdr = data[0].map(String), cc = hdr.indexOf("キャンセル"), cs = hdr.indexOf("ステータス");
+  if (cc < 0 || cs < 0) return 0;
+  var n = 0;
+  for (var i = 1; i < data.length; i++) {
+    if (data[i][cc] === true && String(data[i][cs]) !== "キャンセル") {
+      if (processCancelRow(ss, sheet, i + 1)) n++;
+    }
+  }
+  if (n) Logger.log("✅ キャンセルの取りこぼし " + n + " 件を処理しました");
+  return n;
+}
+
 function handleEdit(e) {
   var sheet = e.source.getActiveSheet();
   var row = e.range.getRow();
@@ -3918,45 +3977,9 @@ function handleEdit(e) {
       if (h.indexOf("公演") !== -1)        showCol   = i + 1;
     }
 
-    if (col === cancelCol && row >= 2 && e.value === "TRUE") {
+    if (col === cancelCol && row >= 2 && (e.value === "TRUE" || e.value === undefined && sheet.getRange(row, cancelCol).getValue() === true)) {
       // キャンセルチェックをONにした
-      if (statusCol > 0) {
-        var currentStatus = sheet.getRange(row, statusCol).getValue();
-        if (currentStatus !== "キャンセル") {
-          sheet.getRange(row, statusCol).setValue("キャンセル");
-
-          // 行全体をグレーアウト
-          sheet.getRange(row, 1, 1, sheet.getLastColumn())
-            .setBackground("#E0E0E0").setFontColor("#888888");
-
-          // 該当公演の受付表と残席を更新
-          var showDt = showCol > 0 ? sheet.getRange(row, showCol).getValue() : "";
-          if (showDt) {
-            var ss = e.source;
-            try { updateSingleAttendanceSheet(ss, showDt); } catch(err) {}
-            try { updateRemainingSeats(); } catch(err) {}
-          }
-
-          // 担当キャストにキャンセル通知
-          var castLabel = castCol > 0 ? sheet.getRange(row, castCol).getValue() : "";
-          var guestName = nameCol  > 0 ? sheet.getRange(row, nameCol).getValue()  : "";
-          var resNo     = resNoCol > 0 ? sheet.getRange(row, resNoCol).getValue() : "";
-          if (castLabel) {
-            try { notifyCancelTocast(castLabel, guestName, resNo, showDt); } catch(err) { Logger.log("キャスト通知エラー: " + err.message); }
-          }
-
-          // お客様へキャンセル受付メール
-          var guestMail = mailCol > 0 ? sheet.getRange(row, mailCol).getValue() : "";
-          try {
-            sendCancelMail(guestMail, guestName, resNo, showDt,
-              seatCol  > 0 ? sheet.getRange(row, seatCol).getValue()  : "",
-              countCol > 0 ? sheet.getRange(row, countCol).getValue() : "");
-          } catch(err) { Logger.log("キャンセルメール送信エラー: " + err.message); }
-
-          // 空いた席をキャンセル待ちの方へ繰り上げ（申込順）
-          if (showDt) { try { promoteWaitlist(showDt); } catch(err) { Logger.log("繰り上げエラー: " + err.message); } }
-        }
-      }
+      processCancelRow(e.source, sheet, row);
     } else if (col === cancelCol && row >= 2 && e.value === "FALSE") {
       // キャンセルチェックをOFFにした（キャンセル取り消し）
       if (statusCol > 0) {
