@@ -1755,6 +1755,7 @@ function availabilityText() {
 // 予約フォームの「ご希望の公演日時」の説明欄に残席を表示する
 function updateFormAvailability() {
   // キャンセルの取りこぼしを拾う（1時間ごとの実行時）
+  try { if (normalizeShowTexts()) updateRemainingSeats(); } catch (err) { Logger.log("公演日時の表記確認エラー: " + err.message); }
   try { reconcileCancellations(); } catch (err) { Logger.log("キャンセル取りこぼし確認エラー: " + err.message); }
   // 売上管理シートの「席種別の残席」表も一緒に更新（失敗してもフォームの更新は止めない）
   try { writeSeatSummary(); } catch (err) { Logger.log("席種別の残席表の更新エラー: " + err.message); }
@@ -1784,7 +1785,7 @@ function setup_availability() {
 //   初回：appsscript.json に oauthScopes（script.projects・script.deployments ほか）を入れ、setup_selfDeploy() を1回実行
 // ============================================================
 // コードの目印（変更のたびに更新すると、?api=version で反映を確認できる）
-var CODE_REVISION = "2026-11-16-reconcile-cancel";
+var CODE_REVISION = "2026-11-16-normalize-show";
 
 var SELF_DEPLOY = {
   repo:   "tenrouyorozuya23-source/yorozuya-tenro-apps",
@@ -1898,7 +1899,8 @@ var MIGRATIONS = [
   { id: "2026-11-06-apply-ss-seat-changes",        run: function(){ applySsOverflowSeatChanges(); } },
   { id: "2026-11-06-R048-back-to-SS",              run: function(){ returnToSsSeat("R-048"); } },
   { id: "2026-11-06-seat-summary-table",           run: function(){ writeSeatSummary(); } },
-  { id: "2026-11-16-reconcile-cancellations",      run: function(){ reconcileCancellations(); } }
+  { id: "2026-11-16-reconcile-cancellations",      run: function(){ reconcileCancellations(); } },
+  { id: "2026-11-16-normalize-show-texts",         run: function(){ normalizeShowTexts(); updateRemainingSeats(); updateAttendanceSheets(); } }
 ];
 
 // SS席にキャンセルが出たので、上限超過で S席にご案内した予約を SS席に戻し、お詫びとご案内のメールを「下書き」で作る（送信はしない）
@@ -1996,6 +1998,28 @@ function applySsOverflowSeatChanges() {
 }
 
 // 取り置き T-002 の公演日時が手入力（「12/5土曜日 13時」）で、どの公演にも数えられていなかったのを正しい表記に直す
+// 予約一覧の公演日時が公演の表記と一致しない行（かっこ抜けなど手入力の揺れ）を、日付と開演時刻から正しい表記に直す
+//   例：「12/6(日 18:30」→「12/6(日) 18:30」。1時間ごとの処理からも呼ぶ
+function normalizeShowTexts() {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("予約一覧");
+  var data = sheet.getDataRange().getValues();
+  var cShow = data[0].map(String).indexOf("公演日時");
+  if (cShow < 0) return 0;
+  var key = function(t){
+    var m = String(t).replace(/\s/g, "").match(/^(\d{1,2})\/(\d{1,2}).*?(\d{1,2})[:：時](\d{2})?/);
+    return m ? [+m[1], +m[2], +m[3], +(m[4] || 0)].join("-") : null;
+  };
+  var shows = {}; CONFIG.shows.forEach(function(s){ shows[key(s.dt)] = s.dt; });
+  var n = 0;
+  for (var i = 1; i < data.length; i++) {
+    var v = String(data[i][cShow] || "");
+    if (!v || CONFIG.shows.some(function(s){ return sameShow(v, s.dt); })) continue;
+    var dt = shows[key(v)];
+    if (dt) { sheet.getRange(i + 1, cShow + 1).setValue(dt); n++; Logger.log("✅ 公演日時を直しました：" + v + " → " + dt); }
+  }
+  return n;
+}
+
 function fixShowTextT002() {
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("予約一覧");
   var data = sheet.getDataRange().getValues();
