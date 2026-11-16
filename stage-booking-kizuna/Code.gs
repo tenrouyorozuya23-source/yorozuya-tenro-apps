@@ -34,7 +34,9 @@ var CONFIG = {
     // seatCaps＝この公演だけの席種の上限を変えるときに使う（例 seatCaps: { "S席": 8 }）。無ければ CONFIG.seatTypes の cap
     //   SS席の上限超過分は「移動予定」として変更先の席種（S席／A席）から先に差し引く → pendingSeatMoves()
     { dt: "12/4(金) 18:30", cap: 60 },
-    { dt: "12/5(土) 13:00", cap: 60 },
+    // 12/5 13:00：R-060 のキャンセルで空いた SS席1席は、SS→S に移っていただいた R-079 河原様にご案内中のため新規受付を止める（上限 9）
+    //   河原様が SS席に戻られたら SS席は10席で満席。辞退されたら seatCaps を外す（または R-090 以降の方へご案内）
+    { dt: "12/5(土) 13:00", cap: 60, seatCaps: { "SS席": 9 } },
     { dt: "12/5(土) 18:30", cap: 60 },
     { dt: "12/6(日) 13:00", cap: 60 },
     { dt: "12/6(日) 18:30", cap: 60 },
@@ -1785,7 +1787,7 @@ function setup_availability() {
 //   初回：appsscript.json に oauthScopes（script.projects・script.deployments ほか）を入れ、setup_selfDeploy() を1回実行
 // ============================================================
 // コードの目印（変更のたびに更新すると、?api=version で反映を確認できる）
-var CODE_REVISION = "2026-11-16-normalize-show";
+var CODE_REVISION = "2026-11-16-offer-ss-R079";
 
 var SELF_DEPLOY = {
   repo:   "tenrouyorozuya23-source/yorozuya-tenro-apps",
@@ -1900,7 +1902,8 @@ var MIGRATIONS = [
   { id: "2026-11-06-R048-back-to-SS",              run: function(){ returnToSsSeat("R-048"); } },
   { id: "2026-11-06-seat-summary-table",           run: function(){ writeSeatSummary(); } },
   { id: "2026-11-16-reconcile-cancellations",      run: function(){ reconcileCancellations(); } },
-  { id: "2026-11-16-normalize-show-texts",         run: function(){ normalizeShowTexts(); updateRemainingSeats(); updateAttendanceSheets(); } }
+  { id: "2026-11-16-normalize-show-texts",         run: function(){ normalizeShowTexts(); updateRemainingSeats(); updateAttendanceSheets(); } },
+  { id: "2026-11-16-offer-ss-R079",                run: function(){ offerSsSeatDraft("R-079"); updateRemainingSeats(); } }
 ];
 
 // SS席にキャンセルが出たので、上限超過で S席にご案内した予約を SS席に戻し、お詫びとご案内のメールを「下書き」で作る（送信はしない）
@@ -1942,6 +1945,39 @@ function returnToSsSeat(resNo) {
   updateRemainingSeats();
   updateAttendanceSheets();
   Logger.log("✅ " + resNo + " " + t.name + "：" + seat + " → SS席 に戻しました");
+}
+
+// SS席に空きが出たことをご案内し、SS席へのお戻しをご希望か伺うメールを「下書き」で作る（席種はまだ変えない）
+function offerSsSeatDraft(resNo) {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("予約一覧");
+  var data = sheet.getDataRange().getValues(), hdr = data[0].map(String);
+  var c = function(n){ return hdr.indexOf(n); };
+  for (var i = 1; i < data.length; i++) {
+    if (String(data[i][c("予約番号")]) !== resNo) continue;
+    var r = data[i], mail = String(r[c("メールアドレス")] || "");
+    if (mail.indexOf("@") === -1) { Logger.log("⚠️ " + resNo + " はメールアドレスがありません"); return; }
+    var t = { resNo: resNo, name: String(r[c("お名前")]), show: String(r[c("公演日時")]), count: toSeatCount(r[c("枚数")]) };
+    var ss = getSeatPrice("SS席"), sp = getSeatPrice("S席");
+    var body = t.name + " 様\n\n" +
+      "いつも BSD presents 舞台「" + CONFIG.title + "」を応援いただき、誠にありがとうございます。\n\n" +
+      "先日は、SS席の販売上限超過のため、S席へのご変更をお願いしてしまい大変申し訳ございませんでした。\n" +
+      "このたび、同じ公演のSS席にキャンセルが出て1席空きましたので、お申し込み順にご案内しております。\n\n" +
+      "━━━━━━━━━━━━━━━━━━━━\n" +
+      "予約番号　　：" + t.resNo + "\n" +
+      "公演日時　　：" + t.show + "（開場 " + doorsOpenTime(t.show) + "）\n" +
+      "現在のお座席：S席" + (sp ? "（" + yenText(sp) + "）" : "") + " × " + t.count + "枚\n" +
+      "ご案内のお座席：SS席" + (ss ? "（" + yenText(ss) + "）" : "") + " × " + t.count + "枚（当初のご予約どおり）\n" +
+      "━━━━━━━━━━━━━━━━━━━━\n\n" +
+      "SS席へのお戻しをご希望の場合は、このメールに「SS席を希望」とご返信ください。\n" +
+      "ご返信をいただいた時点で、お座席をSS席に変更いたします。チケット代は当日受付にてSS席の料金を現金でお支払いください。\n" +
+      "このままS席でよろしい場合は、ご返信は不要です（お手数ですが、その旨お知らせいただけますと助かります）。\n\n" +
+      "なお、非売品・役者ブロマイドは、どちらのお座席でも受付にてお渡しいたします。\n" +
+      "お席には限りがございますので、恐れ入りますが数日以内にご返信いただけますと幸いです。\n" +
+      "何卒よろしくお願い申し上げます。";
+    GmailApp.createDraft(mail, "【" + CONFIG.title + "】SS席に空きが出ました（予約番号 " + resNo + "）", withSignature(body), mailOptions());
+    Logger.log("✅ " + resNo + " " + t.name + " 様へのご案内の下書きを作りました");
+    return;
+  }
 }
 
 function returnToSsMailBody(t) {
