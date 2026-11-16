@@ -5,153 +5,120 @@
   preview-*.png            … 確認用画像
 右とじなので、表紙（1ページ）を右に置いて左へめくる。中面は右が2ページ、左が3ページ（見開きで人物相関図）。
 
+構成（クライアント指示 2026/11）
+  1ページ … チラシ表面
+  2・3ページ … 人物相関図（キャスト紹介。グループ名と各グループの目的だけ。物語の説明・関係の言葉は入れない）
+  4ページ … 次回公演の案内（スタッフ欄は載せない）
+
 使い方：  python3 stage-booking-kizuna/tools/make_pamphlet.py
           node stage-booking-kizuna/tools/render_pamphlet.js   （PDF と画像を書き出す）
-配役・グループ・相関・次回公演は下の設定を書き換えて再実行する（いまは「仮」のサンプル）。
+写真（pamphlet/cards/）とフォント（pamphlet/fonts/）は公開リポジトリに入れない（.gitignore）。
 """
 import html, os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from make_cf_site import STAFF, AFFIL, STORY, STORY_LAST, display_casts, DISPLAY_NAME
-from make_links import casts_from_code, ROOT
+from make_links import ROOT
+from make_cf_site import STORY, STORY_LAST
 
 OUT = os.path.join(ROOT, "stage-booking-kizuna", "pamphlet")
-ASSETS = "../../kizuna-site/assets"   # pamphlet.html から見た画像の場所
+ASSETS = "../../kizuna-site/assets"
 e = html.escape
 
-# ---- グループ（色・陣地）：x, y, w, h は中面（A3横 420×297mm）上の位置。x<210 が3ページ（左）、x>210 が2ページ（右） ----
+# ---- グループ：名前・目的（クライアントの言葉どおり）・色・メンバー（キャスト名, 役名, よみ, ひとこと） ----
 GROUPS = {
-    "family": {"name": "山民の家族", "sub": "戦をしない者達", "color": "#5f8f4e", "box": (256, 124, 118, 64)},
-    "guard":  {"name": "護衛団",     "sub": "元・北条家家臣",   "color": "#2f5fa8", "box": (222, 206, 186, 79)},
-    "narita": {"name": "成田家",     "sub": "関ヶ原の爪痕を生きる", "color": "#6d4c9c", "box": (14, 44, 132, 64)},
-    "bandit": {"name": "盗賊団",     "sub": "紅葉を狙う者達",   "color": "#a8322c", "box": (12, 206, 186, 79)},
+    "family": {"name": "山小屋", "aim": "関ヶ原の爪痕の中ひっそり暮らす山小屋の家族", "color": "#b8322a", "brush": "深紅",
+               "members": [("幸村宥弐", "左衛門", "さえもん", "父親"), ("菜乃華れみ", "紅葉", "もみじ", ""),
+                           ("鶴田葵", "奈々", "なな", "母親")]},
+    "guard": {"name": "護衛団", "aim": "流浪の旅人達", "color": "#2f5fb0", "brush": "藍色",
+              "members": [("光藤隆馬", "梶原", "かじわら", ""), ("岡本莉瑚", "鞘", "さや", ""), ("屋冨祖絃貴", "陣", "じん", ""),
+                          ("藤野めいり", "お鯉", "おこい", ""), ("森本真由", "お菊", "おきく", "")]},
+    "fuma": {"name": "風魔忍軍", "aim": "抜け忍", "color": "#6d3f9a", "brush": "紫",
+             "members": [("三吉織乃", "神無月", "かんなづき", "成り上がりを目論む元側室"), ("桑野結女凜", "花蓮", "かれん", ""), ("崎本詩織", "牡丹", "ぼたん", ""), ("泉谷アキヒロ", "奥村", "おくむら", "")]},
+    "bandit": {"name": "盗賊団", "aim": "依頼の元に動く盗賊！", "color": "#a8742a", "brush": "金茶",
+               "members": [("柳瀬佑太", "影山", "かげやま", ""), ("五味川竜馬", "水月", "すいげつ", ""), ("石山将隆", "鬼火", "おにび", ""),
+                           ("天咲ヒカル", "庄司", "しょうじ", ""), ("尾ケ井思織", "雫", "しずく", ""),
+                           ("磐城信治", "巌鉄", "がんてつ", "")]},
 }
-# ---- 配役（仮）：(キャスト名, 役名, グループ, 一言) ※サンプル用の仮の割り振り ----
-ROLES = [
-    ("菜乃華れみ", "紅葉", "family", "山民の娘"),
-    ("光藤隆馬", "左衛門", "family", "紅葉の父"),
-    ("三吉織乃", "奈々", "family", "紅葉の母"),
-    ("磐城信治", "梶原景宗", "guard", "護衛団の長"),
-    ("屋冨祖弦貴", "役名", "guard", ""),
-    ("岡本莉瑚", "役名", "guard", ""),
-    ("桑野結女凜", "役名", "guard", ""),
-    ("崎本詩織", "役名", "guard", ""),
-    ("五味川竜馬", "役名", "guard", ""),
-    ("石山将隆", "成田長泰", "narita", "元・北条家家臣"),
-    ("柳瀬佑太", "役名", "narita", ""),
-    ("藤野めいり", "役名", "narita", ""),
-    ("尾ケ井思織", "役名", "narita", ""),
-    ("天咲ヒカル", "役名", "bandit", "盗賊団の頭"),
-    ("森本真由", "役名", "bandit", ""),
-    ("泉谷アキヒロ", "役名", "bandit", ""),
-    ("幸村宥弐", "役名", "bandit", ""),
-    ("鶴田葵", "役名", "bandit", ""),
+# 中面（420×297mm）の配置：ページごとの領域（x, y, w, h）と、上から並べるグループ（キー, 1行のカード数, カード幅mm）
+#   枠の大きさは中身に合わせて自動。グループの間隔は領域の中で均等に割り付ける
+#   左ページ上部は背景の満月と城を見せるため空けておく
+PAGES = [
+    ((12, 84, 186, 204), [("fuma", 4, 32), ("bandit", 3, 30)]),
+    ((222, 122, 186, 166), [("family", 3, 37), ("guard", 5, 31)]),
 ]
-# ---- 相関の矢印：(from, to, 文字, 色, 両方向か, 曲がり具合)  from/to は "g:グループ" か 役の番号（ROLES の 0 始まり） ----
-LINKS = [
-    ("g:bandit", 0, "命を狙う", "#a8322c", False, -30),
-    (3, 0, "守る", "#2f5fa8", False, 0),
-    ("g:family", "g:guard", "一宿一飯の恩義", "#5f8f4e", False, 0),
-    (3, 9, "元・北条家の同志", "#8f7443", True, 25),
-    ("g:bandit", "g:guard", "対立", "#a8322c", True, 0),
-    ("g:narita", "g:bandit", "？", "#6d4c9c", False, 0),
-]
-# ---- 次回公演（4件・仮） ----
+STORY_BOX = (314, 14, 94, 96)   # あらすじ（右ページ右上・タイトルの右）x, y, w, h
+# ---- 次回公演（3公演） ----
 NEXT_SHOWS = [
-    {"title": "公演タイトル", "date": "2027年○月○日（○）〜○日（○）", "venue": "劇場名", "org": "主催団体名"},
-    {"title": "公演タイトル", "date": "2027年○月○日（○）〜○日（○）", "venue": "劇場名", "org": "主催団体名"},
-    {"title": "公演タイトル", "date": "2027年○月○日（○）〜○日（○）", "venue": "劇場名", "org": "主催団体名"},
-    {"title": "公演タイトル", "date": "2027年○月○日（○）〜○日（○）", "venue": "劇場名", "org": "主催団体名"},
+    {"org": "宵牙狼", "title": "『大奥（下剋上）』", "date": "2027年3月31日（水）〜4月4日（日）", "venue": "アトリエファンファーレ東池袋"},
+    {"org": "BSD Presents 本公演", "title": "『さぶらひ〜侍と人斬り』", "date": "2027年9月4日（土）〜9月7日（火）", "venue": "シアター風姿花伝"},
+    {"org": "BSD Presents 特別公演", "title": "『真田家の復讐』", "date": "2028年1月12日（水）〜1月16日（日）", "venue": "シアター風姿花伝"},
 ]
-SAMPLE_NOTE = "※サンプル：役名・配役・グループ・相関・次回公演は仮の内容です"
 
-CARD_W, PHOTO_H, CARD_H = 26, 34, 47   # キャストカード（mm）
-
-
-def layout_cards(photo_no):
-    """各グループの陣地の中にカードを横一列に並べる → [(x, y)]（ROLES の順）"""
-    pos = [None] * len(ROLES)
-    for g, gv in GROUPS.items():
-        idx = [i for i, r in enumerate(ROLES) if r[2] == g]
-        x0, y0, w, h = gv["box"]
-        gap = min(8, (w - 8 - CARD_W * len(idx)) / max(1, len(idx) - 1)) if len(idx) > 1 else 0
-        total = CARD_W * len(idx) + gap * (len(idx) - 1)
-        sx = x0 + (w - total) / 2
-        for k, i in enumerate(idx):
-            pos[i] = (sx + k * (CARD_W + gap), y0 + 9 + (h - 9 - CARD_H) / 2)
-    return pos
+SAKURA = ('<svg viewBox="-12 -12 24 24"><g fill="{c}" stroke="#7a2b3a" stroke-width=".35">' +
+          "".join(f'<path transform="rotate({a})" d="M0,0 C-3.6,-3 -3.4,-8.6 -1.1,-10.6 L0,-9.2 L1.1,-10.6 C3.4,-8.6 3.6,-3 0,0 Z"/>'
+                  for a in (0, 72, 144, 216, 288)) +
+          '</g><circle r="1.6" fill="#f7d36b"/></svg>')
+MAPLE = ('<svg viewBox="-12 -12 24 24"><path fill="{c}" d="M0,-11 L2,-5 L6,-8 L5,-3 L11,-3 L7,0 L9,4 L3,2 L1,6 L0,11 L-1,6 L-3,2 L-9,4 L-7,0 L-11,-3 L-5,-3 L-6,-8 L-2,-5 Z"/></svg>')
 
 
-def anchor(ref, pos):
-    """矢印の端点に使う中心と半径（箱）"""
-    if isinstance(ref, str) and ref.startswith("g:"):
-        x, y, w, h = GROUPS[ref[2:]]["box"]
-        return (x + w / 2, y + h / 2, w / 2, h / 2)
-    x, y = pos[ref]
-    return (x + CARD_W / 2, y + CARD_H / 2, CARD_W / 2 + 1.5, CARD_H / 2 + 1.5)
+def deco(kind, x, y, size, rot=0, color=None):
+    svg = (SAKURA if kind == "s" else MAPLE).replace("{c}", color or ("#f4b8c8" if kind == "s" else "#c8361f"))
+    return f'<div class="deco" style="left:{x}mm;top:{y}mm;width:{size}mm;height:{size}mm;transform:rotate({rot}deg)">{svg}</div>'
 
 
-def clip(cx, cy, hw, hh, tx, ty):
-    """箱の中心から (tx,ty) へ向かう線が箱の縁と交わる点"""
-    dx, dy = tx - cx, ty - cy
-    if dx == 0 and dy == 0:
-        return cx, cy
-    s = min(hw / abs(dx) if dx else 1e9, hh / abs(dy) if dy else 1e9)
-    return cx + dx * s, cy + dy * s
+def group_html(key, per_row, cw):
+    g = GROUPS[key]
+    ms = g["members"]
+    cards = "".join(
+        f'<figure class="card"{" data-main" if role == "紅葉" else ""} style="width:{cw + (4 if role == "紅葉" else 0)}mm">'
+        f'<div class="ph"><img src="cards/{e(cast)}.jpg" alt=""></div>'
+        f'<figcaption><span class="yomi">（{e(yomi)}）</span><b>{e(cast)}</b>' + (f'<i>{e(note)}</i>' if note else "") +
+        '</figcaption></figure>'
+        for cast, role, yomi, note in ms)
+    return (f'<section class="grp" style="--c:{g["color"]}">'
+            f'<div class="gh"><h3 style="background-image:url(\'bg/brush_{g["brush"]}.png\')">{e(g["name"])}</h3><p>{e(g["aim"])}</p></div>'
+            f'<div class="cards" style="width:{per_row * cw + (per_row - 1) * 3.5 + 4}mm">{cards}</div></section>')
 
 
-def links_svg(pos):
-    out = []
-    for i, (a, b, label, color, both, bend) in enumerate(LINKS):
-        ax, ay, aw, ah = anchor(a, pos)
-        bx, by, bw, bh = anchor(b, pos)
-        p1 = clip(ax, ay, aw + 1, ah + 1, bx, by)
-        p2 = clip(bx, by, bw + 1.5, bh + 1.5, ax, ay)
-        mx, my = (p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2
-        # 曲げ：線に垂直な方向へ bend mm
-        dx, dy = p2[0] - p1[0], p2[1] - p1[1]
-        ln = (dx * dx + dy * dy) ** .5 or 1
-        cx, cy = mx - dy / ln * bend, my + dx / ln * bend
-        lx, ly = (p1[0] + 2 * cx + p2[0]) / 4, (p1[1] + 2 * cy + p2[1]) / 4   # 曲線の中点
-        mk = f"m{i}"
-        out.append(f'<marker id="{mk}" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4.2" markerHeight="4.2" orient="auto-start-reverse">'
-                   f'<path d="M0,0 L10,5 L0,10 z" fill="{color}"/></marker>')
-        out.append(f'<path d="M{p1[0]:.1f},{p1[1]:.1f} Q{cx:.1f},{cy:.1f} {p2[0]:.1f},{p2[1]:.1f}" fill="none" stroke="{color}" '
-                   f'stroke-width=".9" marker-end="url(#{mk})"' + (f' marker-start="url(#{mk})"' if both else "") + '/>')
-        tw = 3.6 * len(label) + 5
-        out.append(f'<g class="lbl"><rect x="{lx - tw / 2:.1f}" y="{ly - 3.6:.1f}" width="{tw:.1f}" height="7.2" rx="3.6" fill="#fffaf0" stroke="{color}" stroke-width=".5"/>'
-                   f'<text x="{lx:.1f}" y="{ly + 1.35:.1f}" fill="{color}">{e(label)}</text></g>')
-    return '<svg class="links" viewBox="0 0 420 297" width="420mm" height="297mm">' + "".join(out) + "</svg>"
+def gold_waves(side):
+    paths = []
+    for i in range(5):
+        o = i * 4
+        paths.append(f'<path d="M0,{40+o} C30,{20+o} 50,{60+o} 90,{35+o} S150,{10+o} 200,{30+o}" />')
+    flip = ' transform="scale(-1,1) translate(-200,0)"' if side == "r" else ""
+    return f'<svg class="waves {side}" viewBox="0 0 200 80"><g{flip}>{"".join(paths)}</g></svg>'
 
 
 def main():
-    group, casts = casts_from_code()
-    photo = {DISPLAY_NAME.get(n, n): i for i, n in enumerate(casts, 1)}   # 表示名 → 写真の番号
-    missing = [r[0] for r in ROLES if r[0] not in photo]
-    if missing:
-        sys.exit("写真が見つからないキャスト: " + "、".join(missing))
-    pos = layout_cards(photo)
-
-    zones = "".join(
-        f'<div class="zone" style="left:{x}mm;top:{y}mm;width:{w}mm;height:{h}mm;--c:{g["color"]}">'
-        f'<div class="zname"><b>{e(g["name"])}</b><span>{e(g["sub"])}</span></div></div>'
-        for g in GROUPS.values() for (x, y, w, h) in [g["box"]])
-    cards = "".join(
-        f'<figure class="card" style="left:{x:.1f}mm;top:{y:.1f}mm;--c:{GROUPS[g]["color"]}">'
-        f'<img src="{ASSETS}/cast/{photo[n]:02d}.webp" alt="">'
-        f'<figcaption><b>{e(role)}</b><span>{e(n)}</span>' + (f'<i>{e(note)}</i>' if note else "") + '</figcaption></figure>'
-        for (n, role, g, note), (x, y) in zip(ROLES, pos))
-    legend = "".join(f'<li style="--c:{g["color"]}">{e(g["name"])}</li>' for g in GROUPS.values())
-    story = "".join(f"<p>{e(p)}</p>" for p in STORY) + f'<p class="last">{e(STORY_LAST)}</p>'
-    staff = "".join(f"<div><dt>{e(r)}</dt><dd>{e(n)}</dd></div>" for r, n in STAFF)
-    cast_list = "".join(f'<li>{e(DISPLAY_NAME.get(n, n))}' + (f'<small>（{e(AFFIL[n])}）</small>' if n in AFFIL else "") + '</li>'
-                        for _, n in display_casts(casts))
+    groups = "".join(
+        f'<div class="col" style="left:{x}mm;top:{y}mm;width:{w}mm;height:{h}mm">' + "".join(group_html(*gr) for gr in grs) + '</div>'
+        for (x, y, w, h), grs in PAGES)
+    decos = "".join([
+        deco("s", 4, 6, 12, 10), deco("s", 15, 3, 8, 40), deco("s", 9, 17, 7, 70), deco("s", 24, 9, 5, 15),
+        deco("m", 30, 4, 7, -20), deco("m", 3, 26, 6, 25),
+        deco("s", 404, 278, 12, 20), deco("s", 395, 287, 8, 50), deco("s", 410, 266, 6, 5),
+        deco("m", 388, 279, 7, 30), deco("m", 412, 255, 5, -15),
+        deco("m", 357, 33, 7, 10), deco("m", 365, 28, 5, -30), deco("m", 352, 26, 4, 40),
+    ])
     nexts = "".join(
-        f'<article class="next"><div class="ph">フライヤー画像</div><div class="tx">'
-        f'<span class="no">NEXT {i}</span><h4>{e(s["title"])}</h4><p>{e(s["date"])}</p><p>{e(s["venue"])}</p><p class="org">{e(s["org"])}</p>'
-        f'</div><div class="qr">QR</div></article>'
+        f'<article class="next"><span class="no">NEXT STAGE {i}</span><p class="org">{e(s["org"])}</p><h4>{e(s["title"])}</h4>'
+        f'<dl><dt>日程</dt><dd>{e(s["date"])}</dd><dt>劇場</dt><dd>{e(s["venue"])}</dd></dl></article>'
         for i, s in enumerate(NEXT_SHOWS, 1))
-    page = TEMPLATE.format(assets=ASSETS, zones=zones, cards=cards, links=links_svg(pos), legend=legend, story=story,
-                           staff=staff, cast_list=cast_list, nexts=nexts, note=e(SAMPLE_NOTE))
+    sx, sy, sw, sh = STORY_BOX
+    story = (f'<section class="story" style="left:{sx}mm;top:{sy}mm;width:{sw}mm;height:{sh}mm">'
+             f'<h3>あらすじ</h3><div class="tx">'
+             + "".join(f"<p>{e(t)}</p>" for t in STORY) + f'<p class="last">{e(STORY_LAST)}</p></div></section>')
+    # 中面：完成した人物相関図の画像（pamphlet/sohkanzu.jpg）があれば、それを見開き全面に使う
+    if os.path.exists(os.path.join(OUT, "sohkanzu.jpg")):
+        inner = '<section class="sheet"><img class="full" src="sohkanzu.jpg" alt="人物相関図"></section>'
+    else:
+        inner = INNER_HTML.format(groups=groups + story)
+    # 裏表紙：完成した次回公演の画像（pamphlet/bg/back_next.jpg）があれば、それをページ全面に使う
+    if os.path.exists(os.path.join(OUT, "bg", "back_next.jpg")):
+        back = '  <div class="pg"><img class="full" src="bg/back_next.jpg" alt="次回公演のご案内"></div>'
+    else:
+        back = BACK_HTML.format(assets=ASSETS, nexts=nexts)
+    page = TEMPLATE.format(inner=inner, back=back, assets=ASSETS, groups=groups + story, decos=decos, nexts=nexts,
+                           waves_l=gold_waves("l"), waves_r=gold_waves("r"))
     os.makedirs(OUT, exist_ok=True)
     open(os.path.join(OUT, "pamphlet.html"), "w", encoding="utf-8").write(page)
     print("wrote stage-booking-kizuna/pamphlet/pamphlet.html")
@@ -159,117 +126,158 @@ def main():
 
 TEMPLATE = """<!DOCTYPE html>
 <html lang="ja"><head><meta charset="utf-8"><title>家族の絆 当日パンフレット</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Noto+Serif+JP:wght@500;600;700&family=Shippori+Mincho+B1:wght@500;700;800&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=block">
 <style>
-@page{{size:420mm 297mm;margin:0}}
+@font-face{{font-family:"Kouzan";src:url("fonts/KouzanMouhituFontOTF.otf")}}
+@font-face{{font-family:"Shippori";src:url("fonts/ShipporiMinchoB1-ExtraBold.ttf");font-weight:800}}
+@font-face{{font-family:"Shippori";src:url("fonts/ShipporiMinchoB1-Medium.ttf");font-weight:500}}
+@font-face{{font-family:"Corm";src:url("fonts/CormorantGaramond.ttf")}}
+@page{{size:1588px 1123px;margin:0}}
 *{{box-sizing:border-box;margin:0;padding:0}}
 html,body{{background:#555}}
-:root{{--navy:#08122a;--navy2:#0f1f45;--gold:#c9a96a;--gold-l:#e6cd95;--gold-d:#8f7443;--paper:#f6f0e3;--ink:#1b2340;
-  --serif:"Shippori Mincho B1","Noto Serif JP",serif;--num:"Noto Serif JP",serif;--latin:"Cormorant Garamond",serif;--sans:"Zen Kaku Gothic New",sans-serif}}
-.sheet{{width:420mm;height:297mm;position:relative;overflow:hidden;display:flex;page-break-after:always;break-after:page;background:#fff}}
+.title h1,.title h2,.gh h3,.p4 h2,.p4 .thanks b,.next h4,.p4 .foot p b{{letter-spacing:-.08em!important}}
+:root{{--gold:#d8b76a;--gold-l:#f3dc9c;--gold-d:#8f7443;--ink:#f6efe0;--brush:"Kouzan",serif;--serif:"Shippori",serif;--latin:"Corm",serif}}
+.sheet{{width:1590px;height:1125px;position:relative;overflow:hidden;display:flex;page-break-after:always;break-after:page;background:#0d0c10}}
 .sheet:last-child{{page-break-after:auto;break-after:auto}}
-.pg{{width:210mm;height:297mm;position:relative;overflow:hidden}}
-.pno{{position:absolute;bottom:7mm;font:500 8pt var(--latin);letter-spacing:.2em;color:var(--gold-d)}}
-.pg.l .pno{{left:12mm}} .pg.r .pno{{right:12mm}}
-
-/* ---- 1ページ：表紙（フライヤー表面） ---- */
-.p1{{background:var(--navy)}}
-.p1 img{{width:100%;height:100%;object-fit:cover;display:block}}
-
-/* ---- 4ページ：裏表紙（スタッフ・次回公演） ---- */
-.p4{{background:radial-gradient(120% 80% at 50% 0%,#132657 0%,var(--navy) 60%);color:#f3ede1;padding:14mm 14mm 12mm}}
-.p4::before{{content:"";position:absolute;inset:6mm;border:.35mm solid rgba(201,169,106,.5);pointer-events:none}}
-.p4::after{{content:"";position:absolute;inset:7.4mm;border:.15mm solid rgba(201,169,106,.3);pointer-events:none}}
-.h{{font:700 15pt var(--serif);letter-spacing:.3em;color:var(--gold-l);display:flex;align-items:center;gap:4mm;margin-bottom:5mm}}
-.h small{{font:italic 500 10pt var(--latin);letter-spacing:.25em;color:var(--gold)}}
-.h::after{{content:"";flex:1;height:.25mm;background:linear-gradient(90deg,var(--gold),transparent)}}
-.thanks{{text-align:center;font:500 10pt/1.9 var(--serif);color:#e9e1cf;margin:3mm 0 7mm;letter-spacing:.1em}}
-.thanks b{{display:block;font:700 13pt var(--serif);color:var(--gold-l);letter-spacing:.25em;margin-bottom:1mm}}
-.staff{{display:grid;grid-template-columns:1fr 1fr;gap:1.6mm 8mm;margin-bottom:5mm}}
-.staff div{{display:flex;align-items:baseline;gap:3mm;border-bottom:.15mm dotted rgba(201,169,106,.45);padding-bottom:1.2mm}}
-.staff dt{{font:500 8pt var(--sans);color:var(--gold);width:20mm;letter-spacing:.1em}}
-.staff dd{{font:700 10.5pt var(--serif);letter-spacing:.08em}}
-.castlist{{list-style:none;display:flex;flex-wrap:wrap;gap:1.2mm 4.5mm;font:700 9.5pt var(--serif);margin-bottom:8mm}}
-.castlist small{{font:500 6.5pt var(--sans);color:#a3aecb;margin-left:.5mm}}
-.nexts{{display:grid;grid-template-columns:1fr 1fr;gap:4mm}}
-.next{{display:grid;grid-template-columns:24mm 1fr;grid-template-rows:1fr auto;gap:0 3.5mm;background:rgba(15,31,69,.85);border:.25mm solid rgba(201,169,106,.45);padding:3mm;height:48mm}}
-.next .ph{{grid-row:1/3;background:repeating-linear-gradient(45deg,#1a2b55 0 2mm,#15244a 2mm 4mm);border:.2mm solid rgba(201,169,106,.35);display:flex;align-items:center;justify-content:center;font:500 6.5pt var(--sans);color:#a3aecb;writing-mode:vertical-rl}}
+.pg{{width:795px;height:1125px;position:relative;overflow:hidden}}
+/* 和紙調の暗い地 */
+.bgimg{{background-size:cover;background-position:center}}
+.paper{{background:
+  radial-gradient(70% 55% at 30% 35%,rgba(120,105,90,.28),transparent 70%),
+  radial-gradient(60% 60% at 75% 70%,rgba(110,95,85,.22),transparent 70%),
+  radial-gradient(100% 100% at 50% 50%,#2a2622 0%,#121014 75%);}}
+.paper::before{{content:"";position:absolute;inset:0;opacity:.35;mix-blend-mode:overlay;pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)'/%3E%3C/svg%3E")}}
+.frame{{position:absolute;inset:5mm;border:.5mm solid var(--gold);box-shadow:0 0 0 .8mm rgba(216,183,106,.25),inset 0 0 0 1.2mm rgba(0,0,0,.4),inset 0 0 0 1.5mm rgba(216,183,106,.55);pointer-events:none;z-index:3}}
+.deco{{position:absolute;z-index:4;filter:drop-shadow(0 .4mm .6mm rgba(0,0,0,.6))}}
+.deco svg{{width:100%;height:100%;display:block}}
+.waves{{position:absolute;width:120mm;height:48mm;z-index:1;opacity:.8}}
+.waves path{{fill:none;stroke:url(#gg);stroke:var(--gold);stroke-width:.9;opacity:.75}}
+.waves.l{{left:-8mm;bottom:2mm}} .waves.r{{right:-6mm;top:30mm}}
+/* ---- 1ページ：表紙 ---- */
+.p1 img,img.full{{position:absolute;left:0;top:0;width:100%;height:100%;object-fit:cover;display:block;transform:scale(1.01);transform-origin:center}}
+/* ---- 4ページ：次回公演 ---- */
+.p4{{padding:22mm 18mm 16mm;color:var(--ink)}}
+.p4 .thanks{{position:relative;z-index:2;text-align:center;font:500 10.5pt/2 var(--serif);letter-spacing:.12em;color:#e9e1cf;margin-bottom:12mm}}
+.p4 .thanks b{{display:block;font:400 22pt/1.4 var(--brush);color:var(--gold-l);letter-spacing:.12em;margin-bottom:2mm;text-shadow:0 .6mm 1.5mm #000}}
+.p4 h2{{position:relative;z-index:2;display:flex;align-items:center;gap:4mm;font:400 20pt var(--brush);color:#fff;letter-spacing:.2em;margin-bottom:7mm}}
+.p4 h2 small{{font:italic 500 11pt var(--latin);letter-spacing:.3em;color:var(--gold)}}
+.p4 h2::after{{content:"";flex:1;height:.3mm;background:linear-gradient(90deg,var(--gold),transparent)}}
+.nexts{{position:relative;z-index:2;display:grid;grid-template-columns:1fr 1fr;gap:6mm}}
+.next{{display:grid;grid-template-columns:30mm 1fr;grid-template-rows:1fr auto;gap:0 4mm;padding:4mm;height:64mm;
+  background:linear-gradient(160deg,rgba(60,40,30,.55),rgba(10,10,14,.75));border:.4mm solid rgba(216,183,106,.7);box-shadow:inset 0 0 0 .8mm rgba(0,0,0,.5),inset 0 0 0 1mm rgba(216,183,106,.3)}}
+.next .ph{{grid-row:1/3;background:repeating-linear-gradient(45deg,#2a2420 0 2mm,#221d1a 2mm 4mm);border:.3mm solid rgba(216,183,106,.4);display:flex;align-items:center;justify-content:center;font:500 7pt var(--serif);color:#a99f8c;writing-mode:vertical-rl}}
 .next .no{{font:600 8pt var(--latin);letter-spacing:.25em;color:var(--gold)}}
-.next h4{{font:800 12pt var(--serif);color:var(--gold-l);margin:.6mm 0 1.2mm;letter-spacing:.06em}}
-.next p{{font:500 7.6pt/1.55 var(--num);color:#e9e1cf}}
-.next p.org{{color:#a3aecb;font-size:7pt}}
-.next .qr{{justify-self:end;align-self:end;width:13mm;height:13mm;background:#fff;color:#8a8a8a;font:600 6pt var(--sans);display:flex;align-items:center;justify-content:center;grid-column:2}}
-.foot{{position:absolute;left:14mm;right:14mm;bottom:12mm;display:flex;align-items:flex-end;justify-content:space-between}}
-.foot img{{height:17mm}}
-.foot p{{font:500 7.2pt/1.7 var(--sans);color:#c9cfdf;text-align:right}}
-.foot p b{{font:700 8.5pt var(--serif);color:var(--gold-l);letter-spacing:.1em}}
-
-/* ---- 中面（2・3ページ）：あらすじ＋人物相関図 ---- */
-.inner{{background:var(--paper);color:var(--ink)}}
-.inner::before{{content:"";position:absolute;inset:0;background:
-  radial-gradient(60% 50% at 75% 20%,rgba(201,169,106,.16),transparent 70%),
-  radial-gradient(50% 60% at 15% 80%,rgba(143,116,67,.10),transparent 70%);pointer-events:none}}
-.inner .frame{{position:absolute;inset:6mm;border:.35mm solid var(--gold);pointer-events:none}}
-.inner .fold{{position:absolute;left:210mm;top:0;bottom:0;border-left:.2mm dashed rgba(143,116,67,.25)}}
-.story{{position:absolute;left:222mm;top:14mm;width:188mm;height:100mm;writing-mode:vertical-rl}}
-.story h2{{font:800 20pt var(--serif);letter-spacing:.5em;color:var(--navy);padding-left:4mm;margin-left:5mm;border-left:.3mm solid var(--gold)}}
-.story h2 small{{display:block;font:italic 500 10pt var(--latin);letter-spacing:.3em;color:var(--gold-d);margin-top:4mm}}
-.story .tx{{font:500 9.6pt/1.95 var(--serif);text-align:justify;letter-spacing:.04em}}
+.next h4{{font:400 15pt var(--brush);color:#fff;margin:1mm 0 2mm;letter-spacing:.06em}}
+.next p{{font:500 8pt/1.6 var(--serif);color:#e9e1cf}}
+.next p.org{{color:#b9ad95;font-size:7.4pt}}
+.next .qr{{justify-self:end;align-self:end;width:16mm;height:16mm;background:#fff;color:#8a8a8a;font:600 6pt sans-serif;display:flex;align-items:center;justify-content:center;grid-column:2}}
+.p4 .foot{{position:absolute;left:18mm;right:18mm;bottom:15mm;z-index:2;display:flex;align-items:flex-end;justify-content:space-between}}
+.p4 .foot img{{height:20mm}}
+.p4 .foot p{{font:500 8pt/1.7 var(--serif);color:#cfc6b3;text-align:right}}
+.p4 .foot p b{{font:400 11pt var(--brush);color:var(--gold-l);letter-spacing:.1em}}
+/* ---- 中面：人物相関図 ---- */
+.moon{{position:absolute;left:126mm;top:9mm;width:40mm;height:40mm;border-radius:50%;z-index:2;
+  background:radial-gradient(circle at 40% 38%,#fffdf2 0%,#fbefcc 40%,#e9d29a 75%,#cfae6a 100%);
+  box-shadow:0 0 8mm 3mm rgba(255,236,180,.35),0 0 22mm 10mm rgba(255,220,150,.12)}}
+.moon::after{{content:"";position:absolute;inset:0;border-radius:50%;opacity:.35;
+  background:radial-gradient(circle at 30% 60%,rgba(170,140,90,.6) 0 9%,transparent 10%),radial-gradient(circle at 62% 35%,rgba(170,140,90,.5) 0 7%,transparent 8%),radial-gradient(circle at 58% 70%,rgba(170,140,90,.45) 0 12%,transparent 13%)}}
+.title{{position:absolute;left:222mm;right:12mm;top:11mm;z-index:5;text-align:center}}
+.title .pre{{font:500 9.5pt var(--serif);letter-spacing:.25em;color:#efe6d0}}
+.title h1{{font:400 36pt/1.15 var(--brush);letter-spacing:0;margin-top:1mm;
+  background:linear-gradient(180deg,#fff6d8 0%,#f0d58c 45%,#b88a3a 100%);-webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 .5mm .8mm rgba(0,0,0,.9))}}
+.title h2{{display:inline-block;margin-top:1mm;padding:3mm 16mm 3.2mm;font:400 18pt var(--brush);color:#fff;
+  background:url("bg/brush_深紅.png") center/100% 100% no-repeat;text-shadow:0 .4mm 1mm #000,0 0 2mm rgba(0,0,0,.6)}}
+.story{{position:absolute;z-index:5;padding:4mm 5mm 3mm;background:linear-gradient(180deg,rgba(30,40,30,.5),rgba(14,10,9,.62));
+  border:.5mm solid color-mix(in srgb,#2e6b4a 45%,#f3dc9c);border-radius:1.2mm;box-shadow:0 0 3mm rgba(46,107,74,.6),inset 0 0 0 .9mm rgba(0,0,0,.45),inset 0 0 0 1.2mm color-mix(in srgb,#2e6b4a 40%,#d8b76a)}}
+.story h3{{position:absolute;right:-3mm;top:-8mm;font:400 17pt var(--brush);color:#fff;padding:2.6mm 12mm 3mm 10mm;
+  background:center/100% 100% no-repeat;text-shadow:0 .4mm 1mm #000,0 0 2mm rgba(0,0,0,.6);letter-spacing:-.08em}}
+.story .tx{{writing-mode:vertical-rl;height:100%;width:100%;overflow:hidden;font:500 9.2pt/1.85 var(--serif);color:#f3ecdc;text-align:justify;letter-spacing:.03em;text-shadow:0 .2mm .5mm #000;padding-top:1.5mm}}
 .story .tx p{{text-indent:1em}}
-.story .tx p.last{{font-weight:800;color:#a8322c;text-indent:0;margin-right:3mm;font-size:11pt}}
-.chart-h{{position:absolute;left:14mm;top:13mm;display:flex;align-items:baseline;gap:4mm}}
-.chart-h h2{{font:800 20pt var(--serif);letter-spacing:.35em;color:var(--navy)}}
-.chart-h small{{font:italic 500 11pt var(--latin);letter-spacing:.3em;color:var(--gold-d)}}
-.legend{{position:absolute;left:150mm;top:16mm;list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:1mm 4mm;font:700 7.5pt var(--sans)}}
-.legend li{{display:flex;align-items:center;gap:1.5mm}}
-.legend li::before{{content:"";width:3.2mm;height:3.2mm;border-radius:.6mm;background:var(--c)}}
-.zone{{position:absolute;border:.45mm solid var(--c);border-radius:3mm;background:color-mix(in srgb,var(--c) 9%,transparent)}}
-.zname{{position:absolute;left:-.45mm;top:-.45mm;background:var(--c);color:#fff;border-radius:3mm 0 3mm 0;padding:1mm 3mm;display:flex;align-items:baseline;gap:2mm}}
-.zname b{{font:800 10pt var(--serif);letter-spacing:.2em}}
-.zname span{{font:500 6.5pt var(--sans);opacity:.9}}
-.links{{position:absolute;left:0;top:0;overflow:visible}}
-.links text{{font:700 3.3px var(--sans);text-anchor:middle;letter-spacing:.1px}}
-.card{{position:absolute;width:{card_w}mm}}
-.card img{{display:block;width:{card_w}mm;height:{photo_h}mm;object-fit:cover;border:.5mm solid var(--c);border-radius:1.2mm;background:#ddd;box-shadow:0 .6mm 1.6mm rgba(0,0,0,.18)}}
-.card figcaption{{text-align:center;margin-top:1mm;line-height:1.25}}
-.card b{{display:block;font:800 9pt var(--serif);color:var(--c);letter-spacing:.04em;white-space:nowrap}}
-.card span{{display:block;font:700 6.6pt var(--sans);color:var(--ink);white-space:nowrap}}
-.card i{{display:block;font:500 5.6pt var(--sans);font-style:normal;color:#6b6b67;white-space:nowrap}}
-.note{{position:absolute;left:14mm;bottom:8.5mm;font:500 6.5pt var(--sans);color:#a8322c}}
+.story .tx p.last{{font-weight:800;color:#f3c26b;text-indent:0;margin-right:2mm}}
+.col{{position:absolute;z-index:5;display:flex;flex-direction:column;justify-content:space-evenly;align-items:center}}
+.grp{{position:relative;padding:3.5mm 5mm 3mm;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--c) 26%,rgba(18,12,10,.55)) 0%,rgba(14,10,9,.62) 60%);
+  border:.5mm solid color-mix(in srgb,var(--c) 55%,#f3dc9c);border-radius:1.2mm;
+  box-shadow:0 0 3.5mm color-mix(in srgb,var(--c) 70%,transparent),inset 0 0 0 .9mm rgba(0,0,0,.45),inset 0 0 0 1.2mm color-mix(in srgb,var(--c) 40%,#d8b76a)}}
+.gh{{margin:-9mm 0 1.5mm -3mm}}
+.gh h3{{display:inline-block;font:400 17pt var(--brush);color:#fff;padding:2.6mm 12mm 3mm 7mm;white-space:nowrap;
+  background:center/100% 100% no-repeat;text-shadow:0 .4mm 1mm #000,0 0 2mm rgba(0,0,0,.6)}}
+.gh p{{font:800 8.6pt var(--serif);color:var(--gold-l);letter-spacing:.05em;margin:1.2mm 0 0 3mm;white-space:nowrap;text-shadow:0 .3mm .6mm #000}}
+.cards{{display:flex;flex-wrap:wrap;justify-content:center;gap:2.5mm 3.5mm;margin:0 auto}}
+.card{{text-align:center}}
+.card .ph{{aspect-ratio:3/4;border:.45mm solid color-mix(in srgb,var(--c) 45%,#f3dc9c);box-shadow:0 0 2mm color-mix(in srgb,var(--c) 70%,transparent);background:#222;overflow:hidden}}
+.card img{{width:100%;height:100%;object-fit:cover;display:block}}
+.card figcaption{{margin-top:1mm;line-height:1.25}}
+.card .yomi{{display:block;font:500 6.6pt var(--serif);color:#d9cfb8;letter-spacing:.05em}}
+.card b{{display:block;font:800 8.8pt var(--serif);color:#fff;letter-spacing:.06em;white-space:nowrap}}
+.card i{{display:inline-block;margin-top:.6mm;font:800 6.6pt var(--serif);font-style:normal;color:#2a1a0e;background:linear-gradient(180deg,#f6e2a8,#d8b76a);padding:.2mm 2mm;border-radius:.5mm}}
+.card[data-main] .ph{{border-width:.7mm;box-shadow:0 0 4mm #e0503f}}
+.card[data-main] b{{font-size:9.4pt}}
+.pno{{position:absolute;bottom:7.5mm;z-index:6;font:500 8pt var(--latin);letter-spacing:.25em;color:var(--gold)}}
+/* ===== 見やすさ・統一のための上書き ===== */
+.title{{top:22mm!important;left:216mm!important;right:auto!important;width:96mm}}
+.title .pre{{font:800 10.5pt var(--serif)!important;letter-spacing:.3em!important;color:#fff3d6!important;text-shadow:0 .3mm 1mm #000}}
+.title h1{{display:flex;align-items:center;justify-content:center;gap:3mm;margin-top:1mm;background:none!important;-webkit-background-clip:border-box!important;background-clip:border-box!important;filter:none!important}}
+.title h1 span{{font:800 15pt var(--serif);color:#fff3d6;letter-spacing:.2em;writing-mode:vertical-rl;text-shadow:0 .3mm 1mm #000}}
+.title h1 img{{height:25mm;filter:drop-shadow(0 .6mm 1.2mm rgba(0,0,0,.9))}}
+.title h2{{background:rgba(10,6,6,.72)!important;border:.5mm solid #e2c27a;outline:.25mm solid rgba(226,194,122,.45);outline-offset:.8mm;
+  padding:1.3mm 10mm!important;margin-top:1.5mm!important;font:800 15pt var(--serif)!important;letter-spacing:.35em!important;color:#fff!important;text-shadow:none!important}}
+.grp{{padding:3mm 4.5mm 3.5mm!important;background:linear-gradient(180deg,color-mix(in srgb,var(--c) 22%,rgba(10,7,6,.72)) 0%,rgba(10,7,6,.74) 70%)!important}}
+.gh{{display:flex;align-items:center;gap:3.5mm;margin:0 0 2.6mm!important}}
+.gh h3{{background:var(--c)!important;background-image:none!important;border:.45mm solid #ecd28f;border-radius:.6mm;clip-path:none!important;
+  padding:.9mm 4.5mm!important;font:800 13.5pt var(--serif)!important;letter-spacing:.15em!important;color:#fff!important;text-shadow:0 .3mm .6mm rgba(0,0,0,.6)!important}}
+.gh p{{margin:0!important;font:800 10.5pt var(--serif)!important;color:#ffe7a8!important;letter-spacing:.05em!important;white-space:nowrap;text-shadow:0 .3mm .8mm #000!important}}
+.card figcaption{{margin-top:1.2mm!important;line-height:1.3!important}}
+.card .yomi{{font:800 7.6pt var(--serif)!important;color:#efe4cb!important}}
+.card b{{font:800 10.6pt var(--serif)!important;color:#fff!important;text-shadow:0 .3mm .8mm #000}}
+.card[data-main] b{{font-size:11.6pt!important}}
+.card i{{font:800 7.8pt var(--serif)!important;padding:.3mm 2.4mm!important;white-space:nowrap}}
+.story{{background:rgba(8,6,6,.68)!important;border:none!important;box-shadow:0 0 6mm 2mm rgba(8,6,6,.55)!important;border-radius:1mm;padding:3.5mm 4mm 3mm!important;display:flex;flex-direction:column}}
+.story h3{{position:static!important;align-self:flex-end;background:#2e5e46!important;background-image:none!important;border:.45mm solid #ecd28f;border-radius:.6mm;
+  padding:.7mm 4mm!important;margin-bottom:2.2mm;font:800 12pt var(--serif)!important;letter-spacing:.3em!important;color:#fff!important;text-shadow:none!important}}
+.story .tx{{flex:1;height:auto!important;font:800 8.7pt/1.75 var(--serif)!important;color:#fbf5e8!important;letter-spacing:.02em!important;text-shadow:0 .3mm .8mm #000!important}}
+/* ---- 次回公演（3公演・画像なし） ---- */
+.nexts{{grid-template-columns:1fr!important;gap:6mm!important}}
+.next{{display:block!important;height:auto!important;padding:5mm 7mm 5.5mm!important;text-align:center;background:linear-gradient(160deg,rgba(40,26,18,.72),rgba(8,8,12,.82))!important}}
+.next .no{{display:block;font:600 9pt var(--latin)!important;letter-spacing:.35em!important;color:var(--gold)!important}}
+.next .org{{margin-top:1.5mm;font:800 11.5pt var(--serif)!important;color:#f3dc9c!important;letter-spacing:.12em}}
+.next h4{{margin:1.5mm 0 3mm!important;font:800 20pt var(--serif)!important;color:#fff!important;letter-spacing:.04em!important;text-shadow:0 .4mm 1mm #000}}
+.next dl{{display:inline-grid;grid-template-columns:auto auto;gap:1.4mm 3mm;text-align:left;align-items:center}}
+.next dt{{font:800 8.5pt var(--serif);color:#1b120a;background:linear-gradient(180deg,#f6e2a8,#d8b76a);padding:.4mm 2.5mm;border-radius:.5mm;letter-spacing:.2em}}
+.next dd{{font:800 11.5pt var(--serif);color:#f6efe0;letter-spacing:.05em}}
 @media screen{{body{{padding:10mm;display:grid;gap:10mm;justify-content:center}} .sheet{{box-shadow:0 2mm 8mm rgba(0,0,0,.4)}}}}
-@media print{{html,body{{background:none}}}}
+@media print{{html,body{{background:#0d0c10}}}}
 </style></head><body>
 
-<!-- 外面：左＝4ページ（裏表紙）／右＝1ページ（表紙） -->
-<section class="sheet outer">
-  <div class="pg l p4">
-    <p class="thanks"><b>本日はご来場いただき<br>誠にありがとうございます</b>最後までごゆっくりお楽しみください。</p>
-    <h3 class="h">出演 <small>CAST</small></h3>
-    <ul class="castlist">{cast_list}</ul>
-    <h3 class="h">スタッフ <small>STAFF</small></h3>
-    <dl class="staff">{staff}</dl>
-    <h3 class="h">次回公演のご案内 <small>NEXT STAGE</small></h3>
-    <div class="nexts">{nexts}</div>
-    <div class="foot"><img src="{assets}/logo.webp" alt="宵牙狼">
-      <p><b>BSD presents 公演 宵牙狼「家族の絆」</b><br>制作：(同)萬屋天狼 イベント事業部<br>お問い合わせ：info.tenrou.event@gmail.com</p></div>
-  </div>
-  <div class="pg r p1"><img src="{assets}/flyer-front-l.webp" alt="家族の絆"></div>
+<!-- 外面：左＝4ページ（裏表紙・次回公演）／右＝1ページ（表紙・チラシ表面） -->
+<section class="sheet">
+{back}
+  <div class="pg p1"><img src="{assets}/flyer-front-l.webp" alt="家族の絆"></div>
 </section>
 
-<!-- 中面：左＝3ページ／右＝2ページ（見開き：あらすじ＋人物相関図） -->
-<section class="sheet inner">
-  <div class="frame"></div><div class="fold"></div>
-  <div class="story"><h2>あらすじ<small>STORY</small></h2><div class="tx">{story}</div></div>
-  <div class="chart-h"><h2>人物相関図</h2><small>CHARACTERS</small></div>
-  <ul class="legend">{legend}</ul>
-  {zones}
-  {links}
-  {cards}
-  <p class="note">{note}</p>
-  <span class="pno" style="left:100mm">— 3 —</span><span class="pno" style="left:310mm">— 2 —</span>
-</section>
+<!-- 中面：左＝3ページ／右＝2ページ（見開き：人物相関図） -->
+{inner}
 </body></html>
-""".replace("{card_w}", str(CARD_W)).replace("{photo_h}", str(PHOTO_H))
+"""
+
+BACK_HTML = """  <div class="pg p4 bgimg" style="background-image:url('bg/back_x4.jpg')">
+    <div class="frame"></div>
+    <p class="thanks"><b>本日はご来場いただき<br>誠にありがとうございます</b>最後までごゆっくりお楽しみください。</p>
+    <h2>次回公演のご案内 <small>NEXT STAGE</small></h2>
+    <div class="nexts">{nexts}</div>
+    <div class="foot"><img src="{assets}/logo.webp" alt="宵牙狼">
+      <p><b>BSD presents 宵牙狼公演「家族の絆」</b><br>制作：(同)萬屋天狼 イベント事業部</p></div>
+  </div>
+"""
+
+INNER_HTML = """<section class="sheet bgimg" style="background-image:url('bg/spread_x4.jpg')">
+  <div class="frame"></div>
+  <div class="title"><p class="pre">BSD Presents 宵牙狼公演</p><h1><span>舞台</span><img src="bg/title_kizuna.png" alt="家族の絆"></h1><h2>人物相関図</h2></div>
+  {groups}
+  <span class="pno" style="left:101mm">— 3 —</span><span class="pno" style="left:311mm">— 2 —</span>
+</section>
+"""
 
 if __name__ == "__main__":
     main()

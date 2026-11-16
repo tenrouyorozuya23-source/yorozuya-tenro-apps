@@ -11,7 +11,7 @@ const dir = path.join(__dirname, '..', 'pamphlet');
   await page.evaluate(() => document.fonts.ready);
   const bad = await page.evaluate(() => [...document.images].filter(i => !i.naturalWidth).map(i => i.src));
   if (bad.length) console.warn('読み込めない画像:', bad);
-  await page.pdf({ path: path.join(dir, 'pamphlet-print-A3.pdf'), width: '420mm', height: '297mm', printBackground: true, preferCSSPageSize: true });
+  await page.pdf({ path: path.join(dir, 'pamphlet-print-A3.pdf'), width: '1588px', height: '1123px', printBackground: true, preferCSSPageSize: true });
   await page.emulateMedia({ media: 'print' });
   const sheets = await page.$$('.sheet');
   const names = ['preview-outer-p4-p1.png', 'preview-inner-p3-p2.png'];
