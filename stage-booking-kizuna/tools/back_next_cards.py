@@ -4,8 +4,8 @@ S = sys.argv[1]; src = sys.argv[2]; out = sys.argv[3]
 base = Image.open(src).convert("RGB"); K = base.width / 1055.0
 FB = S + "/fonts/ShipporiMinchoB1-ExtraBold.ttf"; FM = S + "/fonts/ShipporiMinchoB1-Medium.ttf"; FL = S + "/fonts/CormorantGaramond.ttf"
 SHOWS = [
-    ("宵牙狼", "『大奥（下剋上）』", "2027年3月31日（水）〜4月4日（日）", "アトリエファンファーレ東池袋"),
-    ("縁劇ユニット EN環公演", "『侍放浪記 斬 〜旅芸人と双星の姫君〜』", "2027年6月18日（金）〜6月21日（月）", "シアター風姿花伝"),
+    ("BSD Presents 宵牙狼", "『大奥（下剋上）』", "2027年3月31日（水）〜4月4日（日）", "アトリエファンファーレ東池袋"),
+    ("BSD Presents\n縁劇ユニット EN環公演", "『侍放浪記 斬 〜旅芸人と双星の姫君〜』", "2027年6月18日（金）〜6月21日（月）", "シアター風姿花伝"),
     ("BSD Presents 本公演", "『さぶらひ〜侍と人斬り』", "2027年9月4日（土）〜9月7日（火）", "シアター風姿花伝"),
     ("BSD Presents 特別公演", "『真田家の復讐』", "2028年1月12日（水）〜1月16日（日）", "シアター風姿花伝"),
 ]
@@ -62,10 +62,15 @@ for i, (org, title, date, venue) in enumerate(SHOWS):
     fl = ImageFont.truetype(FL, k(19 * s)); fl.set_variation_by_axes([700])
     lab = "NEXT  STAGE  " + str(i + 1); lab = " ".join(lab)
     text((k(cx), k(y0 + U(21))), lab, fl, (40, 24, 8), shadow=False)
-    text((k(cx), k(y0 + U(60))), org, ImageFont.truetype(FB, k(23 * s)), (238, 200, 116))
+    if "\n" in org:   # 2行のときは少し小さく、上に詰める
+        l1, l2 = org.split("\n")
+        text((k(cx), k(y0 + U(55))), l1, ImageFont.truetype(FB, k(17 * s)), (238, 200, 116))
+        text((k(cx), k(y0 + U(76))), l2, ImageFont.truetype(FB, k(20 * s)), (238, 200, 116))
+    else:
+        text((k(cx), k(y0 + U(60))), org, ImageFont.truetype(FB, k(23 * s)), (238, 200, 116))
     fs = 36 * s; ft = ImageFont.truetype(FB, k(fs))
     while d.textlength(title, font=ft) > k(U(560)): fs *= .96; ft = ImageFont.truetype(FB, k(fs))
-    text((k(cx), k(y0 + U(108))), title, ft, (255, 255, 255))
+    text((k(cx), k(y0 + U(113 if "\n" in org else 108))), title, ft, (255, 255, 255))
     fi = ImageFont.truetype(FB, k(21.5 * s))
     bx = x0 + U(362 - CX0)
     text((k(bx), k(y0 + U(171))), date, fi, (248, 242, 230), anchor="lm")
