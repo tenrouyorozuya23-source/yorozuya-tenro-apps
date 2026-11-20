@@ -48,11 +48,11 @@ TOP, BOT, GAP = 364, 1226, 10
 s = ((BOT - TOP) - GAP * 3) / (CH * 4)
 cw, chh = (CX1 - CX0) * s, CH * s; x0 = (1055 - cw) / 2
 order = [0, 1, 2, 1]
-def text(xy, t, f, fill, anchor="mm", shadow=True, sp=0):
+def text(xy, t, f, fill, anchor="mm", shadow=True, sp=0, feat=None):
     if shadow:
-        lay = Image.new("L", img.size, 0); ImageDraw.Draw(lay).text(xy, t, font=f, fill=255, anchor=anchor)
+        lay = Image.new("L", img.size, 0); ImageDraw.Draw(lay).text(xy, t, font=f, fill=255, anchor=anchor, features=feat)
         img.paste((0, 0, 0), (0, 0) + img.size, lay.filter(ImageFilter.GaussianBlur(K * 1.6)).point(lambda p: int(p * .9)))
-    ImageDraw.Draw(img).text(xy, t, font=f, fill=fill, anchor=anchor)
+    ImageDraw.Draw(img).text(xy, t, font=f, fill=fill, anchor=anchor, features=feat)
 for i, (org, title, date, venue) in enumerate(SHOWS):
     t = Image.fromarray(tpl[order[i]]).resize((k(cw), k(chh)), Image.LANCZOS)
     y0 = TOP + i * (chh + GAP)
@@ -61,7 +61,7 @@ for i, (org, title, date, venue) in enumerate(SHOWS):
     U = lambda v: v * s; cx = x0 + U(527 - CX0)
     fl = ImageFont.truetype(FL, k(19 * s)); fl.set_variation_by_axes([700])
     lab = "NEXT  STAGE  " + str(i + 1); lab = " ".join(lab)
-    text((k(cx), k(y0 + U(21))), lab, fl, (40, 24, 8), shadow=False)
+    text((k(cx), k(y0 + U(21))), lab, fl, (40, 24, 8), shadow=False, feat=["lnum"])   # 数字は英字と同じ高さの字形（ライニング数字）
     if "\n" in org:   # 2行のときは少し小さく、上に詰める
         l1, l2 = org.split("\n")
         text((k(cx), k(y0 + U(55))), l1, ImageFont.truetype(FB, k(17 * s)), (238, 200, 116))
