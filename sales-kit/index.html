@@ -62,6 +62,8 @@ thead th { font-family: var(--f-head); font-size: 13px; color: var(--muted); fon
 tbody tr:last-child td { border-bottom: none; }
 td.price { font-family: var(--f-mono); font-variant-numeric: tabular-nums; white-space: nowrap; text-align: right; font-weight: 600; }
 td.price small { display: block; font-weight: 500; color: var(--muted); font-size: 12px; }
+td.price.deal { color: var(--tally); }
+th.num { text-align: right; }
 td .sub { display: block; color: var(--muted); font-size: 13px; }
 tr.group td { background: var(--tint); font-family: var(--f-head); font-weight: 700; font-size: 14px; padding-block: .5rem; }
 .note { font-size: 13px; color: var(--muted); margin-top: .7rem; }
@@ -161,38 +163,38 @@ footer.contact dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
     <h2>料金</h2>
     <div class="table-box">
       <table>
-        <thead><tr><th>プラン</th><th>内容</th><th style="text-align:right">正規価格（税別）</th></tr></thead>
+        <thead><tr><th>プラン</th><th>内容</th><th class="num">正規価格</th><th class="num">割引価格</th></tr></thead>
         <tbody>
-          <tr class="group"><td colspan="3">舞台配信（1ステージ）</td></tr>
-          <tr><td>3カメラ</td><td>カメラ3台・スイッチング・配信<span class="sub">オペレーター含む</span></td><td class="price">¥150,000<small>税込 ¥165,000</small></td></tr>
-          <tr><td>4カメラ</td><td>3カメラ＋ハンディ1台<span class="sub">表情・寄りの多い作品向け</span></td><td class="price">¥180,000<small>税込 ¥198,000</small></td></tr>
-          <tr class="group"><td colspan="3">舞台音響（1公演一式）</td></tr>
-          <tr><td>音響オペレーション</td><td>プラン作成・仕込み・本番オペレーション<span class="sub">日数・機材によりお見積り</span></td><td class="price">¥180,000<small>税込 ¥198,000</small></td></tr>
-          <tr class="group"><td colspan="3">制作・物販運営（1公演）</td></tr>
-          <tr><td>運営一式</td><td>受付・物販の現場運営、スタッフ手配<span class="sub">本番4日程度を想定</span></td><td class="price">¥150,000<small>税込 ¥165,000</small></td></tr>
-          <tr><td>システム利用料</td><td>予約・受付・物販システムの準備と運用</td><td class="price">¥40,000<small>税込 ¥44,000</small></td></tr>
-          <tr class="group"><td colspan="3">オプション</td></tr>
-          <tr><td>アーカイブ映像</td><td>配信映像の編集・データ納品</td><td class="price">¥30,000<small>税込 ¥33,000</small></td></tr>
-          <tr><td>SNS用ショート動画</td><td>見どころの切り抜き 3本（縦型・横型）</td><td class="price">¥20,000<small>税込 ¥22,000</small></td></tr>
-          <tr><td>同日2ステージ目の配信</td><td>同じ機材配置のまま続けて配信</td><td class="price">¥60,000<small>税込 ¥66,000</small></td></tr>
+          <tr class="group"><td colspan="4">舞台配信（1ステージ）</td></tr>
+          <tr><td>3カメラ</td><td>カメラ3台・スイッチング・配信<span class="sub">オペレーター含む</span></td><td class="price">¥145,000</td><td class="price deal">¥120,000<small>−¥25,000</small></td></tr>
+          <tr><td>4カメラ</td><td>3カメラ＋ハンディ1台<span class="sub">表情・寄りの多い作品向け</span></td><td class="price">¥180,000</td><td class="price deal">¥150,000<small>−¥30,000</small></td></tr>
+          <tr class="group"><td colspan="4">舞台音響（1公演一式）</td></tr>
+          <tr><td>音響オペレーション</td><td>プラン作成・仕込み・本番オペレーション<span class="sub">日数・機材によりお見積り</span></td><td class="price">¥180,000</td><td class="price deal">¥150,000<small>−¥30,000</small></td></tr>
+          <tr class="group"><td colspan="4">制作・物販運営（1公演）</td></tr>
+          <tr><td>運営一式</td><td>受付・物販の現場運営、スタッフ手配<span class="sub">本番4日程度を想定</span></td><td class="price">¥180,000</td><td class="price deal">¥150,000<small>−¥30,000</small></td></tr>
+          <tr><td>システム利用料</td><td>予約・受付・物販システムの準備と運用</td><td class="price">¥55,000</td><td class="price deal">¥44,000<small>−¥11,000</small></td></tr>
+          <tr class="group"><td colspan="4">オプション</td></tr>
+          <tr><td>アーカイブ映像</td><td>配信映像の編集・データ納品</td><td class="price">¥40,000</td><td class="price deal">¥33,000<small>−¥7,000</small></td></tr>
+          <tr><td>SNS用ショート動画</td><td>見どころの切り抜き 3本（縦型・横型）</td><td class="price">¥26,000</td><td class="price deal">¥22,000<small>−¥4,000</small></td></tr>
+          <tr><td>同日2ステージ目の配信</td><td>同じ機材配置のまま続けて配信</td><td class="price">¥80,000</td><td class="price deal">¥66,000<small>−¥14,000</small></td></tr>
         </tbody>
       </table>
     </div>
-    <p class="note">交通費・会場までの機材運搬費は別途いただく場合があります。当社は適格請求書発行事業者です。</p>
+    <p class="note">価格はすべて税込です。割引価格は下の条件のいずれかに当てはまる場合に適用します。交通費・会場までの機材運搬費は別途いただく場合があります。当社は適格請求書発行事業者です。</p>
   </section>
 
   <section>
     <div class="eyebrow">Discount</div>
-    <h2>割引（組み合わせ可・合計で最大20%）</h2>
+    <h2>割引価格になる条件</h2>
+    <p class="note" style="margin-top:-.6rem">次のいずれか1つに当てはまれば、割引価格でお受けします。複数に当てはまっても割引額は同じです。</p>
     <div class="discounts">
-      <div class="disc"><span class="pct">10%</span><span class="name">セット割</span><span class="cond">配信・音響・制作物販のうち2つ以上を同じ公演で依頼</span></div>
-      <div class="disc"><span class="pct">10%</span><span class="name">継続割</span><span class="cond">年2回以上のご依頼、またはリピート</span></div>
-      <div class="disc"><span class="pct">5%</span><span class="name">早期割</span><span class="cond">公演の2か月前までにご依頼を確定</span></div>
-      <div class="disc"><span class="pct">5%</span><span class="name">実績掲載割</span><span class="cond">写真や映像を当社の実績として紹介してよい場合</span></div>
+      <div class="disc"><span class="name">セット割</span><span class="cond">配信・音響・制作物販のうち2つ以上を、同じ公演でご依頼</span></div>
+      <div class="disc"><span class="name">継続割</span><span class="cond">2回目以降のご依頼</span></div>
+      <div class="disc"><span class="name">早期割</span><span class="cond">公演の2か月前までにご依頼を確定</span></div>
     </div>
     <div class="example">
-      <strong>例：</strong>配信（3カメラ）と音響を同じ公演で依頼し、2か月前に確定した場合<br>
-      <span class="calc">¥150,000 ＋ ¥180,000 ＝ ¥330,000 → セット割10%＋早期割5%で <strong>¥280,500</strong>（税別）</span>
+      <strong>例：</strong>配信（3カメラ）と音響を同じ公演で依頼した場合（セット割）<br>
+      <span class="calc">正規価格 ¥145,000 ＋ ¥180,000 ＝ ¥325,000 → 割引価格 ¥120,000 ＋ ¥150,000 ＝ <strong>¥270,000</strong>（¥55,000お得）</span>
     </div>
   </section>
 
@@ -212,13 +214,13 @@ footer.contact dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
     <div class="eyebrow">Works</div>
     <h2>実績</h2>
     <ul class="works">
-      <li><span class="kind">制作・物販</span><div>小劇場劇団の本公演・公演運営<span class="d">年6公演を継続して担当</span></div></li>
-      <li><span class="kind">システム</span><div>舞台「家族の絆」予約・受付・物販システム<span class="d">全7ステージ・3席種の予約とキャンセル待ち、物販144品目</span></div></li>
+      <li><span class="kind">制作・物販</span><div>Bushido株式会社 劇団公演の制作・物販運営<span class="d">年6公演を継続して担当</span></div></li>
+      <li><span class="kind">システム</span><div>小劇場公演の予約・受付・物販システム<span class="d">全7ステージ・3席種の予約とキャンセル待ち、物販144品目</span></div></li>
       <li><span class="kind">主催・技術</span><div>自主公演「天狼祭2026」<span class="d">主催・技術・予約運営を一貫して担当</span></div></li>
       <li><span class="kind">配信</span><div>舞台公演のライブ配信<span class="d">年4公演（3〜4カメラ）</span></div></li>
       <li><span class="kind">音響</span><div>ブライダル音響オペレーション<span class="d">毎月の挙式・披露宴を担当</span></div></li>
-      <li><span class="kind">映像・音響</span><div>企業式典・イベントの技術運営<span class="d">常駐で継続して担当</span></div></li>
     </ul>
+    <p class="note">主なお取引先：Bushido株式会社／つるつるカンパニー合同会社</p>
   </section>
 
   <section>
