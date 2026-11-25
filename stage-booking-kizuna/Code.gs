@@ -34,9 +34,9 @@ var CONFIG = {
     // seatCaps＝この公演だけの席種の上限を変えるときに使う（例 seatCaps: { "S席": 8 }）。無ければ CONFIG.seatTypes の cap
     //   SS席の上限超過分は「移動予定」として変更先の席種（S席／A席）から先に差し引く → pendingSeatMoves()
     { dt: "12/4(金) 18:30", cap: 60 },
-    // 12/5 13:00：R-060 のキャンセルで空いた SS席1席は、SS→S に移っていただいた R-079 河原様にご案内中のため新規受付を止める（上限 9）
-    //   河原様が SS席に戻られたら SS席は10席で満席。辞退されたら seatCaps を外す（または R-090 以降の方へご案内）
-    { dt: "12/5(土) 13:00", cap: 60, seatCaps: { "SS席": 9 } },
+    // 12/5 13:00：R-060 のキャンセルで空いた SS席1席は、R-079 河原様から期限までにご返信がなかったため（S席のまま）、
+    //   10/12 の受付集中で取り込めていなかった SS席のお申し込みのうち、いちばん早い方に割り当てる（11/25）→ SS席は10席で満席
+    { dt: "12/5(土) 13:00", cap: 60 },
     { dt: "12/5(土) 18:30", cap: 60 },
     { dt: "12/6(日) 13:00", cap: 60 },
     { dt: "12/6(日) 18:30", cap: 60 },
@@ -1477,7 +1477,8 @@ function onFormSubmit(e) {
   addToDailyStack(e.response);
 
   // お客様へメール（本予約＝ご予約確定／満席＝キャンセル待ち受付）
-  try { sendReservationReceivedMail(e.response, reservationNo, waitlisted, e.late); } catch(err) { Logger.log("予約メール送信エラー: " + err.message); }
+  e.resNo = reservationNo; e.waitlisted = waitlisted;
+  if (!e.noMail) try { sendReservationReceivedMail(e.response, reservationNo, waitlisted, e.late); } catch(err) { Logger.log("予約メール送信エラー: " + err.message); }
 }
 
 // ============================================================
@@ -1789,7 +1790,7 @@ function setup_availability() {
 //   初回：appsscript.json に oauthScopes（script.projects・script.deployments ほか）を入れ、setup_selfDeploy() を1回実行
 // ============================================================
 // コードの目印（変更のたびに更新すると、?api=version で反映を確認できる）
-var CODE_REVISION = "2026-11-25-fill-timestamps";
+var CODE_REVISION = "2026-11-25-missed-ss-drafts";
 
 var SELF_DEPLOY = {
   repo:   "tenrouyorozuya23-source/yorozuya-tenro-apps",
@@ -1912,7 +1913,9 @@ var MIGRATIONS = [
       normalizeShowTexts();
       importMissedResponses(["2026/10/12 21:01:39", "2026/11/14 12:48:49", "2026/11/15 18:31:50",
                              "2026/11/15 21:56:07", "2026/11/16 01:42:30", "2026/11/16 01:43:09"]);
-      reconcileFormResponses(); writeSeatSummary(); } }
+      reconcileFormResponses(); writeSeatSummary(); } },
+  // SS席で取り込めていなかった4件：12/5 13:00 の空き1席をいちばん早い方に割り当て、全員へお詫びとご案内のメールを「下書き」で作る
+  { id: "2026-11-25-missed-ss-drafts",             run: function(){ missedSsApologyDrafts(); updateRemainingSeats(); reconcileFormResponses(); writeSeatSummary(); } }
 ];
 
 // SS席にキャンセルが出たので、上限超過で S席にご案内した予約を SS席に戻し、お詫びとご案内のメールを「下書き」で作る（送信はしない）
@@ -2206,7 +2209,9 @@ function update_bookingFlow() {
 // 予約一覧に取り込めていなかったフォーム回答を、通常の申し込みと同じ流れ（予約番号・残席判定・受付表・キャスト通知・確定メール）で受け付ける
 //   stamps：回答日時（"yyyy/MM/dd HH:mm:ss"、日本時間）の配列。予約一覧にすでに入っている回答・SS席の回答は取り込まない
 //   確定メールには受付が遅れたことのお詫び文を入れる。戻り値：取り込んだ件数（個人情報は返さない）
-function importMissedResponses(stamps) {
+function importMissedResponses(stamps, opts) {
+  opts = opts || {};
+  var done = [];
   var want = {}; stamps.forEach(function(s){ want[s] = true; });
   var form = FormApp.openById(PropertiesService.getScriptProperties().getProperty("FORM_ID"));
   var n = 0;
@@ -2215,14 +2220,116 @@ function importMissedResponses(stamps) {
     if (!want[key]) return;
     var seat = "";
     fr.getItemResponses().forEach(function(ir){ if (ir.getItem().getTitle().indexOf("席種") !== -1) seat = String(ir.getResponse()); });
-    if (seat === "SS席") { Logger.log("SS席の回答のため取り込みません：" + key); return; }
+    if (seat === "SS席" && !opts.allowSS) { Logger.log("SS席の回答のため取り込みません：" + key); return; }
     if (responseInSheet(fr, true)) { Logger.log("すでに予約一覧にあります：" + key); return; }
-    var ev = { response: fr, late: true };
+    var ev = { response: fr, late: true, noMail: !!opts.noMail };
     onFormSubmit(ev);
-    n++;
+    n++; done.push({ key: key, row: ev.row, resNo: ev.resNo, waitlisted: ev.waitlisted });
     Logger.log("✅ 取り込みました：" + key + "（" + (ev.row ? ev.row + "行目" : "行不明") + "）");
   });
-  return n;
+  return opts.detail ? done : n;
+}
+
+// SS席で申し込まれたのに予約一覧に取り込めていなかったお客様へのお詫び（11/25）
+//   ・12/5 13:00 の SS席の空き1席は、いちばん早く申し込まれた方（10/12 21:02:02）に割り当てて予約一覧に登録（確定メールは自動送信せず、お詫び入りの下書きにする）
+//   ・ほかの方は SS席が満席のため、S席（空きがなければ A席）をご案内。「S席を希望」とご返信いただいたら登録する
+//   ・10/12 の3件は受付開始直後の申し込み集中によるエラー、11/14 の1件はシステムの不具合（認証切れ）が原因
+//   回答日時（秒まで）で指定し、結果はシート「SS超過のご連絡」の下に追記する
+var MISSED_SS = [
+  { at: "2026/10/12 21:02:02", assign: true,  cause: "rush" },
+  { at: "2026/10/12 21:02:03", assign: false, cause: "rush" },
+  { at: "2026/10/12 21:06:57", assign: false, cause: "rush" },
+  { at: "2026/11/14 21:37:59", assign: false, cause: "system" }
+];
+
+function missedSsCauseText(cause, name) {
+  if (cause === "rush") {
+    return "10月12日（月）21:00の受付開始直後、短時間にお申し込みが集中したことにより予約システムでエラーが発生し、\n" +
+      name + " 様のお申し込みの受付が完了しておりませんでした。\n" +
+      "受付開始直後に「ご予約確定」のメールがお手元に届いておりました場合も、システム上の登録が正しく行われておらず、\n" +
+      "お席を確保できていない状態となっておりました。\n";
+  }
+  return "システムの不具合により、" + name + " 様のお申し込みの受付処理が行われておらず、\n" +
+    "「ご予約確定」のメールもお送りできていない状態となっておりました。\n";
+}
+
+function missedSsApologyDrafts() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName("予約一覧");
+  var form = FormApp.openById(PropertiesService.getScriptProperties().getProperty("FORM_ID"));
+  var byKey = {};
+  form.getResponses().forEach(function(fr){ byKey[Utilities.formatDate(fr.getTimestamp(), "Asia/Tokyo", "yyyy/MM/dd HH:mm:ss")] = fr; });
+  var log = [];
+  MISSED_SS.forEach(function(m){
+    var fr = byKey[m.at];
+    if (!fr) { Logger.log("⚠️ 回答が見つかりません：" + m.at); return; }
+    var a = {};
+    fr.getItemResponses().forEach(function(ir){ a[ir.getItem().getTitle()] = ir.getResponse(); });
+    var pick = function(k){ for (var t in a) if (t.indexOf(k) !== -1) return a[t]; return ""; };
+    var t = { name: String(pick("お名前")), mail: String(fr.getRespondentEmail() || pick("メール")), show: String(pick("公演")),
+              count: toSeatCount(pick("枚数")), cast: String(pick("キャスト")).replace(/\s*【.+】/, "") };
+    if (t.mail.indexOf("@") === -1) { Logger.log("⚠️ メールアドレスがありません：" + m.at); return; }
+    var head = t.name + " 様\n\n" +
+      "いつも BSD presents 舞台「" + CONFIG.title + "」を応援いただき、誠にありがとうございます。\n" +
+      "制作部より、" + t.name + " 様のご予約について大切なお知らせとお詫びがございます。\n\n" +
+      missedSsCauseText(m.cause, t.name) + "\n" +
+      "本来であればすぐにご予約確定のご連絡を差し上げるべきところ、確認が遅れ、ご連絡がこのように遅くなってしまいましたこと、\n" +
+      "また、ご希望のお座席をご用意できない状況となってしまいましたことを、心より深くお詫び申し上げます。\n\n";
+    var body, subject, seatOut, resNo = "（未登録）", state;
+    if (m.assign) {
+      var res = (responseInSheet(fr, true) ? [] : importMissedResponses([m.at], { allowSS: true, noMail: true, detail: true }))[0];
+      if (!res || res.waitlisted || !res.resNo) { Logger.log("⚠️ SS席を割り当てられませんでした：" + m.at); log.push(["—", t.name, t.mail, t.cast, t.show, t.count, "", "SS席（割り当て失敗）", "下書きなし", "要確認"]); return; }
+      resNo = res.resNo;
+      var price = getSeatPrice("SS席");
+      body = head +
+        "このたび、同じ公演の SS席に1席空きが出ましたので、お申し込み順に " + t.name + " 様のお席としてご用意いたしました。\n" +
+        "以下の内容でご予約が確定しております。\n\n" +
+        "━━━━━━━━━━━━━━━━━━━━\n" +
+        "予約番号　：" + resNo + "\n" +
+        "公演日時　：" + t.show + "（開場 " + doorsOpenTime(t.show) + "）\n" +
+        "お座席　　：SS席" + (price ? "（" + yenText(price) + "）" : "") + " × " + t.count + "枚\n" +
+        "取り扱い　：" + t.cast + "\n" +
+        "会場　　　：" + CONFIG.venue + "\n" +
+        "━━━━━━━━━━━━━━━━━━━━\n\n" +
+        "当日は受付で「予約番号」または「お名前」をお伝えください。\n" +
+        CONFIG.payment.ticket + "\n" +
+        "SS席の特典「非売品・役者ブロマイド」は、当日受付にてお渡しいたします。\n\n" +
+        "このたびはご迷惑とご心配をおかけし、誠に申し訳ございませんでした。\n" +
+        "ご不明な点やご予約内容の変更がございましたら、このメールにご返信ください。\n" +
+        "当日のご来場を、キャスト・スタッフ一同心よりお待ちしております。";
+      subject = "【" + CONFIG.title + "】ご予約についてのお詫びとご予約確定のお知らせ（予約番号 " + resNo + "）";
+      seatOut = "SS席（空き1席を割り当て）"; state = "SS席で登録済み";
+    } else {
+      var sLeft = remainingSeatsFor(sheet, t.show, -1, "S席");
+      var alt = sLeft >= t.count ? "S席" : "A席";
+      var ap = getSeatPrice(alt), sp = getSeatPrice("SS席");
+      body = head +
+        "大変申し訳ございませんが、" + t.show + " の SS席はすでに上限に達しており、ご用意することができません。\n" +
+        "代わりに、同じ公演の " + alt + (alt === "S席" ? "（2列目）" : "") + "をご用意いたします。\n\n" +
+        "━━━━━━━━━━━━━━━━━━━━\n" +
+        "公演日時　　　：" + t.show + "（開場 " + doorsOpenTime(t.show) + "）\n" +
+        "お申し込みの席：SS席" + (sp ? "（" + yenText(sp) + "）" : "") + " × " + t.count + "枚\n" +
+        "ご案内のお席　：" + alt + (ap ? "（" + yenText(ap) + "）" : "") + " × " + t.count + "枚\n" +
+        "取り扱い　　　：" + t.cast + "\n" +
+        "会場　　　　　：" + CONFIG.venue + "\n" +
+        "━━━━━━━━━━━━━━━━━━━━\n\n" +
+        alt + "でのご来場をご希望の場合は、このメールに「" + alt + "を希望」とご返信ください。\n" +
+        "ご返信をいただいた時点でご予約を確定し、予約番号をお知らせいたします。\n" +
+        "チケット代は " + alt + " の料金を、当日受付にて現金でお支払いください。\n" +
+        "なお、SS席の特典「非売品・役者ブロマイド」は、お詫びとして当日受付にてお渡しいたします。\n\n" +
+        "お席には限りがございますので、恐れ入りますが数日以内にご返信いただけますと幸いです。\n" +
+        "ほかの公演日時をご希望の場合や、今回はご遠慮されたい場合も、このメールにご返信いただければ対応いたします。\n\n" +
+        "このたびはご迷惑とご心配をおかけし、誠に申し訳ございませんでした。何卒よろしくお願い申し上げます。";
+      subject = "【" + CONFIG.title + "】ご予約についてのお詫びとお座席のご案内";
+      seatOut = alt + "（ご案内中・返信待ち）"; state = "未登録（「" + alt + "を希望」の返信待ち）";
+    }
+    GmailApp.createDraft(t.mail, subject, withSignature(body), mailOptions());
+    Logger.log("✅ " + t.name + " 様へのお詫びの下書きを作りました");
+    log.push([resNo, t.name, t.mail, t.cast, t.show, t.count, "取り込み漏れ（" + m.at + " 申込）", seatOut, "お詫びの下書き作成済み", state]);
+  });
+  var sh = ss.getSheetByName("SS超過のご連絡");
+  if (sh && log.length) sh.getRange(sh.getLastRow() + 2, 1, log.length, log[0].length).setValues(log);
+  return log.length;
 }
 
 // フォーム回答が予約一覧に入っているか（名前が一致し、タイムスタンプが1分以内か同じ日）
