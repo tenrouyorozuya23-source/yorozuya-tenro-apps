@@ -1760,6 +1760,7 @@ function updateFormAvailability() {
   // キャンセルの取りこぼしを拾う（1時間ごとの実行時）
   try { if (normalizeShowTexts()) updateRemainingSeats(); } catch (err) { Logger.log("公演日時の表記確認エラー: " + err.message); }
   try { reconcileCancellations(); } catch (err) { Logger.log("キャンセル取りこぼし確認エラー: " + err.message); }
+  try { fillMissingTimestamps(); } catch (err) { Logger.log("タイムスタンプ補完エラー: " + err.message); }
   // 売上管理シートの「席種別の残席」表も一緒に更新（失敗してもフォームの更新は止めない）
   try { writeSeatSummary(); } catch (err) { Logger.log("席種別の残席表の更新エラー: " + err.message); }
   var form = FormApp.openById(PropertiesService.getScriptProperties().getProperty("FORM_ID"));
@@ -1788,7 +1789,7 @@ function setup_availability() {
 //   初回：appsscript.json に oauthScopes（script.projects・script.deployments ほか）を入れ、setup_selfDeploy() を1回実行
 // ============================================================
 // コードの目印（変更のたびに更新すると、?api=version で反映を確認できる）
-var CODE_REVISION = "2026-11-25-import-missed";
+var CODE_REVISION = "2026-11-25-fill-timestamps";
 
 var SELF_DEPLOY = {
   repo:   "tenrouyorozuya23-source/yorozuya-tenro-apps",
@@ -2284,9 +2285,51 @@ function appendResponseToReservationSheet(sheet, headers, answers, timestamp) {
     var v = byTitle[alias[h] || h];
     return v === undefined ? "" : v;
   });
-  var newRow = sheet.getLastRow() + 1;
-  sheet.getRange(newRow, 1, 1, row.length).setValues([row]);
+  // 同時送信で同じ行に上書きしないよう、行の確保から書き込みまでをロックする
+  var lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+  try {
+    var newRow = sheet.getLastRow() + 1;
+    sheet.getRange(newRow, 1, 1, row.length).setValues([row]);
+    var cTs = headers.map(String).indexOf("タイムスタンプ");
+    if (cTs >= 0 && timestamp) sheet.getRange(newRow, cTs + 1).setValue(new Date(timestamp.getTime())).setNumberFormat("yyyy/MM/dd H:mm:ss");
+    SpreadsheetApp.flush();
+  } finally {
+    lock.releaseLock();
+  }
   return newRow;
+}
+
+// 予約番号はあるのにタイムスタンプが空の行に、同じ方（お名前・メールアドレス・公演日時が一致）のフォーム回答日時を入れる
+//   戻り値：{ filled: 入れた件数, blank: まだ空の件数 }（個人情報は返さない）
+function fillMissingTimestamps() {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("予約一覧");
+  var data = sheet.getDataRange().getValues(), hdr = data[0].map(String);
+  var c = function(n){ return hdr.indexOf(n); };
+  var cTs = c("タイムスタンプ"), cName = c("お名前"), cMail = c("メールアドレス"), cShow = c("公演日時"), cNo = c("予約番号");
+  var norm = function(v){ return String(v || "").replace(/[\s　]/g, "").toLowerCase(); };
+  var blank = [];
+  for (var i = 1; i < data.length; i++) if (!data[i][cTs] && data[i][cNo] && String(data[i][cNo]).indexOf("R-") === 0) blank.push(i);
+  if (!blank.length) return { filled: 0, blank: 0 };
+  var used = {};
+  for (var i = 1; i < data.length; i++) if (data[i][cTs] instanceof Date) used[data[i][cTs].getTime()] = true;
+  var form = FormApp.openById(PropertiesService.getScriptProperties().getProperty("FORM_ID"));
+  var resps = form.getResponses().map(function(fr){
+    var by = {}; fr.getItemResponses().forEach(function(ir){ by[ir.getItem().getTitle()] = ir.getResponse(); });
+    var pick = function(k){ for (var t in by) if (t.indexOf(k) !== -1) return by[t]; return ""; };
+    return { t: fr.getTimestamp(), key: norm(pick("お名前")) + "|" + norm(fr.getRespondentEmail() || pick("メール")) + "|" + norm(pick("公演")) };
+  });
+  var filled = 0;
+  blank.forEach(function(i){
+    var key = norm(data[i][cName]) + "|" + norm(data[i][cMail]) + "|" + norm(data[i][cShow]);
+    var hit = resps.filter(function(r){ return r.key === key && !used[r.t.getTime()]; });
+    if (!hit.length) return;
+    var t = hit[hit.length - 1].t; used[t.getTime()] = true;
+    sheet.getRange(i + 1, cTs + 1).setValue(new Date(t.getTime())).setNumberFormat("yyyy/MM/dd H:mm:ss");
+    filled++;
+  });
+  SpreadsheetApp.flush();
+  return { filled: filled, blank: blank.length - filled };
 }
 
 // 特定公演の受付表のみ更新（フォーム送信時に使用）
@@ -3212,7 +3255,14 @@ function doGet(e) {
   // 自動反映の確認用：今動いているコードの版と反映日時
   if (e && e.parameter && e.parameter.api === "formcheck") {
     var r;
-    try { r = reconcileFormResponses(); } catch (err) { r = { error: String(err && err.message || err) }; }
+    try {
+      var f = fillMissingTimestamps();
+      r = reconcileFormResponses(); r.tsFilled = f.filled; r.tsBlank = f.blank;
+      try {
+        var fm = FormApp.openById(PropertiesService.getScriptProperties().getProperty("FORM_ID"));
+        r.formLinkedHere = fm.getDestinationId() === SpreadsheetApp.getActiveSpreadsheet().getId();
+      } catch (err2) { r.formLinkedHere = "unknown"; }
+    } catch (err) { r = { error: String(err && err.message || err) }; }
     return ContentService.createTextOutput(JSON.stringify(r)).setMimeType(ContentService.MimeType.JSON);
   }
   if (e && e.parameter && e.parameter.api === "version") {
