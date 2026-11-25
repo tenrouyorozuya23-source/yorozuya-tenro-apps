@@ -36,7 +36,9 @@ var CONFIG = {
     { dt: "12/4(金) 18:30", cap: 60 },
     // 12/5 13:00：R-060 のキャンセルで空いた SS席1席は、R-079 河原様から期限までにご返信がなかったため（S席のまま）、
     //   10/12 の受付集中で取り込めていなかった SS席のお申し込みのうち、いちばん早い方に割り当てる（11/25）→ SS席は10席で満席
-    { dt: "12/5(土) 13:00", cap: 60 },
+    //   S席は残り2席を、SS席の取り込み漏れでS席をご案内中のお二人（返信待ち）のために確保し、新規受付を止める（上限 8）
+    //   お二人を S席で登録するときは、この上限を外してから登録する
+    { dt: "12/5(土) 13:00", cap: 60, seatCaps: { "S席": 8 } },
     { dt: "12/5(土) 18:30", cap: 60 },
     { dt: "12/6(日) 13:00", cap: 60 },
     { dt: "12/6(日) 18:30", cap: 60 },
@@ -1790,7 +1792,7 @@ function setup_availability() {
 //   初回：appsscript.json に oauthScopes（script.projects・script.deployments ほか）を入れ、setup_selfDeploy() を1回実行
 // ============================================================
 // コードの目印（変更のたびに更新すると、?api=version で反映を確認できる）
-var CODE_REVISION = "2026-11-25-missed-ss-drafts";
+var CODE_REVISION = "2026-11-25-hold-s-1205";
 
 var SELF_DEPLOY = {
   repo:   "tenrouyorozuya23-source/yorozuya-tenro-apps",
@@ -1915,6 +1917,7 @@ var MIGRATIONS = [
                              "2026/11/15 21:56:07", "2026/11/16 01:42:30", "2026/11/16 01:43:09"]);
       reconcileFormResponses(); writeSeatSummary(); } },
   // SS席で取り込めていなかった4件：12/5 13:00 の空き1席をいちばん早い方に割り当て、全員へお詫びとご案内のメールを「下書き」で作る
+  { id: "2026-11-25-hold-s-1205",                  run: function(){ updateFormAvailability(); updateRemainingSeats(); writeSeatSummary(); } },
   { id: "2026-11-25-missed-ss-drafts",             run: function(){ missedSsApologyDrafts(); updateRemainingSeats(); reconcileFormResponses(); writeSeatSummary(); } }
 ];
 
