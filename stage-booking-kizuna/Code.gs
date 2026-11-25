@@ -1787,7 +1787,7 @@ function setup_availability() {
 //   初回：appsscript.json に oauthScopes（script.projects・script.deployments ほか）を入れ、setup_selfDeploy() を1回実行
 // ============================================================
 // コードの目印（変更のたびに更新すると、?api=version で反映を確認できる）
-var CODE_REVISION = "2026-11-16-offer-ss-R079";
+var CODE_REVISION = "2026-11-25-formcheck";
 
 var SELF_DEPLOY = {
   repo:   "tenrouyorozuya23-source/yorozuya-tenro-apps",
@@ -2042,7 +2042,7 @@ function normalizeShowTexts() {
   var cShow = data[0].map(String).indexOf("公演日時");
   if (cShow < 0) return 0;
   var key = function(t){
-    var m = String(t).replace(/\s/g, "").match(/^(\d{1,2})\/(\d{1,2}).*?(\d{1,2})[:：時](\d{2})?/);
+    var m = String(t).replace(/\s/g, "").match(/^(\d{1,2})\/(\d{1,2}).*?(\d{1,2})[:：;；時](\d{2})?/);
     return m ? [+m[1], +m[2], +m[3], +(m[4] || 0)].join("-") : null;
   };
   var shows = {}; CONFIG.shows.forEach(function(s){ shows[key(s.dt)] = s.dt; });
@@ -2192,6 +2192,38 @@ function update_bookingFlow() {
 
 
 // フォーム回答を予約一覧の見出しに合わせて1行追加し、その行番号を返す
+// 予約フォームに届いた回答と予約一覧を突き合わせ、予約一覧に入っていない回答をシート「フォーム照合」に書き出す
+//   戻り値：{ responses: 回答数, missing: 見つからない数 }（個人情報は返さない）
+function reconcileFormResponses() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var form = FormApp.openById(PropertiesService.getScriptProperties().getProperty("FORM_ID"));
+  var sheet = ss.getSheetByName("予約一覧");
+  var data = sheet.getDataRange().getValues(), hdr = data[0].map(String);
+  var cTs = hdr.indexOf("タイムスタンプ"), cName = hdr.indexOf("お名前");
+  var norm = function(v){ return String(v || "").replace(/[\s　]/g, ""); };
+  var rows = data.slice(1).map(function(r){ var d = r[cTs] instanceof Date ? r[cTs] : new Date(r[cTs]); return { t: d.getTime(), day: d.toDateString(), name: norm(r[cName]) }; });
+  var out = [["回答日時", "取り扱いキャスト", "お名前", "メールアドレス", "公演日時", "席種", "枚数", "備考", "状態"]];
+  var res = form.getResponses(), miss = 0;
+  res.forEach(function(fr){
+    var ts = fr.getTimestamp(), t = ts.getTime(), by = {};
+    fr.getItemResponses().forEach(function(ir){ by[ir.getItem().getTitle()] = ir.getResponse(); });
+    var pick = function(key){ for (var k in by) if (k.indexOf(key) !== -1) return by[k]; return ""; };
+    var name = norm(pick("お名前"));
+    // 予約一覧のタイムスタンプが日付だけのこともあるため、名前が一致して時刻が近いか同じ日なら「入っている」とみなす
+    var found = rows.some(function(r){ return r.name === name && (Math.abs(r.t - t) < 60000 || r.day === ts.toDateString()); });
+    if (!found) {
+      miss++;
+      out.push([ts, pick("キャスト"), pick("お名前"), fr.getRespondentEmail() || pick("メール"), pick("公演"), pick("席種"), pick("枚数"), pick("備考"), "予約一覧に見つかりません"]);
+    }
+  });
+  var sh = ss.getSheetByName("フォーム照合") || ss.insertSheet("フォーム照合");
+  sh.clearContents();
+  sh.getRange(1, 1, out.length, out[0].length).setValues(out);
+  styleHeader(sh.getRange(1, 1, 1, out[0].length)); sh.setFrozenRows(1);
+  sh.getRange(1, 11).setValue("確認日時：" + Utilities.formatDate(new Date(), "Asia/Tokyo", "yyyy/MM/dd HH:mm") + "　回答 " + res.length + " 件／予約一覧に見つからない " + miss + " 件");
+  return { responses: res.length, missing: miss, sheetRows: rows.length };
+}
+
 function appendResponseToReservationSheet(sheet, headers, answers, timestamp) {
   var byTitle = {};
   for (var i = 0; i < answers.length; i++) {
@@ -3131,6 +3163,11 @@ function doGet(e) {
   }
 
   // 自動反映の確認用：今動いているコードの版と反映日時
+  if (e && e.parameter && e.parameter.api === "formcheck") {
+    var r;
+    try { r = reconcileFormResponses(); } catch (err) { r = { error: String(err && err.message || err) }; }
+    return ContentService.createTextOutput(JSON.stringify(r)).setMimeType(ContentService.MimeType.JSON);
+  }
   if (e && e.parameter && e.parameter.api === "version") {
     var info = JSON.parse(PropertiesService.getScriptProperties().getProperty("SELF_DEPLOY_INFO") || "{}");
     info.code = CODE_REVISION;
