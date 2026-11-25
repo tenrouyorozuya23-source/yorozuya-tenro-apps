@@ -1438,6 +1438,7 @@ function onFormSubmit(e) {
     Logger.log("onFormSubmit: 対象行が見つかりませんでした");
     return;
   }
+  e.row = targetRow;
 
   var reservationNo = generateReservationNo("R");
 
@@ -1476,7 +1477,7 @@ function onFormSubmit(e) {
   addToDailyStack(e.response);
 
   // お客様へメール（本予約＝ご予約確定／満席＝キャンセル待ち受付）
-  try { sendReservationReceivedMail(e.response, reservationNo, waitlisted); } catch(err) { Logger.log("予約メール送信エラー: " + err.message); }
+  try { sendReservationReceivedMail(e.response, reservationNo, waitlisted, e.late); } catch(err) { Logger.log("予約メール送信エラー: " + err.message); }
 }
 
 // ============================================================
@@ -1787,7 +1788,7 @@ function setup_availability() {
 //   初回：appsscript.json に oauthScopes（script.projects・script.deployments ほか）を入れ、setup_selfDeploy() を1回実行
 // ============================================================
 // コードの目印（変更のたびに更新すると、?api=version で反映を確認できる）
-var CODE_REVISION = "2026-11-25-formcheck";
+var CODE_REVISION = "2026-11-25-import-missed";
 
 var SELF_DEPLOY = {
   repo:   "tenrouyorozuya23-source/yorozuya-tenro-apps",
@@ -1903,7 +1904,14 @@ var MIGRATIONS = [
   { id: "2026-11-06-seat-summary-table",           run: function(){ writeSeatSummary(); } },
   { id: "2026-11-16-reconcile-cancellations",      run: function(){ reconcileCancellations(); } },
   { id: "2026-11-16-normalize-show-texts",         run: function(){ normalizeShowTexts(); updateRemainingSeats(); updateAttendanceSheets(); } },
-  { id: "2026-11-16-offer-ss-R079",                run: function(){ offerSsSeatDraft("R-079"); updateRemainingSeats(); } }
+  { id: "2026-11-16-offer-ss-R079",                run: function(){ offerSsSeatDraft("R-079"); updateRemainingSeats(); } },
+  // 予約一覧に取り込めていなかったフォーム回答のうち SS席以外の6件を受け付ける（SS席の漏れは対応を検討中のため取り込まない）
+  //   10/12 受付開始直後の1件、11/14〜11/16 の認証切れ期間の5件。回答日時（秒まで）で指定する
+  { id: "2026-11-25-import-missed-non-ss",         run: function(){
+      normalizeShowTexts();
+      importMissedResponses(["2026/10/12 21:01:39", "2026/11/14 12:48:49", "2026/11/15 18:31:50",
+                             "2026/11/15 21:56:07", "2026/11/16 01:42:30", "2026/11/16 01:43:09"]);
+      reconcileFormResponses(); writeSeatSummary(); } }
 ];
 
 // SS席にキャンセルが出たので、上限超過で S席にご案内した予約を SS席に戻し、お詫びとご案内のメールを「下書き」で作る（送信はしない）
@@ -2194,6 +2202,45 @@ function update_bookingFlow() {
 // フォーム回答を予約一覧の見出しに合わせて1行追加し、その行番号を返す
 // 予約フォームに届いた回答と予約一覧を突き合わせ、予約一覧に入っていない回答をシート「フォーム照合」に書き出す
 //   戻り値：{ responses: 回答数, missing: 見つからない数 }（個人情報は返さない）
+// 予約一覧に取り込めていなかったフォーム回答を、通常の申し込みと同じ流れ（予約番号・残席判定・受付表・キャスト通知・確定メール）で受け付ける
+//   stamps：回答日時（"yyyy/MM/dd HH:mm:ss"、日本時間）の配列。予約一覧にすでに入っている回答・SS席の回答は取り込まない
+//   確定メールには受付が遅れたことのお詫び文を入れる。戻り値：取り込んだ件数（個人情報は返さない）
+function importMissedResponses(stamps) {
+  var want = {}; stamps.forEach(function(s){ want[s] = true; });
+  var form = FormApp.openById(PropertiesService.getScriptProperties().getProperty("FORM_ID"));
+  var n = 0;
+  form.getResponses().forEach(function(fr){
+    var key = Utilities.formatDate(fr.getTimestamp(), "Asia/Tokyo", "yyyy/MM/dd HH:mm:ss");
+    if (!want[key]) return;
+    var seat = "";
+    fr.getItemResponses().forEach(function(ir){ if (ir.getItem().getTitle().indexOf("席種") !== -1) seat = String(ir.getResponse()); });
+    if (seat === "SS席") { Logger.log("SS席の回答のため取り込みません：" + key); return; }
+    if (responseInSheet(fr, true)) { Logger.log("すでに予約一覧にあります：" + key); return; }
+    var ev = { response: fr, late: true };
+    onFormSubmit(ev);
+    n++;
+    Logger.log("✅ 取り込みました：" + key + "（" + (ev.row ? ev.row + "行目" : "行不明") + "）");
+  });
+  return n;
+}
+
+// フォーム回答が予約一覧に入っているか（名前が一致し、タイムスタンプが1分以内か同じ日）
+//   strict=true：タイムスタンプが2秒以内のときだけ一致とみなす（同じ方が同じ日に2回申し込んだ回答を取りこぼさないため）
+function responseInSheet(fr, strict) {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("予約一覧");
+  var data = sheet.getDataRange().getValues(), hdr = data[0].map(String);
+  var cTs = hdr.indexOf("タイムスタンプ"), cName = hdr.indexOf("お名前");
+  var norm = function(v){ return String(v || "").replace(/[\s　]/g, ""); };
+  var name = "";
+  fr.getItemResponses().forEach(function(ir){ if (ir.getItem().getTitle().indexOf("お名前") !== -1) name = norm(ir.getResponse()); });
+  var ts = fr.getTimestamp();
+  return data.slice(1).some(function(r){
+    var d = r[cTs] instanceof Date ? r[cTs] : new Date(r[cTs]);
+    var diff = Math.abs(d.getTime() - ts.getTime());
+    return norm(r[cName]) === name && (strict ? diff < 2000 : (diff < 60000 || d.toDateString() === ts.toDateString()));
+  });
+}
+
 function reconcileFormResponses() {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var form = FormApp.openById(PropertiesService.getScriptProperties().getProperty("FORM_ID"));
@@ -3171,6 +3218,7 @@ function doGet(e) {
   if (e && e.parameter && e.parameter.api === "version") {
     var info = JSON.parse(PropertiesService.getScriptProperties().getProperty("SELF_DEPLOY_INFO") || "{}");
     info.code = CODE_REVISION;
+    try { info.triggers = ScriptApp.getProjectTriggers().map(function(t){ return t.getHandlerFunction(); }); } catch (err) { info.triggers = "error"; }
     return ContentService.createTextOutput(JSON.stringify(info)).setMimeType(ContentService.MimeType.JSON);
   }
 
@@ -4643,7 +4691,7 @@ function mailFooter() {
 }
 
 // フォーム送信時のメール：本予約ならご予約確定、満席ならキャンセル待ち受付
-function sendReservationReceivedMail(response, reservationNo, waitlisted) {
+function sendReservationReceivedMail(response, reservationNo, waitlisted, late) {
   if (!CONFIG.mail.reservation) return;
   var a = {};
   var answers = response.getItemResponses();
@@ -4654,6 +4702,7 @@ function sendReservationReceivedMail(response, reservationNo, waitlisted) {
     mail: a["メールアドレス"], name: a["お名前"] || "", show: a["ご希望の公演日時"] || "",
     seat: a["席種"] || "", count: toSeatCount(a["枚数"]), resNo: reservationNo, cast: a["取り扱いキャスト"] || ""
   };
+  r.late = !!late;
   if (waitlisted) sendWaitlistMail(r);
   else sendBookingConfirmedMail(r, false);
 }
@@ -4672,11 +4721,17 @@ function reservationDetailText(r) {
     "━━━━━━━━━━━━━━━━━━━━\n\n";
 }
 
+// 取り込みが遅れた予約のメールに入れるお詫び文（r.late のときだけ）
+function lateApologyText(r) {
+  return r && r.late ? "システムの不具合によりお申し込みの受付処理が遅れ、ご連絡が大変遅くなりましたことを深くお詫び申し上げます。\n\n" : "";
+}
+
 // ご予約確定（本予約）メール。promoted=true はキャンセル待ちからの繰り上げ
 function sendBookingConfirmedMail(r, promoted) {
   var body =
     r.name + " 様\n\n" +
     "この度は「" + CONFIG.title + "」にご予約いただき、誠にありがとうございます。\n" +
+    lateApologyText(r) +
     (promoted ? "お待たせいたしました。キャンセル待ちでお申し込みのお席が確保できましたので、\n以下の内容でご予約が確定しました（本予約）。\n\n"
               : "以下の内容でご予約が確定しました（本予約）。\n\n") +
     reservationDetailText(r) +
@@ -4694,6 +4749,7 @@ function sendWaitlistMail(r) {
   var body =
     r.name + " 様\n\n" +
     "この度は「" + CONFIG.title + "」にお申し込みいただき、誠にありがとうございます。\n" +
+    lateApologyText(r) +
     "ご希望の公演・席種はただいま満席のため、キャンセル待ち（仮予約）として受け付けました。\n" +
     "お席が空き次第、お申し込み順に「ご予約確定」のメールをお送りします。\n" +
     "※ご予約確定のメールが届くまでは、ご予約は確定しておりません。\n\n" +
