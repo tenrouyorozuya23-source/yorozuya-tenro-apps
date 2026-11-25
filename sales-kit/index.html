@@ -1,0 +1,244 @@
+<title>萬屋天狼 舞台技術サービス</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@700;800&family=Zen+Kaku+Gothic+New:wght@500;700&family=Noto+Sans+JP:wght@400;500;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+/* Layout: a stage cue sheet — numbered cues down the left, content to the right; a red tally lamp marks what is "on air". */
+:root {
+  --bg: #f3f4f7;
+  --paper: #ffffff;
+  --ink: #1a1f3a;
+  --muted: #5a6078;
+  --line: #d9dce6;
+  --tally: #c63d2c;
+  --steel: #34506b;
+  --tint: #eef1f7;
+  --f-brand: "Shippori Mincho B1", "Hiragino Mincho ProN", "Yu Mincho", serif;
+  --f-head: "Zen Kaku Gothic New", "Hiragino Sans", "Yu Gothic", sans-serif;
+  --f-body: "Noto Sans JP", "Hiragino Sans", "Yu Gothic", sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1220; --paper: #171b2e; --ink: #e7e9f2; --muted: #a3a9c2; --line: #2c3250;
+    --tally: #ec6a55; --steel: #8fb0cf; --tint: #1d2238; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f1220; --paper: #171b2e; --ink: #e7e9f2; --muted: #a3a9c2; --line: #2c3250;
+  --tally: #ec6a55; --steel: #8fb0cf; --tint: #1d2238; color-scheme: dark;
+}
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.8; }
+.wrap { max-width: 920px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 0 4rem; }
+
+.draft { margin-top: 1rem; border: 1px dashed var(--tally); color: var(--tally); font-size: 13px; padding: .5rem .9rem; border-radius: 6px; }
+
+header.hero { padding-block: 3rem 2.5rem; border-bottom: 1px solid var(--line); display: grid; gap: 1.2rem; }
+.brand { display: flex; align-items: center; gap: .7rem; font-family: var(--f-brand); font-size: 1.15rem; letter-spacing: .12em; }
+.lamp { width: 10px; height: 10px; border-radius: 50%; background: var(--tally); box-shadow: 0 0 0 4px color-mix(in srgb, var(--tally) 22%, transparent); flex: none; }
+.hero h1 { font-family: var(--f-head); font-weight: 700; font-size: clamp(1.9rem, 5.4vw, 3rem); line-height: 1.3; margin: 0; text-wrap: balance; }
+.hero h1 em { font-style: normal; color: var(--tally); }
+.hero p { margin: 0; max-width: 40em; color: var(--muted); }
+.chips { display: flex; flex-wrap: wrap; gap: .5rem; }
+.chip { font-size: 13px; border: 1px solid var(--line); background: var(--paper); padding: .2rem .7rem; border-radius: 999px; }
+
+section { padding-block: 2.6rem 0; }
+.eyebrow { font-family: var(--f-mono); font-size: 12px; letter-spacing: .14em; color: var(--steel); text-transform: uppercase; }
+h2 { font-family: var(--f-head); font-size: 1.55rem; margin: .2rem 0 1.2rem; text-wrap: balance; }
+h3 { font-family: var(--f-head); font-size: 1.15rem; margin: 0; }
+
+.services { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem; }
+.svc { background: var(--paper); border: 1px solid var(--line); border-radius: 10px; padding: 1.3rem 1.3rem 1.1rem; display: grid; gap: .7rem; align-content: start; min-width: 0; }
+.svc.feature { border-color: var(--tally); }
+.svc .tag { font-family: var(--f-mono); font-size: 12px; color: var(--tally); letter-spacing: .08em; }
+.svc ul { margin: 0; padding-left: 1.1em; color: var(--muted); font-size: 14px; }
+.svc .when { font-size: 13px; background: var(--tint); border-radius: 6px; padding: .45rem .7rem; }
+
+.table-box { overflow-x: auto; background: var(--paper); border: 1px solid var(--line); border-radius: 10px; }
+table { width: 100%; border-collapse: collapse; min-width: 560px; }
+th, td { text-align: left; padding: .8rem 1rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+thead th { font-family: var(--f-head); font-size: 13px; color: var(--muted); font-weight: 500; background: var(--tint); }
+tbody tr:last-child td { border-bottom: none; }
+td.price { font-family: var(--f-mono); font-variant-numeric: tabular-nums; white-space: nowrap; text-align: right; font-weight: 600; }
+td.price small { display: block; font-weight: 500; color: var(--muted); font-size: 12px; }
+td .sub { display: block; color: var(--muted); font-size: 13px; }
+tr.group td { background: var(--tint); font-family: var(--f-head); font-weight: 700; font-size: 14px; padding-block: .5rem; }
+.note { font-size: 13px; color: var(--muted); margin-top: .7rem; }
+
+.discounts { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: .8rem; }
+.disc { border: 1px solid var(--line); background: var(--paper); border-radius: 10px; padding: 1rem 1.1rem; display: grid; gap: .3rem; align-content: start; }
+.disc .pct { font-family: var(--f-mono); font-size: 1.5rem; font-weight: 600; color: var(--tally); line-height: 1.2; }
+.disc .name { font-family: var(--f-head); font-weight: 700; }
+.disc .cond { font-size: 13px; color: var(--muted); }
+.example { margin-top: 1rem; background: var(--paper); border: 1px solid var(--line); border-left: 4px solid var(--steel); border-radius: 6px; padding: 1rem 1.2rem; font-size: 14px; }
+.example .calc { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+
+.cues { display: grid; gap: 0; border-top: 1px solid var(--line); }
+.cue { display: grid; grid-template-columns: 4.2rem 1fr; gap: 1rem; padding-block: 1rem; border-bottom: 1px solid var(--line); }
+.cue .q { font-family: var(--f-mono); font-weight: 600; color: var(--tally); font-size: 1.05rem; }
+.cue p { margin: .2rem 0 0; color: var(--muted); font-size: 14px; }
+
+.works { display: grid; gap: .6rem; margin: 0; padding: 0; list-style: none; }
+.works li { display: grid; grid-template-columns: 6.5rem 1fr; gap: 1rem; padding: .8rem 1rem; background: var(--paper); border: 1px solid var(--line); border-radius: 8px; }
+.works .kind { font-family: var(--f-mono); font-size: 12px; color: var(--steel); padding-top: .2rem; }
+.works span.d { display: block; color: var(--muted); font-size: 13px; }
+
+.strengths { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.2rem; }
+.strengths div { min-width: 0; }
+.strengths p { margin: .3rem 0 0; color: var(--muted); font-size: 14px; }
+
+footer.contact { margin-top: 3rem; padding: 1.6rem 1.4rem; background: var(--ink); color: var(--bg); border-radius: 12px; display: grid; gap: .8rem; }
+footer.contact h2 { margin: 0; color: var(--bg); }
+footer.contact dl { margin: 0; display: grid; grid-template-columns: 8rem 1fr; gap: .3rem 1rem; font-size: 14px; }
+footer.contact dt { opacity: .7; }
+footer.contact dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+
+@media (max-width: 520px) {
+  .cue { grid-template-columns: 3rem 1fr; gap: .6rem; }
+  .works li { grid-template-columns: 1fr; gap: .2rem; }
+  footer.contact dl { grid-template-columns: 1fr; }
+  footer.contact dd { margin-bottom: .5rem; }
+}
+</style>
+
+<div class="wrap">
+  <p class="draft">下書き：料金・実績・連絡先は確定前です。公開前に確認してください。</p>
+
+  <header class="hero">
+    <div class="brand"><span class="lamp" aria-hidden="true"></span>合同会社 萬屋天狼</div>
+    <h1>舞台の<em>配信・音響・制作</em>を、<br>ひとつの窓口で。</h1>
+    <p>小劇場の公演を、技術とITで支えます。カメラとミキサーを扱うエンジニアが、予約・受付・物販のシステムまで自前で用意します。必要なものだけを選んで依頼でき、組み合わせるほどお得になります。</p>
+    <div class="chips">
+      <span class="chip">舞台配信 3〜4カメラ</span>
+      <span class="chip">舞台音響オペレーション</span>
+      <span class="chip">制作・物販運営</span>
+      <span class="chip">予約・受付・物販システム</span>
+    </div>
+  </header>
+
+  <section>
+    <div class="eyebrow">Services</div>
+    <h2>サービス</h2>
+    <div class="services">
+      <article class="svc feature">
+        <span class="tag">LIVE STREAMING</span>
+        <h3>舞台配信</h3>
+        <ul>
+          <li>3カメラ：センター引き／上手寄り／下手寄り</li>
+          <li>4カメラ：上記＋表情を追うハンディ</li>
+          <li>スイッチング・音声の取り込み・配信の監視まで</li>
+          <li>配信チケットの販売サービスへの出力に対応</li>
+        </ul>
+        <div class="when">土日、または平日1日で完結します</div>
+      </article>
+      <article class="svc">
+        <span class="tag">SOUND</span>
+        <h3>舞台音響</h3>
+        <ul>
+          <li>音響プランの作成と音源・効果音のきっかけ表づくり</li>
+          <li>仕込み・場当たり・ゲネプロ・本番のオペレーション</li>
+          <li>会場の設備を基本に、機材の持ち込みもご相談可</li>
+        </ul>
+        <div class="when">仕込みから本番までの日程はご相談ください</div>
+      </article>
+      <article class="svc">
+        <span class="tag">PRODUCTION</span>
+        <h3>制作・物販運営</h3>
+        <ul>
+          <li>予約受付フォームと予約一覧、キャスト別の予約リスト</li>
+          <li>当日受付（予約番号・名前で検索）</li>
+          <li>物販レジ（現金・カード、領収書PDF、売上集計）</li>
+          <li>受付・物販スタッフの手配と現場運営</li>
+        </ul>
+        <div class="when">年6公演の運営実績があります</div>
+      </article>
+    </div>
+  </section>
+
+  <section>
+    <div class="eyebrow">Price</div>
+    <h2>料金</h2>
+    <div class="table-box">
+      <table>
+        <thead><tr><th>プラン</th><th>内容</th><th style="text-align:right">正規価格（税別）</th></tr></thead>
+        <tbody>
+          <tr class="group"><td colspan="3">舞台配信（1ステージ）</td></tr>
+          <tr><td>3カメラ</td><td>カメラ3台・スイッチング・配信<span class="sub">オペレーター含む</span></td><td class="price">¥150,000<small>税込 ¥165,000</small></td></tr>
+          <tr><td>4カメラ</td><td>3カメラ＋ハンディ1台<span class="sub">表情・寄りの多い作品向け</span></td><td class="price">¥180,000<small>税込 ¥198,000</small></td></tr>
+          <tr class="group"><td colspan="3">舞台音響（1公演一式）</td></tr>
+          <tr><td>音響オペレーション</td><td>プラン作成・仕込み・本番オペレーション<span class="sub">日数・機材によりお見積り</span></td><td class="price">¥180,000<small>税込 ¥198,000</small></td></tr>
+          <tr class="group"><td colspan="3">制作・物販運営（1公演）</td></tr>
+          <tr><td>運営一式</td><td>受付・物販の現場運営、スタッフ手配<span class="sub">本番4日程度を想定</span></td><td class="price">¥150,000<small>税込 ¥165,000</small></td></tr>
+          <tr><td>システム利用料</td><td>予約・受付・物販システムの準備と運用</td><td class="price">¥40,000<small>税込 ¥44,000</small></td></tr>
+          <tr class="group"><td colspan="3">オプション</td></tr>
+          <tr><td>アーカイブ映像</td><td>配信映像の編集・データ納品</td><td class="price">¥30,000<small>税込 ¥33,000</small></td></tr>
+          <tr><td>SNS用ショート動画</td><td>見どころの切り抜き 3本（縦型・横型）</td><td class="price">¥20,000<small>税込 ¥22,000</small></td></tr>
+          <tr><td>同日2ステージ目の配信</td><td>同じ機材配置のまま続けて配信</td><td class="price">¥60,000<small>税込 ¥66,000</small></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">交通費・会場までの機材運搬費は別途いただく場合があります。当社は適格請求書発行事業者です。</p>
+  </section>
+
+  <section>
+    <div class="eyebrow">Discount</div>
+    <h2>割引（組み合わせ可・合計で最大20%）</h2>
+    <div class="discounts">
+      <div class="disc"><span class="pct">10%</span><span class="name">セット割</span><span class="cond">配信・音響・制作物販のうち2つ以上を同じ公演で依頼</span></div>
+      <div class="disc"><span class="pct">10%</span><span class="name">継続割</span><span class="cond">年2回以上のご依頼、またはリピート</span></div>
+      <div class="disc"><span class="pct">5%</span><span class="name">早期割</span><span class="cond">公演の2か月前までにご依頼を確定</span></div>
+      <div class="disc"><span class="pct">5%</span><span class="name">実績掲載割</span><span class="cond">写真や映像を当社の実績として紹介してよい場合</span></div>
+    </div>
+    <div class="example">
+      <strong>例：</strong>配信（3カメラ）と音響を同じ公演で依頼し、2か月前に確定した場合<br>
+      <span class="calc">¥150,000 ＋ ¥180,000 ＝ ¥330,000 → セット割10%＋早期割5%で <strong>¥280,500</strong>（税別）</span>
+    </div>
+  </section>
+
+  <section>
+    <div class="eyebrow">Flow</div>
+    <h2>ご依頼の流れ</h2>
+    <div class="cues">
+      <div class="cue"><span class="q">Q1</span><div><h3>お問い合わせ</h3><p>公演名・会場・日程・ステージ数と、依頼したい内容をお知らせください。</p></div></div>
+      <div class="cue"><span class="q">Q2</span><div><h3>お見積り</h3><p>3営業日以内にお見積りをお送りします。割引の適用もこの時点で確認します。</p></div></div>
+      <div class="cue"><span class="q">Q3</span><div><h3>打合せ・会場の確認</h3><p>カメラ位置、音響のきっかけ、受付の動線を一緒に決めます。</p></div></div>
+      <div class="cue"><span class="q">Q4</span><div><h3>仕込み・本番</h3><p>当日はスタッフが現場を担当します。予約・物販の数字はリアルタイムで確認できます。</p></div></div>
+      <div class="cue"><span class="q">Q5</span><div><h3>納品・精算</h3><p>アーカイブ映像や売上の集計をお渡しし、請求書を発行します。</p></div></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="eyebrow">Works</div>
+    <h2>実績</h2>
+    <ul class="works">
+      <li><span class="kind">制作・物販</span><div>小劇場劇団の本公演・公演運営<span class="d">年6公演を継続して担当</span></div></li>
+      <li><span class="kind">システム</span><div>舞台「家族の絆」予約・受付・物販システム<span class="d">全7ステージ・3席種の予約とキャンセル待ち、物販144品目</span></div></li>
+      <li><span class="kind">主催・技術</span><div>自主公演「天狼祭2026」<span class="d">主催・技術・予約運営を一貫して担当</span></div></li>
+      <li><span class="kind">配信</span><div>舞台公演のライブ配信<span class="d">年4公演（3〜4カメラ）</span></div></li>
+      <li><span class="kind">音響</span><div>ブライダル音響オペレーション<span class="d">毎月の挙式・披露宴を担当</span></div></li>
+      <li><span class="kind">映像・音響</span><div>企業式典・イベントの技術運営<span class="d">常駐で継続して担当</span></div></li>
+    </ul>
+  </section>
+
+  <section>
+    <div class="eyebrow">Why us</div>
+    <h2>選ばれる理由</h2>
+    <div class="strengths">
+      <div><h3>技術とシステムが一つの窓口</h3><p>配信・音響のエンジニアが、予約や物販の仕組みも自分で作っています。業者を何社も手配する必要がありません。</p></div>
+      <div><h3>小劇場の予算に合わせられる</h3><p>必要なサービスだけを選べます。組み合わせや継続のご依頼には割引で応えます。</p></div>
+      <div><h3>現場を楽にする仕組み</h3><p>予約一覧・受付・物販レジがつながっているので、当日の受付が早く、終演後の精算もすぐ終わります。</p></div>
+    </div>
+  </section>
+
+  <footer class="contact">
+    <h2>お問い合わせ</h2>
+    <dl>
+      <dt>会社名</dt><dd>合同会社萬屋天狼</dd>
+      <dt>担当</dt><dd>（担当者名を記入）</dd>
+      <dt>メール</dt><dd>（連絡用メールアドレスを記入）</dd>
+      <dt>電話・LINE</dt><dd>（必要なら記入）</dd>
+      <dt>登録番号</dt><dd>T5030003022991</dd>
+    </dl>
+  </footer>
+</div>
