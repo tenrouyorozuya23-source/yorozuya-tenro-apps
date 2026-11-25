@@ -38,8 +38,8 @@ var CONFIG = {
     //   10/12 の受付集中で取り込めていなかった SS席のお申し込みのうち、いちばん早い方に割り当てる（11/25）→ SS席は10席で満席
     //   S席は残り2席を、SS席の取り込み漏れでS席をご案内中のお二人（返信待ち）のために確保し、新規受付を止めた（上限 8）
     //   10/12 21:02:03 申込の方は A席（SS特典付き）をご希望 → A席で登録し、確保は残る1名分のみ（上限 9）
-    //   残る方を S席で登録するときは、この上限を外してから登録する
-    { dt: "12/5(土) 13:00", cap: 60, seatCaps: { "S席": 9 } },
+    //   残る 10/12 21:06:57 申込の方は S席をご承諾（通路側を確保）→ 上限を外して S席で登録（S席は残り1席を通常販売）
+    { dt: "12/5(土) 13:00", cap: 60 },
     { dt: "12/5(土) 18:30", cap: 60 },
     { dt: "12/6(日) 13:00", cap: 60 },
     { dt: "12/6(日) 18:30", cap: 60 },
@@ -1794,7 +1794,7 @@ function setup_availability() {
 //   初回：appsscript.json に oauthScopes（script.projects・script.deployments ほか）を入れ、setup_selfDeploy() を1回実行
 // ============================================================
 // コードの目印（変更のたびに更新すると、?api=version で反映を確認できる）
-var CODE_REVISION = "2026-11-25-fukuda-a2";
+var CODE_REVISION = "2026-11-25-morota-s";
 
 var SELF_DEPLOY = {
   repo:   "tenrouyorozuya23-source/yorozuya-tenro-apps",
@@ -1929,6 +1929,17 @@ var MIGRATIONS = [
         var d = sh.getDataRange().getValues();
         for (var i = 0; i < d.length; i++) if (String(d[i][6]).indexOf("2026/10/12 21:02:03") !== -1) {
           sh.getRange(i + 1, 1).setValue(r.resNo); sh.getRange(i + 1, 8).setValue("A席（ご希望・SS特典付き）"); sh.getRange(i + 1, 10).setValue("A席で登録済み");
+        }
+      }
+      updateFormAvailability(); updateRemainingSeats(); reconcileFormResponses(); writeSeatSummary(); } },
+  { id: "2026-11-25-morota-s-seat",                run: function(){
+      var r = importMissedResponses(["2026/10/12 21:06:57"], { seat: "S席", allowSS: true, noMail: true, detail: true,
+        note: "【11/25 SS席取り込み漏れのお詫び：S席に変更・通路側の席を確保・SS特典の非売品ブロマイドを受付でお渡し】" })[0];
+      var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("SS超過のご連絡");
+      if (r && sh) {
+        var d = sh.getDataRange().getValues();
+        for (var i = 0; i < d.length; i++) if (String(d[i][6]).indexOf("2026/10/12 21:06:57") !== -1) {
+          sh.getRange(i + 1, 1).setValue(r.resNo); sh.getRange(i + 1, 8).setValue("S席（通路側・SS特典付き）"); sh.getRange(i + 1, 10).setValue(r.waitlisted ? "要確認（キャンセル待ちになった）" : "S席で登録済み");
         }
       }
       updateFormAvailability(); updateRemainingSeats(); reconcileFormResponses(); writeSeatSummary(); } },
