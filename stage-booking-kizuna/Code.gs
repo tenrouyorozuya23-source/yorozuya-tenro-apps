@@ -1794,7 +1794,7 @@ function setup_availability() {
 //   初回：appsscript.json に oauthScopes（script.projects・script.deployments ほか）を入れ、setup_selfDeploy() を1回実行
 // ============================================================
 // コードの目印（変更のたびに更新すると、?api=version で反映を確認できる）
-var CODE_REVISION = "2026-11-25-fukuda-a";
+var CODE_REVISION = "2026-11-25-fukuda-a2";
 
 var SELF_DEPLOY = {
   repo:   "tenrouyorozuya23-source/yorozuya-tenro-apps",
@@ -1920,8 +1920,9 @@ var MIGRATIONS = [
       reconcileFormResponses(); writeSeatSummary(); } },
   // SS席で取り込めていなかった4件：12/5 13:00 の空き1席をいちばん早い方に割り当て、全員へお詫びとご案内のメールを「下書き」で作る
   { id: "2026-11-25-hold-s-1205",                  run: function(){ updateFormAvailability(); updateRemainingSeats(); writeSeatSummary(); } },
-  { id: "2026-11-25-fukuda-a-seat",                run: function(){
-      var r = importMissedResponses(["2026/10/12 21:02:03"], { seat: "A席", noMail: true, detail: true,
+  // 1回目（fukuda-a-seat）は SS席の回答を取り込まない判定に当たり何もしなかったため、allowSS を付けてやり直す
+  { id: "2026-11-25-fukuda-a-seat-2",              run: function(){
+      var r = importMissedResponses(["2026/10/12 21:02:03"], { seat: "A席", allowSS: true, noMail: true, detail: true,
         note: "【11/25 SS席取り込み漏れのお詫び：ご希望により A席で登録・SS特典の非売品ブロマイドを受付でお渡し】" })[0];
       var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("SS超過のご連絡");
       if (r && sh) {
