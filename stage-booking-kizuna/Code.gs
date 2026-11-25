@@ -36,9 +36,10 @@ var CONFIG = {
     { dt: "12/4(金) 18:30", cap: 60 },
     // 12/5 13:00：R-060 のキャンセルで空いた SS席1席は、R-079 河原様から期限までにご返信がなかったため（S席のまま）、
     //   10/12 の受付集中で取り込めていなかった SS席のお申し込みのうち、いちばん早い方に割り当てる（11/25）→ SS席は10席で満席
-    //   S席は残り2席を、SS席の取り込み漏れでS席をご案内中のお二人（返信待ち）のために確保し、新規受付を止める（上限 8）
-    //   お二人を S席で登録するときは、この上限を外してから登録する
-    { dt: "12/5(土) 13:00", cap: 60, seatCaps: { "S席": 8 } },
+    //   S席は残り2席を、SS席の取り込み漏れでS席をご案内中のお二人（返信待ち）のために確保し、新規受付を止めた（上限 8）
+    //   10/12 21:02:03 申込の方は A席（SS特典付き）をご希望 → A席で登録し、確保は残る1名分のみ（上限 9）
+    //   残る方を S席で登録するときは、この上限を外してから登録する
+    { dt: "12/5(土) 13:00", cap: 60, seatCaps: { "S席": 9 } },
     { dt: "12/5(土) 18:30", cap: 60 },
     { dt: "12/6(日) 13:00", cap: 60 },
     { dt: "12/6(日) 18:30", cap: 60 },
@@ -1399,6 +1400,7 @@ function onFormSubmit(e) {
     if (title.indexOf("枚数") !== -1)                                     seatCount = toSeatCount(val);
     if (title.indexOf("公演日時") !== -1 || title.indexOf("公演") !== -1) showDt    = val;
   }
+  if (e.seatOverride) seatType = e.seatOverride;
 
   // ヘッダーで列番号を特定
   var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
@@ -1792,7 +1794,7 @@ function setup_availability() {
 //   初回：appsscript.json に oauthScopes（script.projects・script.deployments ほか）を入れ、setup_selfDeploy() を1回実行
 // ============================================================
 // コードの目印（変更のたびに更新すると、?api=version で反映を確認できる）
-var CODE_REVISION = "2026-11-25-hold-s-1205";
+var CODE_REVISION = "2026-11-25-fukuda-a";
 
 var SELF_DEPLOY = {
   repo:   "tenrouyorozuya23-source/yorozuya-tenro-apps",
@@ -1918,6 +1920,17 @@ var MIGRATIONS = [
       reconcileFormResponses(); writeSeatSummary(); } },
   // SS席で取り込めていなかった4件：12/5 13:00 の空き1席をいちばん早い方に割り当て、全員へお詫びとご案内のメールを「下書き」で作る
   { id: "2026-11-25-hold-s-1205",                  run: function(){ updateFormAvailability(); updateRemainingSeats(); writeSeatSummary(); } },
+  { id: "2026-11-25-fukuda-a-seat",                run: function(){
+      var r = importMissedResponses(["2026/10/12 21:02:03"], { seat: "A席", noMail: true, detail: true,
+        note: "【11/25 SS席取り込み漏れのお詫び：ご希望により A席で登録・SS特典の非売品ブロマイドを受付でお渡し】" })[0];
+      var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("SS超過のご連絡");
+      if (r && sh) {
+        var d = sh.getDataRange().getValues();
+        for (var i = 0; i < d.length; i++) if (String(d[i][6]).indexOf("2026/10/12 21:02:03") !== -1) {
+          sh.getRange(i + 1, 1).setValue(r.resNo); sh.getRange(i + 1, 8).setValue("A席（ご希望・SS特典付き）"); sh.getRange(i + 1, 10).setValue("A席で登録済み");
+        }
+      }
+      updateFormAvailability(); updateRemainingSeats(); reconcileFormResponses(); writeSeatSummary(); } },
   { id: "2026-11-25-missed-ss-drafts",             run: function(){ missedSsApologyDrafts(); updateRemainingSeats(); reconcileFormResponses(); writeSeatSummary(); } }
 ];
 
@@ -2225,8 +2238,13 @@ function importMissedResponses(stamps, opts) {
     fr.getItemResponses().forEach(function(ir){ if (ir.getItem().getTitle().indexOf("席種") !== -1) seat = String(ir.getResponse()); });
     if (seat === "SS席" && !opts.allowSS) { Logger.log("SS席の回答のため取り込みません：" + key); return; }
     if (responseInSheet(fr, true)) { Logger.log("すでに予約一覧にあります：" + key); return; }
-    var ev = { response: fr, late: true, noMail: !!opts.noMail };
+    var ev = { response: fr, late: true, noMail: !!opts.noMail, seatOverride: opts.seat || "" };
     onFormSubmit(ev);
+    if (opts.note && ev.row) {
+      var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("予約一覧");
+      var cNote = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0].map(String).indexOf("備考");
+      if (cNote >= 0) { var old = String(sh.getRange(ev.row, cNote + 1).getValue() || ""); sh.getRange(ev.row, cNote + 1).setValue(opts.note + (old ? " " + old : "")); }
+    }
     n++; done.push({ key: key, row: ev.row, resNo: ev.resNo, waitlisted: ev.waitlisted });
     Logger.log("✅ 取り込みました：" + key + "（" + (ev.row ? ev.row + "行目" : "行不明") + "）");
   });
