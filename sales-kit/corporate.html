@@ -1,0 +1,225 @@
+<title>WOLFLARE 映像音響事業</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=Zen+Kaku+Gothic+New:wght@500;700&family=Noto+Sans+JP:wght@400;500;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+/* Layout: a technical spec sheet for event organizers — signal flow up top, a clean price table, then the steps to the day. */
+:root {
+  --bg: #f3f5f8;
+  --paper: #ffffff;
+  --ink: #142030;
+  --muted: #5a6676;
+  --line: #d7dde5;
+  --accent: #1d5f8a;
+  --flare: #d98a1c;
+  --tint: #eaf0f6;
+  --f-mark: "Space Grotesk", "Helvetica Neue", Arial, sans-serif;
+  --f-head: "Zen Kaku Gothic New", "Hiragino Sans", "Yu Gothic", sans-serif;
+  --f-body: "Noto Sans JP", "Hiragino Sans", "Yu Gothic", sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e141d; --paper: #151d29; --ink: #e6ebf2; --muted: #a0abba; --line: #2a3546;
+    --accent: #7fb6dd; --flare: #f0a94a; --tint: #1b2636; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e141d; --paper: #151d29; --ink: #e6ebf2; --muted: #a0abba; --line: #2a3546;
+  --accent: #7fb6dd; --flare: #f0a94a; --tint: #1b2636; color-scheme: dark;
+}
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.8; }
+.wrap { max-width: 920px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 0 4rem; }
+.draft { margin-top: 1rem; border: 1px dashed var(--flare); color: var(--flare); font-size: 13px; padding: .5rem .9rem; border-radius: 6px; }
+
+header.hero { padding-block: 3rem 2.5rem; border-bottom: 1px solid var(--line); display: grid; gap: 1.2rem; }
+.brand { display: flex; align-items: baseline; flex-wrap: wrap; gap: .4rem 1rem; }
+.mark { font-family: var(--f-mark); font-weight: 700; font-size: 1.35rem; letter-spacing: .2em; display: inline-flex; align-items: center; gap: .55rem; }
+.mark::before { content: ""; width: 10px; height: 10px; border-radius: 50%; background: var(--flare); box-shadow: 0 0 0 4px color-mix(in srgb, var(--flare) 25%, transparent); }
+.line-name { font-family: var(--f-head); font-size: 14px; color: var(--muted); }
+.hero h1 { font-family: var(--f-head); font-weight: 700; font-size: clamp(1.8rem, 5vw, 2.8rem); line-height: 1.35; margin: 0; text-wrap: balance; }
+.hero h1 em { font-style: normal; color: var(--accent); }
+.hero p { margin: 0; max-width: 40em; color: var(--muted); }
+.chips { display: flex; flex-wrap: wrap; gap: .5rem; }
+.chip { font-size: 13px; border: 1px solid var(--line); background: var(--paper); padding: .2rem .7rem; border-radius: 999px; }
+
+section { padding-block: 2.6rem 0; }
+.eyebrow { font-family: var(--f-mono); font-size: 12px; letter-spacing: .14em; color: var(--accent); text-transform: uppercase; }
+h2 { font-family: var(--f-head); font-size: 1.5rem; margin: .2rem 0 1.2rem; text-wrap: balance; }
+h3 { font-family: var(--f-head); font-size: 1.1rem; margin: 0; }
+
+.services { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; }
+.svc { background: var(--paper); border: 1px solid var(--line); border-radius: 10px; padding: 1.2rem 1.3rem; display: grid; gap: .5rem; align-content: start; min-width: 0; }
+.svc p { margin: 0; color: var(--muted); font-size: 14px; }
+
+.flow { display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; align-items: center; gap: .8rem; background: var(--paper); border: 1px solid var(--line); border-radius: 10px; padding: 1.3rem; }
+.flow .col { display: grid; gap: .5rem; min-width: 0; }
+.flow .lbl { font-family: var(--f-mono); font-size: 11px; letter-spacing: .12em; color: var(--muted); text-transform: uppercase; }
+.node { border: 1px solid var(--line); border-radius: 8px; padding: .5rem .7rem; font-size: 14px; background: var(--bg); }
+.node small { display: block; color: var(--muted); font-size: 12px; }
+.node.core { border-color: var(--accent); background: var(--tint); font-weight: 700; text-align: center; padding-block: 1rem; }
+.arrow { font-family: var(--f-mono); color: var(--accent); font-size: 1.3rem; }
+.flow-note { font-size: 13px; color: var(--muted); margin-top: .7rem; }
+
+.table-box { overflow-x: auto; background: var(--paper); border: 1px solid var(--line); border-radius: 10px; }
+table { width: 100%; border-collapse: collapse; min-width: 560px; }
+th, td { text-align: left; padding: .8rem 1rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+thead th { font-family: var(--f-head); font-size: 13px; color: var(--muted); font-weight: 500; background: var(--tint); }
+th.num { text-align: right; }
+tbody tr:last-child td { border-bottom: none; }
+tr.group td { background: var(--tint); font-family: var(--f-head); font-weight: 700; font-size: 14px; padding-block: .5rem; }
+td .sub { display: block; color: var(--muted); font-size: 13px; }
+td.price { font-family: var(--f-mono); font-variant-numeric: tabular-nums; white-space: nowrap; text-align: right; font-weight: 600; }
+td.price small { display: block; font-weight: 500; color: var(--muted); font-size: 12px; }
+.note { font-size: 13px; color: var(--muted); margin-top: .7rem; }
+.monitor { margin-top: 1rem; background: var(--paper); border: 1px solid var(--line); border-left: 4px solid var(--flare); border-radius: 6px; padding: .9rem 1.2rem; font-size: 14px; }
+
+.gear { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: .6rem; margin: 0; padding: 0; list-style: none; }
+.gear li { background: var(--paper); border: 1px solid var(--line); border-radius: 8px; padding: .7rem 1rem; display: grid; gap: .1rem; min-width: 0; }
+.gear .kind { font-family: var(--f-mono); font-size: 11px; color: var(--accent); letter-spacing: .1em; }
+.gear .d { color: var(--muted); font-size: 13px; }
+
+.steps { list-style: none; margin: 0; padding: 0; display: grid; border-top: 1px solid var(--line); counter-reset: step; }
+.steps li { display: grid; grid-template-columns: 3rem 1fr; gap: 1rem; padding-block: 1rem; border-bottom: 1px solid var(--line); counter-increment: step; }
+.steps li::before { content: counter(step); font-family: var(--f-mark); font-weight: 700; font-size: 1.3rem; color: var(--accent); }
+.steps p { margin: .2rem 0 0; color: var(--muted); font-size: 14px; }
+
+.works { display: grid; gap: .6rem; margin: 0; padding: 0; list-style: none; }
+.works li { display: grid; grid-template-columns: 6.5rem 1fr; gap: 1rem; padding: .8rem 1rem; background: var(--paper); border: 1px solid var(--line); border-radius: 8px; }
+.works .kind { font-family: var(--f-mono); font-size: 12px; color: var(--accent); padding-top: .2rem; }
+.works span.d { display: block; color: var(--muted); font-size: 13px; }
+
+footer.contact { margin-top: 3rem; padding: 1.6rem 1.4rem; background: var(--ink); color: var(--bg); border-radius: 12px; display: grid; gap: .8rem; }
+footer.contact h2 { margin: 0; color: var(--bg); }
+footer.contact dl { margin: 0; display: grid; grid-template-columns: 8rem 1fr; gap: .3rem 1rem; font-size: 14px; }
+footer.contact dt { opacity: .7; }
+footer.contact dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+
+@media (max-width: 640px) {
+  .flow { grid-template-columns: 1fr; }
+  .arrow { transform: rotate(90deg); justify-self: center; }
+}
+@media (max-width: 520px) {
+  .works li { grid-template-columns: 1fr; gap: .2rem; }
+  footer.contact dl { grid-template-columns: 1fr; }
+  footer.contact dd { margin-bottom: .5rem; }
+}
+</style>
+
+<div class="wrap">
+  <p class="draft">下書き：料金・納期・連絡先は確定前です。公開前に確認してください。</p>
+
+  <header class="hero">
+    <div class="brand"><span class="mark">WOLFLARE</span><span class="line-name">映像音響事業</span></div>
+    <h1>セミナーも学会も、<br><em>配信と記録</em>までまとめて。</h1>
+    <p>講演会、セミナー、シンポジウムのライブ配信と記録映像を、機材の持ち込みから編集・納品まで一括でお引き受けします。会場の音響とつないで、聞き取りやすい音でお届けします。</p>
+    <div class="chips">
+      <span class="chip">企業セミナー・ウェビナー</span>
+      <span class="chip">大学・学会のシンポジウム</span>
+      <span class="chip">社内研修・説明会</span>
+      <span class="chip">講演会・式典</span>
+    </div>
+  </header>
+
+  <section>
+    <div class="eyebrow">Services</div>
+    <h2>できること</h2>
+    <div class="services">
+      <article class="svc"><h3>ライブ配信</h3><p>登壇者の映像とスライドを切り替えながら配信します。YouTube LiveやVimeoに対応し、限定公開やパスワード付きの配信もできます。</p></article>
+      <article class="svc"><h3>記録映像</h3><p>すべてのカメラを個別に収録し、切り替えを整えた記録映像を納品します。アーカイブ配信や社内での共有に使えます。</p></article>
+      <article class="svc"><h3>会場の音声</h3><p>会場の音響設備から音声を受けて、配信と収録に乗せます。音響設備のない会場は、事前にご相談ください。</p></article>
+    </div>
+  </section>
+
+  <section>
+    <div class="eyebrow">Signal flow</div>
+    <h2>配信のしくみ</h2>
+    <div class="flow" role="img" aria-label="カメラ、発表者のPC、会場の音声をスイッチャーで切り替え、ライブ配信と個別収録を同時に行い、記録映像を編集して納品する流れ">
+      <div class="col">
+        <span class="lbl">Input</span>
+        <div class="node">カメラ 1〜3台<small>登壇者・会場全体・寄り</small></div>
+        <div class="node">発表者のPC<small>スライド・資料</small></div>
+        <div class="node">会場の音声<small>音響設備から</small></div>
+      </div>
+      <span class="arrow" aria-hidden="true">→</span>
+      <div class="col">
+        <span class="lbl">Switch</span>
+        <div class="node core">スイッチャー<small>映像を切り替えて1本にまとめる</small></div>
+      </div>
+      <span class="arrow" aria-hidden="true">→</span>
+      <div class="col">
+        <span class="lbl">Output</span>
+        <div class="node">ライブ配信<small>YouTube Live・Vimeo など</small></div>
+        <div class="node">全映像の個別収録<small>カメラ・スライドを別々に記録</small></div>
+        <div class="node">編集した記録映像<small>後日納品</small></div>
+      </div>
+    </div>
+    <p class="flow-note">配信と同時に全映像を別々に記録しているので、本番中の切り替えのずれは、記録映像では直して納品できます。</p>
+  </section>
+
+  <section>
+    <div class="eyebrow">Price</div>
+    <h2>料金</h2>
+    <div class="table-box">
+      <table>
+        <thead><tr><th>パック</th><th>内容</th><th class="num">料金（税別）</th></tr></thead>
+        <tbody>
+          <tr class="group"><td colspan="3">基本パック（半日・4時間まで）</td></tr>
+          <tr><td>ライト</td><td>カメラ1台＋スライド、配信、録画データの納品<span class="sub">社内研修・小規模なセミナー向け</span></td><td class="price">¥60,000〜<small>税込 ¥66,000〜</small></td></tr>
+          <tr><td>スタンダード</td><td>カメラ2〜3台の切り替え＋スライド、配信、全映像の個別収録<span class="sub">講演会・シンポジウム向け</span></td><td class="price">¥90,000〜<small>税込 ¥99,000〜</small></td></tr>
+          <tr class="group"><td colspan="3">オプション</td></tr>
+          <tr><td>1日対応</td><td>8時間までに延長</td><td class="price">＋¥30,000<small>税込 ＋¥33,000</small></td></tr>
+          <tr><td>記録映像の編集</td><td>切り替えの修正、テロップ入り</td><td class="price">＋¥30,000〜<small>税込 ＋¥33,000〜</small></td></tr>
+          <tr><td>2名体制</td><td>アシスタントを追加<span class="sub">カメラ3台以上・広い会場向け</span></td><td class="price">＋¥15,000<small>税込 ＋¥16,500</small></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">交通費・機材の運搬費は実費をいただきます。安定した配信のため、会場の有線LAN（上り10Mbps以上が目安）をご用意ください。お支払いは請求書による銀行振込です。</p>
+    <div class="monitor"><strong>実績掲載モニター（先着3件）</strong>：当日の写真や映像を当社の実績として紹介させていただける場合、基本パックを20%引きでお受けします。</div>
+  </section>
+
+  <section>
+    <div class="eyebrow">Equipment</div>
+    <h2>持ち込む機材</h2>
+    <ul class="gear">
+      <li><span class="kind">SWITCHER</span>Blackmagic Design ATEM Mini Extreme ISO<span class="d">入力8系統。全入力の個別収録</span></li>
+      <li><span class="kind">SWITCHER</span>Blackmagic Design ATEM Mini Pro ISO<span class="d">入力4系統。予備・小規模案件用</span></li>
+      <li><span class="kind">CAMERA</span>Sony α7S II／α6400／FDR-AX45<span class="d">暗い会場や長時間の収録にも対応</span></li>
+      <li><span class="kind">AUDIO</span>ZOOM H8<span class="d">複数トラックの収録と簡易ミキサー</span></li>
+    </ul>
+  </section>
+
+  <section>
+    <div class="eyebrow">Flow</div>
+    <h2>当日までの流れ</h2>
+    <ol class="steps">
+      <li><div><h3>お問い合わせ</h3><p>日時、会場、参加人数、配信の有無をお知らせください。</p></div></li>
+      <li><div><h3>お見積り</h3><p>2営業日以内にお送りします。</p></div></li>
+      <li><div><h3>事前の打ち合わせ</h3><p>オンラインで30分ほど。会場の回線と音響設備、スライドの受け渡し方法を確認します。</p></div></li>
+      <li><div><h3>当日</h3><p>開始の2時間前から設営し、リハーサルのあと本番、終了後に撤収します。</p></div></li>
+      <li><div><h3>納品</h3><p>録画データは翌営業日までに、編集した記録映像は10営業日以内にお渡しします。</p></div></li>
+    </ol>
+  </section>
+
+  <section>
+    <div class="eyebrow">Works</div>
+    <h2>実績</h2>
+    <ul class="works">
+      <li><span class="kind">機材保守</span><div>施設の映像音響機材の保守点検と運用<span class="d">業務委託で継続して担当</span></div></li>
+      <li><span class="kind">配信</span><div>舞台公演のライブ配信<span class="d">年4公演。3〜4カメラ、全カメラの個別収録</span></div></li>
+      <li><span class="kind">主催・技術</span><div>自主公演「天狼祭2026」<span class="d">5ステージの主催と技術</span></div></li>
+    </ul>
+  </section>
+
+  <footer class="contact">
+    <h2>お問い合わせ</h2>
+    <dl>
+      <dt>会社名</dt><dd>WOLFLARE（合同会社萬屋天狼）</dd>
+      <dt>担当</dt><dd>（担当者名を記入）</dd>
+      <dt>メール</dt><dd>（連絡用メールアドレスを記入）</dd>
+      <dt>電話</dt><dd>（必要なら記入）</dd>
+      <dt>登録番号</dt><dd>T5030003022991（適格請求書発行事業者）</dd>
+    </dl>
+  </footer>
+</div>

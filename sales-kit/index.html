@@ -1,8 +1,8 @@
-<title>萬屋天狼 舞台技術サービス</title>
+<title>WOLFLARE 舞台事業</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@700;800&family=Zen+Kaku+Gothic+New:wght@500;700&family=Noto+Sans+JP:wght@400;500;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=Zen+Kaku+Gothic+New:wght@500;700&family=Noto+Sans+JP:wght@400;500;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
 <style>
 /* Layout: a stage cue sheet — numbered cues down the left, content to the right; a red tally lamp marks what is "on air". */
 :root {
@@ -14,7 +14,7 @@
   --tally: #c63d2c;
   --steel: #34506b;
   --tint: #eef1f7;
-  --f-brand: "Shippori Mincho B1", "Hiragino Mincho ProN", "Yu Mincho", serif;
+  --f-brand: "Space Grotesk", "Helvetica Neue", Arial, sans-serif;
   --f-head: "Zen Kaku Gothic New", "Hiragino Sans", "Yu Gothic", sans-serif;
   --f-body: "Noto Sans JP", "Hiragino Sans", "Yu Gothic", sans-serif;
   --f-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", monospace;
@@ -35,7 +35,8 @@ body { background: var(--bg); color: var(--ink); font-family: var(--f-body); fon
 .draft { margin-top: 1rem; border: 1px dashed var(--tally); color: var(--tally); font-size: 13px; padding: .5rem .9rem; border-radius: 6px; }
 
 header.hero { padding-block: 3rem 2.5rem; border-bottom: 1px solid var(--line); display: grid; gap: 1.2rem; }
-.brand { display: flex; align-items: center; gap: .7rem; font-family: var(--f-brand); font-size: 1.15rem; letter-spacing: .12em; }
+.brand { display: flex; align-items: center; flex-wrap: wrap; gap: .4rem .7rem; font-family: var(--f-brand); font-weight: 700; font-size: 1.35rem; letter-spacing: .2em; }
+.brand .line-name { font-family: var(--f-head); font-weight: 500; font-size: 14px; letter-spacing: 0; color: var(--muted); margin-left: .3rem; }
 .lamp { width: 10px; height: 10px; border-radius: 50%; background: var(--tally); box-shadow: 0 0 0 4px color-mix(in srgb, var(--tally) 22%, transparent); flex: none; }
 .hero h1 { font-family: var(--f-head); font-weight: 700; font-size: clamp(1.9rem, 5.4vw, 3rem); line-height: 1.3; margin: 0; text-wrap: balance; }
 .hero h1 em { font-style: normal; color: var(--tally); }
@@ -108,7 +109,7 @@ footer.contact dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
   <p class="draft">下書き：料金・実績・連絡先は確定前です。公開前に確認してください。</p>
 
   <header class="hero">
-    <div class="brand"><span class="lamp" aria-hidden="true"></span>合同会社 萬屋天狼</div>
+    <div class="brand"><span class="lamp" aria-hidden="true"></span>WOLFLARE<span class="line-name">舞台事業（旧・萬屋天狼）</span></div>
     <h1>舞台の<em>配信・音響・制作</em>を、<br>ひとつの窓口で。</h1>
     <p>小劇場の公演を、技術とITで支えます。カメラとミキサーを扱うエンジニアが、予約・受付・物販のシステムまで自前で用意します。必要なものだけを選んで依頼でき、組み合わせるほどお得になります。</p>
     <div class="chips">
@@ -236,7 +237,7 @@ footer.contact dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
   <footer class="contact">
     <h2>お問い合わせ</h2>
     <dl>
-      <dt>会社名</dt><dd>合同会社萬屋天狼</dd>
+      <dt>会社名</dt><dd>WOLFLARE（合同会社萬屋天狼）</dd>
       <dt>担当</dt><dd>（担当者名を記入）</dd>
       <dt>メール</dt><dd>（連絡用メールアドレスを記入）</dd>
       <dt>電話・LINE</dt><dd>（必要なら記入）</dd>
